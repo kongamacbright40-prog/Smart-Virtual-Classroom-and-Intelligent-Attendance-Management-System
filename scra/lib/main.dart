@@ -1,37 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'camera_test_screen.dart';
-import 'webrtc/signaling_service.dart';
-import 'webrtc/peer_connection_manager.dart';
+import 'screens/live_class_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  final signaling = SignalingService(
-    roomId: 'room123',
-    userId: 'user400',
-    serverUrl: 'ws://YOUR_SERVER_IP:8000',
-  );
-
-  final peerManager = PeerConnectionManager(
-    signaling: signaling,
-    remoteUserId: 'otherUserId',
-  );
-
-  try {
-    await peerManager.init();
-
-    signaling.onOffer = (data) => peerManager.handleOffer(data['payload']);
-    signaling.onAnswer = (data) => peerManager.handleAnswer(data['payload']);
-    signaling.onCandidate = (data) =>
-        peerManager.handleCandidate(data['payload']);
-
-    await signaling.connect();
-    print('Connected: ${signaling.isConnected}');
-  } catch (e) {
-    print('Setup failed: $e');
-  }
-
+void main() {
   runApp(const MyApp());
 }
 
@@ -94,6 +66,23 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
               child: const Text('Test Camera'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LiveClassScreen(
+                      roomId: 'room123',
+                      userId: 'user400',
+                      remoteUserId: 'otherUserId',
+                      serverUrl: 'ws://YOUR_SERVER_IP:8000',
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Test Live Class'),
             ),
           ],
         ),
