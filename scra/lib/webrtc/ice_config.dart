@@ -1,4 +1,5 @@
 class IceConfig {
+  // here ice config simply tells us what server the peer coonection is allowed to use
   static Map<String, dynamic> get configuration => {
     'iceServers': [
       {
@@ -7,12 +8,9 @@ class IceConfig {
           'stun:stun1.l.google.com:19302',
         ],
       },
-      // TODO: add your TURN server here once you have one, e.g.:
-      // {
-      //   'urls': 'turn:your.turn.server:3478',
-      //   'username': 'user',
-      //   'credential': 'pass',
-      // },
     ],
   };
 }
+/*The STURN server, wchich gives public address when asked by the device
+which is been written in flutter webrtc format for peer connection
+*/

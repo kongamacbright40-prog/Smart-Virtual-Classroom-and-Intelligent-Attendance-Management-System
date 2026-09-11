@@ -1,16 +1,17 @@
-import 'dart:convert';
+import 'dart:convert'; //this help json and dart to communicate together
 
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/web_socket_channel.dart'; // this contains the websocket channel thatbpemits live connection on a server
 
-typedef SignalCallback = void Function(Map<String, dynamic> data);
+typedef SignalCallback = void Function(Map<String, dynamic> data);// any valid signalcallback muss accept one map
 
 class SignalingService {
   final String roomId;
   final String userId;
   final String serverUrl;
+  //the adress needed here for information to be transfered
 
-  WebSocketChannel? _channel;
-  bool _isConnected = false;
+  WebSocketChannel? _channel;// underscore in dart means the code belongs only to this file
+  bool _isConnected = false; // here a signalling service is been creatded but no connecion is been opened yet
 
   SignalCallback? onOffer;
   SignalCallback? onAnswer;
@@ -18,11 +19,13 @@ class SignalingService {
   SignalCallback? onUserJoined;
   SignalCallback? onUserLeft;
   void Function()? onDisconnected;
+  // here are the 
 
   SignalingService({
     required this.roomId,
     required this.userId,
     required this.serverUrl,
+    //must be listed for for signalling to take place, if not it fails
   });
 
   bool get isConnected => _isConnected;
