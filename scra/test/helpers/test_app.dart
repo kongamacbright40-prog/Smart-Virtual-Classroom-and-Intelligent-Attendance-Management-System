@@ -67,7 +67,7 @@ Future<void> signInAs(WidgetTester tester, UserRole role) async {
   await tester.enterText(find.byKey(const Key('login_identifier')), identifier);
   await tester.enterText(
       find.byKey(const Key('login_password')), DemoAccounts.password);
-  await tester.tap(find.byKey(const Key('login_submit')));
+  await tapVisible(tester, find.byKey(const Key('login_submit')));
   await pumpFrames(tester, 10);
 }
 

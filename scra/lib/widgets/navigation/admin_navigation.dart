@@ -10,7 +10,7 @@ import '../../features/admin/settings/admin_settings_screen.dart';
 import '../../features/admin/users/user_management_screen.dart';
 import '../../features/authentication/providers/auth_provider.dart';
 import '../common/app_logo.dart';
-import '../dialogs/confirmation_dialog.dart';
+import '../dialogs/logout_dialog.dart';
 import 'role_shell.dart';
 
 /// Admin bottom navigation: Dashboard • Users • Courses • Settings, plus a
@@ -106,21 +106,10 @@ class AdminDrawer extends StatelessWidget {
         _item(context, Icons.admin_panel_settings_outlined, 'Admin Profile',
             () => push(RouteNames.adminProfile)),
         const Divider(),
-        _item(context, Icons.logout, AppStrings.logout, () async {
-          final navigator = Navigator.of(context);
-          final auth = context.read<AuthProvider>();
-          navigator.pop();
-          final ok = await ConfirmationDialog.show(
-            navigator.context,
-            title: AppStrings.logoutTitle,
-            message: AppStrings.logoutMessage,
-            confirmLabel: AppStrings.logout,
-            destructive: true,
-            icon: Icons.logout,
-          );
-          if (!ok) return;
-          await auth.logout();
-          navigator.pushNamedAndRemoveUntil(RouteNames.adminLogin, (_) => false);
+        _item(context, Icons.logout, AppStrings.logout, () {
+          final navigatorContext = Navigator.of(context).context;
+          Navigator.of(context).pop();
+          confirmAndLogout(navigatorContext, loginRoute: RouteNames.adminLogin);
         }, color: theme.colorScheme.error),
       ],
     );
