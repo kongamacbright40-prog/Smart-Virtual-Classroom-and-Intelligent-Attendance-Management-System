@@ -2,7 +2,9 @@ import 'dart:convert'; //this help json and dart to communicate together
 
 import 'package:web_socket_channel/web_socket_channel.dart'; // this contains the websocket channel thatbpemits live connection on a server
 
-typedef SignalCallback = void Function(Map<String, dynamic> data);// any valid signalcallback muss accept one map
+typedef SignalCallback = void Function(
+  Map<String, dynamic> data,
+); // any valid signalcallback muss accept one map
 
 class SignalingService {
   final String roomId;
@@ -10,7 +12,8 @@ class SignalingService {
   final String serverUrl;
   //the adress needed here for information to be transfered
 
-  WebSocketChannel? _channel;// underscore in dart means the code belongs only to this file
+  WebSocketChannel?
+  _channel; // underscore in dart means the code belongs only to this file
   bool _isConnected = false; // here a signalling service is been creatded but no connecion is been opened yet
 
   SignalCallback? onOffer;
@@ -19,7 +22,7 @@ class SignalingService {
   SignalCallback? onUserJoined;
   SignalCallback? onUserLeft;
   void Function()? onDisconnected;
-  // here are the 
+  // here are the
 
   SignalingService({
     required this.roomId,
@@ -31,7 +34,7 @@ class SignalingService {
   bool get isConnected => _isConnected;
 
   Future<void> connect() async {
-    final uri = Uri.parse('$serverUrl/ws/$roomId/$userId');
+    final uri = Uri.parse('$serverUrl/ws/classroom/$roomId/$userId');
     _channel = WebSocketChannel.connect(uri);
     _isConnected = true;
 
@@ -58,13 +61,13 @@ class SignalingService {
         case 'answer':
           onAnswer?.call(data);
           break;
-        case 'candidate':
+        case 'ice-candidate':
           onCandidate?.call(data);
           break;
-        case 'user_joined':
+        case 'peer-joined':
           onUserJoined?.call(data);
           break;
-        case 'user_left':
+        case 'peer-left':
           onUserLeft?.call(data);
           break;
         default:
@@ -89,7 +92,7 @@ class SignalingService {
   }
 
   void sendCandidate(String targetId, Map<String, dynamic> candidate) {
-    _send({'type': 'candidate', 'target': targetId, 'payload': candidate});
+    _send({'type': 'ice-candidate', 'target': targetId, 'payload': candidate});
   }
 
   void disconnect() {

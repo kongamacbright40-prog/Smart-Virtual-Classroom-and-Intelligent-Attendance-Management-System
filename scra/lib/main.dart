@@ -76,7 +76,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     builder: (context) => const LiveClassScreen(
                       roomId: 'room123',
                       userId: 'user400',
-                      remoteUserId: 'otherUserId',
                       serverUrl: 'ws://YOUR_SERVER_IP:8000',
                     ),
                   ),

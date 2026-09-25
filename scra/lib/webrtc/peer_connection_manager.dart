@@ -6,33 +6,30 @@ import 'signaling_service.dart';
 class PeerConnectionManager {
   final SignalingService signaling;
   final String remoteUserId;
+  final MediaStream localStream; // now passed in, not created here
 
   RTCPeerConnection? _peerConnection;
-  MediaStream? localStream;
   MediaStream? remoteStream;
 
   void Function(MediaStream stream)? onRemoteStream;
-  void Function(MediaStream stream)? onLocalStream;
 
-  PeerConnectionManager({required this.signaling, required this.remoteUserId});
+  PeerConnectionManager({
+    required this.signaling,
+    required this.remoteUserId,
+    required this.localStream, // caller now supplies the shared camera stream
+  });
 
   Future<void> init() async {
-    // 1. Get local camera/mic
-    localStream = await navigator.mediaDevices.getUserMedia({
-      'video': {'facingMode': 'user'},
-      'audio': true,
-    });
-    onLocalStream?.call(localStream!);
-
-    // 2. Create the peer connection with STUN/TURN config
+    // Create the peer connection with STUN/TURN config
     _peerConnection = await createPeerConnection(IceConfig.configuration);
 
-    // 3. Add our local tracks so the other side receives them
-    for (var track in localStream!.getTracks()) {
-      await _peerConnection!.addTrack(track, localStream!);
+    //  Add the SHARED local tracks so the other side receives them
+    //    (no getUserMedia call here anymore — one camera stream, many peers)
+    for (var track in localStream.getTracks()) {
+      await _peerConnection!.addTrack(track, localStream);
     }
 
-    // 4. When a remote track arrives, expose it via callback
+    //  When a remote track arrives, expose it via callback
     _peerConnection!.onTrack = (RTCTrackEvent event) {
       if (event.streams.isNotEmpty) {
         remoteStream = event.streams[0];
@@ -40,20 +37,20 @@ class PeerConnectionManager {
       }
     };
 
-    // 5. When we discover an ICE candidate, send it to the other peer
+    //  When we discover an ICE candidate, send it to this specific peer
     _peerConnection!.onIceCandidate = (RTCIceCandidate candidate) {
       signaling.sendCandidate(remoteUserId, candidate.toMap());
     };
   }
 
-  // Called by whoever initiates the call
+  // Called by whoever initiates the call with this specific peer
   Future<void> createOffer() async {
     final offer = await _peerConnection!.createOffer();
     await _peerConnection!.setLocalDescription(offer);
     signaling.sendOffer(remoteUserId, offer.toMap());
   }
 
-  // Called when we receive an offer from the other peer
+  // Called when we receive an offer from this peer
   Future<void> handleOffer(Map<String, dynamic> offerData) async {
     final offer = RTCSessionDescription(offerData['sdp'], offerData['type']);
     await _peerConnection!.setRemoteDescription(offer);
@@ -63,24 +60,25 @@ class PeerConnectionManager {
     signaling.sendAnswer(remoteUserId, answer.toMap());
   }
 
-  // Called when we receive an answer to our offer
+  // Called when we receive an answer to our offer from this peer
   Future<void> handleAnswer(Map<String, dynamic> answerData) async {
     final answer = RTCSessionDescription(answerData['sdp'], answerData['type']);
     await _peerConnection!.setRemoteDescription(answer);
   }
 
-  // Called when a remote ICE candidate arrives
+  // Called when a remote ICE candidate arrives from this peer
   Future<void> handleCandidate(Map<String, dynamic> candidateData) async {
     final candidate = RTCIceCandidate(
       candidateData['candidate'],
       candidateData['sdpMid'],
       candidateData['sdpMLineIndex'],
-    ); // this should be the best coding
+    );
     await _peerConnection!.addCandidate(candidate);
   }
 
+  // Dispose only THIS peer's connection — NOT the shared local stream,
+  // since other peer connections may still be using it.
   Future<void> dispose() async {
-    await localStream?.dispose();
     await remoteStream?.dispose();
     await _peerConnection?.close();
   }

@@ -7,14 +7,14 @@ import '../webrtc/peer_connection_manager.dart';
 class LiveClassScreen extends StatefulWidget {
   final String roomId;
   final String userId;
-  final String remoteUserId;
   final String serverUrl;
+  // Note: remoteUserId is GONE — we no longer know in advance who else
+  // will be in the room. Peers are discovered dynamically as they join.
 
   const LiveClassScreen({
     super.key,
     required this.roomId,
     required this.userId,
-    required this.remoteUserId,
     required this.serverUrl,
   });
 
@@ -24,10 +24,15 @@ class LiveClassScreen extends StatefulWidget {
 
 class _LiveClassScreenState extends State<LiveClassScreen> {
   late SignalingService _signaling;
-  late PeerConnectionManager _peerManager;
 
+  MediaStream? _localStream;
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+
+  // One PeerConnectionManager + one renderer PER remote person in the room,
+  // keyed by their userId. This replaces the old single _peerManager /
+  // _remoteRenderer pair.
+  final Map<String, PeerConnectionManager> _peers = {};
+  final Map<String, RTCVideoRenderer> _remoteRenderers = {};
 
   bool _isInitializing = true;
   String? _errorMessage;
@@ -40,37 +45,58 @@ class _LiveClassScreenState extends State<LiveClassScreen> {
 
   Future<void> _setup() async {
     await _localRenderer.initialize();
-    await _remoteRenderer.initialize();
-
-    _signaling = SignalingService(
-      roomId: widget.roomId,
-      userId: widget.userId,
-      serverUrl: widget.serverUrl,
-    );
-
-    _peerManager = PeerConnectionManager(
-      signaling: _signaling,
-      remoteUserId: widget.remoteUserId,
-    );
-
-    _peerManager.onLocalStream = (stream) {
-      _localRenderer.srcObject = stream;
-      setState(() {});
-    };
-
-    _peerManager.onRemoteStream = (stream) {
-      _remoteRenderer.srcObject = stream;
-      setState(() {});
-    };
 
     try {
-      await _peerManager.init();
+      // Get the camera/mic ONCE — shared across every peer connection we create.
+      _localStream = await navigator.mediaDevices.getUserMedia({
+        'video': {'facingMode': 'user'},
+        'audio': true,
+      });
+      _localRenderer.srcObject = _localStream;
 
-      _signaling.onOffer = (data) => _peerManager.handleOffer(data['payload']);
-      _signaling.onAnswer = (data) =>
-          _peerManager.handleAnswer(data['payload']);
-      _signaling.onCandidate = (data) =>
-          _peerManager.handleCandidate(data['payload']);
+      _signaling = SignalingService(
+        roomId: widget.roomId,
+        userId: widget.userId,
+        serverUrl: widget.serverUrl,
+      );
+
+      // A new peer joined the room — create a connection just for them,
+      // and WE make the offer (since we were already here, they're the newcomer).
+      _signaling.onUserJoined = (data) async {
+        final newPeerId = data['from'] as String;
+        final manager = await _createPeerFor(newPeerId);
+        await manager.createOffer();
+      };
+
+      // Someone sent us an offer — find or create their connection, then answer.
+      _signaling.onOffer = (data) async {
+        final fromId = data['from'] as String;
+        final manager = _peers[fromId] ?? await _createPeerFor(fromId);
+        await manager.handleOffer(data['payload']);
+      };
+
+      // Someone answered OUR offer — route it to the right peer.
+      _signaling.onAnswer = (data) async {
+        final fromId = data['from'] as String;
+        await _peers[fromId]?.handleAnswer(data['payload']);
+      };
+
+      // An ICE candidate arrived — route it to the right peer.
+      _signaling.onCandidate = (data) async {
+        final fromId = data['from'] as String;
+        await _peers[fromId]?.handleCandidate(data['payload']);
+      };
+
+      // Someone left — clean up just their connection and renderer.
+      _signaling.onUserLeft = (data) async {
+        final leftId = data['from'] as String;
+        await _peers[leftId]?.dispose();
+        _peers.remove(leftId);
+        await _remoteRenderers[leftId]?.dispose();
+        setState(() {
+          _remoteRenderers.remove(leftId);
+        });
+      };
 
       await _signaling.connect();
 
@@ -85,11 +111,40 @@ class _LiveClassScreenState extends State<LiveClassScreen> {
     }
   }
 
+  // Creates a PeerConnectionManager + a matching video renderer for one
+  // specific remote person, and wires up its remote-stream callback.
+  Future<PeerConnectionManager> _createPeerFor(String peerId) async {
+    final renderer = RTCVideoRenderer();
+    await renderer.initialize();
+    _remoteRenderers[peerId] = renderer;
+
+    final manager = PeerConnectionManager(
+      signaling: _signaling,
+      remoteUserId: peerId,
+      localStream: _localStream!,
+    );
+
+    manager.onRemoteStream = (stream) {
+      renderer.srcObject = stream;
+      if (mounted) setState(() {});
+    };
+
+    await manager.init();
+    _peers[peerId] = manager;
+    return manager;
+  }
+
   @override
   void dispose() {
     _localRenderer.dispose();
-    _remoteRenderer.dispose();
-    _peerManager.dispose();
+    _localStream?.getTracks().forEach((track) => track.stop());
+    _localStream?.dispose();
+    for (final manager in _peers.values) {
+      manager.dispose();
+    }
+    for (final renderer in _remoteRenderers.values) {
+      renderer.dispose();
+    }
     _signaling.disconnect();
     super.dispose();
   }
@@ -110,7 +165,24 @@ class _LiveClassScreenState extends State<LiveClassScreen> {
             )
           : Stack(
               children: [
-                Positioned.fill(child: RTCVideoView(_remoteRenderer)),
+                // Remote video feeds laid out in a simple grid — grows
+                // automatically as more people join.
+                Positioned.fill(
+                  child: _remoteRenderers.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'Waiting for others to join...',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        )
+                      : GridView.count(
+                          crossAxisCount: _remoteRenderers.length > 1 ? 2 : 1,
+                          children: _remoteRenderers.values
+                              .map((renderer) => RTCVideoView(renderer))
+                              .toList(),
+                        ),
+                ),
+                // Your own camera stays as a small overlay, same as before.
                 Positioned(
                   right: 16,
                   bottom: 16,
