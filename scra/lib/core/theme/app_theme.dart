@@ -103,8 +103,9 @@ abstract final class AppTheme {
     final text = textTheme(scheme.onSurface, scheme.onSurfaceVariant);
     final isDark = scheme.brightness == Brightness.dark;
     final radiusMd = BorderRadius.circular(AppDimensions.radiusMd);
-    final cardColor =
-        isDark ? scheme.surfaceContainerLow : AppColors.surfaceContainerLowest;
+    final cardColor = isDark
+        ? scheme.surfaceContainerLow
+        : AppColors.surfaceContainerLowest;
 
     return ThemeData(
       useMaterial3: true,
@@ -130,9 +131,7 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          side: BorderSide(
-            color: scheme.outlineVariant.withValues(alpha: 0.5),
-          ),
+          side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -183,8 +182,9 @@ abstract final class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: radiusMd,
-          borderSide:
-              BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+          borderSide: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.6),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: radiusMd,
@@ -202,7 +202,17 @@ abstract final class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: scheme.surfaceContainerHigh,
         selectedColor: scheme.primaryContainer,
-        labelStyle: text.labelMedium,
+        checkmarkColor: scheme.onPrimary,
+        labelStyle: WidgetStateTextStyle.resolveWith(
+          (states) => (text.labelMedium ?? const TextStyle()).copyWith(
+            color: states.contains(WidgetState.selected)
+                ? scheme.onPrimary
+                : scheme.onSurfaceVariant,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w600
+                : FontWeight.w500,
+          ),
+        ),
         side: BorderSide.none,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -211,8 +221,9 @@ abstract final class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: isDark ? scheme.surfaceContainer : cardColor,
         surfaceTintColor: Colors.transparent,
-        indicatorColor:
-            isDark ? scheme.primaryContainer : AppColors.primaryFixed,
+        indicatorColor: isDark
+            ? scheme.primaryContainer
+            : AppColors.primaryFixed,
         elevation: 2,
         height: AppDimensions.bottomNavHeight,
         labelTextStyle: WidgetStateProperty.resolveWith(
@@ -242,8 +253,9 @@ abstract final class AppTheme {
         iconColor: scheme.onSurfaceVariant,
         titleTextStyle: text.titleSmall,
         subtitleTextStyle: text.bodySmall,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: AppDimensions.spaceMd),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.spaceMd,
+        ),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(

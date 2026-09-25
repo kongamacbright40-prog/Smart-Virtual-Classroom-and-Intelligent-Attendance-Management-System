@@ -172,10 +172,13 @@ class _SummaryCard extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                CircularProgressIndicator(
-                  value: percent / 100,
-                  strokeWidth: 10,
-                  color: Helpers.attendanceColor(percent),
+                Positioned.fill(
+                  child: CircularProgressIndicator(
+                    value: percent / 100,
+                    strokeWidth: 10,
+                    color: Helpers.attendanceColor(percent),
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  ),
                 ),
                 Column(
                   mainAxisSize: MainAxisSize.min,
@@ -184,7 +187,7 @@ class _SummaryCard extends StatelessWidget {
                       Formatters.percent(percent),
                       style: theme.textTheme.headlineSmall,
                     ),
-                    const Text('Aggregate'),
+                    Text('Aggregate', style: theme.textTheme.labelMedium),
                   ],
                 ),
               ],

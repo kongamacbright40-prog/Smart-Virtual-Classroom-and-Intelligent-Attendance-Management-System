@@ -287,7 +287,14 @@ class _SectionLabel extends StatelessWidget {
           Expanded(
             child: Text(label, style: Theme.of(context).textTheme.labelLarge),
           ),
-          if (trailing != null) Chip(label: Text(trailing!)),
+          if (trailing != null)
+            Flexible(
+              child: StatusChip(
+                label: trailing!,
+                tone: StatusTone.primary,
+                dense: true,
+              ),
+            ),
         ],
       ),
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_colors.dart';
+
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../models/models.dart';
@@ -21,17 +23,21 @@ class ScheduleItem extends StatelessWidget {
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${DateTime.now().difference(session.startTime).inMinutes.clamp(0, 999)}m elapsed',
+                DefaultTextStyle.merge(
+                  style: Theme.of(context).textTheme.labelMedium
+                      ?.copyWith(color: AppColors.slate300),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${DateTime.now().difference(session.startTime).inMinutes.clamp(0, 999)}m elapsed',
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${session.endTime.difference(DateTime.now()).inMinutes.clamp(0, 999)}m remaining',
-                    ),
-                  ],
+                      Text(
+                        '${session.endTime.difference(DateTime.now()).inMinutes.clamp(0, 999)}m remaining',
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: AppDimensions.spaceSm),
                 LinearProgressIndicator(

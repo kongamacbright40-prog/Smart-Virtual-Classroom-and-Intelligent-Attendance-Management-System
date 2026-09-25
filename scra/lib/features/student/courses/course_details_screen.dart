@@ -324,9 +324,13 @@ class _OverviewTab extends StatelessWidget {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        CircularProgressIndicator(
-                          value: data.summary.percentage / 100,
-                          strokeWidth: 8,
+                        Positioned.fill(
+                          child: CircularProgressIndicator(
+                            value: data.summary.percentage / 100,
+                            strokeWidth: 8,
+                            backgroundColor:
+                                theme.colorScheme.surfaceContainerHighest,
+                          ),
                         ),
                         Text(
                           Formatters.percent(data.summary.percentage),

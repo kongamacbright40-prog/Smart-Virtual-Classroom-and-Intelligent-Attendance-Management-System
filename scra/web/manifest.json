@@ -1,11 +1,11 @@
 {
-    "name": "scra",
-    "short_name": "scra",
+    "name": "Smart Class",
+    "short_name": "Smart Class",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Smart Class - virtual classroom and attendance management.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
