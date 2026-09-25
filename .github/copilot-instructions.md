@@ -22,8 +22,9 @@ lives in `scra/` (Dart package `smart_class`).
    `AuthProvider`, `SettingsProvider` and `ClassroomController`
    (`ClassroomScope(sessionId: ...)`).
 3. New data sources implement the repository interface in
-   `lib/repositories/mock/` and `lib/repositories/api/`; wire them in
-   `lib/core/di/app_dependencies.dart`.
+   `lib/repositories/api/` (plus a test fake in `scra/test/fakes/`); wire them in
+   `lib/core/di/app_dependencies.dart`. Never add sample or dummy data to the
+   app; fixtures belong in `scra/test/fakes/` only.
 4. Routes are declared in `lib/core/routing/route_names.dart` and
    `app_router.dart`. Role-scoped routes must start with `/student`,
    `/lecturer` or `/admin` so the guard applies.

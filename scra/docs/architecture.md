@@ -4,7 +4,9 @@ Smart Class is an Android-first Flutter application with three role-based
 experiences (Student, Lecturer, Administrator) built on a layered,
 feature-first architecture. The UI never talks to the network directly; it
 depends on repository interfaces whose implementations can be swapped from
-in-memory mocks to the FastAPI backend without touching screens.
+the FastAPI backend to in-memory test fakes without touching screens.
+The app itself ships no sample data: it always uses the API
+implementations.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -17,8 +19,8 @@ in-memory mocks to the FastAPI backend without touching screens.
 │ Domain        lib/repositories/repositories.dart (interfaces) │
 │               lib/models/** (typed JSON models)               │
 ├──────────────────────────────────────────────────────────────┤
-│ Data          lib/repositories/mock/**  (MockDataStore)       │
-│               lib/repositories/api/**   (REST + WebSocket)    │
+│ Data          lib/repositories/api/**   (REST + WebSocket)    │
+│               test/fakes/**  (in-memory fixtures, tests only) │
 ├──────────────────────────────────────────────────────────────┤
 │ Services      ApiService · StorageService · AuthService       │
 │               WebSocketService · WebRTCService ·              │
@@ -35,11 +37,11 @@ in-memory mocks to the FastAPI backend without touching screens.
 | `lib/core/constants` | Design tokens (`AppColors`, `AppDimensions`), strings, assets, `AppConfig` (dart-define configuration), `ApiEndpoints`, `StorageKeys`. |
 | `lib/core/theme` | Material 3 light/dark themes generated from the Stitch palette. |
 | `lib/core/routing` | `RouteNames`, tab indexes and the role-guarded `AppRouter`. |
-| `lib/core/di` | `AppDependencies` composition root (mock or API graph). |
+| `lib/core/di` | `AppDependencies` composition root (API graph; tests build a fake graph). |
 | `lib/core/utils` | `Validators`, `Formatters`, `AppDateUtils`, `Helpers`. |
 | `lib/core/errors` | `AppException` hierarchy and `ErrorHandler`. |
 | `lib/models` | Null-safe models with `fromJson`/`toJson`/`copyWith` (snake_case JSON). |
-| `lib/repositories` | Interfaces (`repositories.dart`), `mock/` and `api/` implementations. |
+| `lib/repositories` | Interfaces (`repositories.dart`) and `api/` implementations. |
 | `lib/services` | API client, storage, auth session, notifications, WebSocket and WebRTC (with the original signaling/peer-connection code in `services/webrtc/`). |
 | `lib/providers` | Cross-feature state: `SettingsProvider`, `ClassroomController`, `ClassroomRegistry`/`ClassroomScope`. |
 | `lib/widgets` | Reusable UI: scaffold, app bar, states, buttons, cards, inputs, dialogs, loaders, role navigation shells. |
@@ -66,7 +68,7 @@ The app uses [`provider`](https://pub.dev/packages/provider) with
 ## Data flow
 
 ```
-Screen ──calls──▶ Repository interface ──▶ Mock… or Api… implementation
+Screen ──calls──▶ Repository interface ──▶ Api… implementation
   ▲                                              │
   │                                 ApiService (REST, JSON, timeouts,
   │                                 bearer token, error mapping)
@@ -74,13 +76,12 @@ Screen ──calls──▶ Repository interface ──▶ Mock… or Api… imp
 ```
 
 Real-time data (participants, chat, questions, attendance, notifications)
-is exposed as `Stream`s on the repositories. Mock implementations push from
-`MockDataStore` broadcast controllers; API implementations re-fetch or map
-payloads when `WebSocketService` receives events (`participant.*`,
-`chat.message`, `question.*`, `attendance.*`, `notification.created`).
-Audio/video goes through `WebRTCService` (mock by default,
-`FlutterWebRTCService` with the existing mesh signaling when
-`ENABLE_REALTIME_MEDIA=true`).
+is exposed as `Stream`s on the repositories. The API implementations
+re-fetch or map payloads when `WebSocketService` receives events
+(`participant.*`, `chat.message`, `question.*`, `attendance.*`,
+`notification.created`). Audio/video goes through `FlutterWebRTCService`,
+built on the existing mesh signaling. Tests use the in-memory fakes in
+`test/fakes/` (`FakeDependencies`).
 
 Errors are normalized into `AppException` subtypes (`NetworkException`,
 `TimeoutAppException`, `AuthException`, `ValidationException`...). Global
@@ -114,10 +115,8 @@ All environment values live in `AppConfig` and are overridable at build time:
 
 ```
 flutter run \
-  --dart-define=USE_MOCK_DATA=false \
   --dart-define=API_BASE_URL=https://smartclass.example.edu \
-  --dart-define=WS_BASE_URL=wss://smartclass.example.edu \
-  --dart-define=ENABLE_REALTIME_MEDIA=true
+  --dart-define=WS_BASE_URL=wss://smartclass.example.edu
 ```
 
 ## Decisions

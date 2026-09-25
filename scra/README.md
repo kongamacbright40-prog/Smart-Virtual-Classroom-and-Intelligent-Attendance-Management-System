@@ -36,9 +36,8 @@ designs (screens 01–40; the design package has no screen 37).
 ## Architecture
 
 Feature-first, layered: **screens → providers/controllers → repository
-interfaces → mock or API implementations → services**. Screens never call
-the network directly, so the mock data layer can be replaced by the FastAPI
-backend by flipping one flag. See [docs/architecture.md](docs/architecture.md).
+interfaces → REST/WebSocket implementations → services**. Screens never call
+the network directly; tests swap the data layer for in-memory fakes. See [docs/architecture.md](docs/architecture.md).
 
 ```
 Flutter UI ─▶ Repositories ─▶ ApiService (REST) ─▶ FastAPI ─▶ PostgreSQL
@@ -63,30 +62,19 @@ flutter pub get
 
 ## Running
 
-```bash
-# Mock data (default) — no backend required
-flutter run
+The app has no built-in sample data: it needs the Smart Class FastAPI
+backend (REST + WebSocket + WebRTC signaling). Point it at your server:
 
-# Against a FastAPI backend
+```bash
 flutter run \
-  --dart-define=USE_MOCK_DATA=false \
   --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
   --dart-define=WS_BASE_URL=ws://10.0.2.2:8000
-
-# Real camera/microphone through the existing WebRTC signaling server
-flutter run --dart-define=ENABLE_REALTIME_MEDIA=true --dart-define=WS_BASE_URL=ws://<server>:8000
 ```
 
-### Demo accounts (mock mode)
-
-| Role | Identifier | Password |
-| --- | --- | --- |
-| Student | `ICT20251181` or `konga.macbright@student.univ.edu` | `Password123!` |
-| Lecturer | `FAC-2024-8192` or `k.mensah@smartclass.edu.ac` | `Password123!` |
-| Admin | `ADM-001` or `admin.root@smartclass.edu` | `Password123!` |
-
-Password recovery code in mock mode: `8429`. A CS-301 lecture is always
-"live now" in the mock data so the classroom flows can be tried immediately.
+`10.0.2.2` is the host machine as seen from the Android emulator. Without a
+reachable backend, screens show their connection error state with a retry
+action. Accounts are created by the backend (students activate with their
+matricule, lecturers register with their staff ID).
 
 ## Testing
 
@@ -96,7 +84,7 @@ flutter test
 ```
 
 Tests cover model serialization, validators/formatters, the API client and
-API repositories (with `MockClient`), storage/auth services, mock
+API repositories (with `MockClient`), storage/auth services, in-memory
 repositories, the classroom controller, onboarding and authentication flows,
 role-based routing, and the student, lecturer and admin navigation paths
 (including small-phone overflow checks). GitHub Actions runs analyze + test on
@@ -112,12 +100,13 @@ scra/
 │   ├── main.dart · app.dart
 │   ├── core/          constants · theme · routing · di · utils · errors
 │   ├── models/        typed JSON models
-│   ├── repositories/  interfaces · mock/ · api/
+│   ├── repositories/  interfaces · api/
 │   ├── services/      api · auth · storage · notification · websocket · webrtc
 │   ├── providers/     settings · classroom controller & registry
 │   ├── widgets/       common · buttons · cards · inputs · dialogs · loading · navigation
 │   └── features/      onboarding · authentication · student · lecturer · admin
-└── test/              core · models · services · onboarding · authentication · student · lecturer · admin
+└── test/              fakes (test-only fixtures) · helpers · core · models · services ·
+                       onboarding · authentication · student · lecturer · admin
 ```
 
 ## Future backend architecture
@@ -128,6 +117,5 @@ The client is prepared for a FastAPI service backed by PostgreSQL:
 - Entities: [docs/database.md](docs/database.md)
 - Real-time: classroom events over `/ws/sessions/{id}/events`; WebRTC mesh
   signaling over the existing `/ws/classroom/{room}/{user}` endpoint
-- Switch from mocks to the API with `--dart-define=USE_MOCK_DATA=false`
 
 Screen documentation: [docs/screens.md](docs/screens.md).
