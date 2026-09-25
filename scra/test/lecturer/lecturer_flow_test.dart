@@ -6,7 +6,8 @@ import '../helpers/test_app.dart';
 import 'package:smart_class/core/di/app_dependencies.dart';
 import 'package:smart_class/core/routing/route_names.dart';
 import 'package:smart_class/models/user_model.dart';
-import 'package:smart_class/repositories/mock/mock_data_store.dart';
+
+import '../fakes/mock_data_store.dart';
 
 Future<AppDependencies> pumpLecturerApp(
   WidgetTester tester, {

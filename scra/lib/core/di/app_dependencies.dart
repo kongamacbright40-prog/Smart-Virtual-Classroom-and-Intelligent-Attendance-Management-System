@@ -1,15 +1,4 @@
 import '../../repositories/api/api_live_repositories.dart';
-import '../../repositories/mock/mock_admin_repository.dart';
-import '../../repositories/mock/mock_attendance_repository.dart';
-import '../../repositories/mock/mock_auth_repository.dart';
-import '../../repositories/mock/mock_classroom_repository.dart';
-import '../../repositories/mock/mock_course_repository.dart';
-import '../../repositories/mock/mock_data_store.dart';
-import '../../repositories/mock/mock_notification_repository.dart';
-import '../../repositories/mock/mock_question_repository.dart';
-import '../../repositories/mock/mock_report_repository.dart';
-import '../../repositories/mock/mock_schedule_repository.dart';
-import '../../repositories/mock/mock_user_repository.dart';
 import '../../repositories/repositories.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
@@ -17,7 +6,6 @@ import '../../services/notification_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/webrtc_service.dart';
 import '../../services/websocket_service.dart';
-import '../constants/app_constants.dart';
 
 /// Composition root: builds every service and repository once and hands
 /// them to the widget tree (see `app.dart`).
@@ -42,7 +30,6 @@ class AppDependencies {
     required this.notificationRepository,
     required this.adminRepository,
     required this.reportRepository,
-    this.mockStore,
   });
 
   final StorageService storage;
@@ -63,15 +50,10 @@ class AppDependencies {
   final AdminRepository adminRepository;
   final ReportRepository reportRepository;
 
-  /// Present only when running on mock data.
-  final MockDataStore? mockStore;
-
-  /// Builds the dependency graph selected by [AppConfig].
+  /// Builds the production dependency graph.
   static Future<AppDependencies> create() async {
     final storage = StorageService(await SharedPreferencesStore.create());
-    return AppConfig.useMockData
-        ? mock(storage: storage)
-        : api(storage: storage);
+    return api(storage: storage);
   }
 
   /// Graph backed by the FastAPI REST API and WebSocket events.
@@ -87,9 +69,7 @@ class AppDependencies {
       authService: authService,
       apiService: apiService,
       webSocketService: socket,
-      webRTCService: AppConfig.enableRealtimeMedia
-          ? FlutterWebRTCService()
-          : MockWebRTCService(),
+      webRTCService: FlutterWebRTCService(),
       notificationService: InAppNotificationService(repos.notifications),
       authRepository: repos.auth,
       userRepository: repos.users,
@@ -104,51 +84,10 @@ class AppDependencies {
     );
   }
 
-  /// Mock graph used for development, demos and tests.
-  static AppDependencies mock({
-    StorageService? storage,
-    Duration? latency,
-    bool simulateLiveActivity = true,
-    DateTime? now,
-  }) {
-    final storageService = storage ?? StorageService(InMemoryStore());
-    final authService = AuthService(storageService);
-    final data = MockDataStore(now: now);
-    final notifications = MockNotificationRepository(data, latency: latency);
-    return AppDependencies(
-      storage: storageService,
-      authService: authService,
-      apiService: ApiService(tokenProvider: authService.accessToken),
-      webSocketService: MockWebSocketService(),
-      webRTCService: AppConfig.enableRealtimeMedia
-          ? FlutterWebRTCService()
-          : MockWebRTCService(),
-      notificationService: InAppNotificationService(notifications),
-      authRepository: MockAuthRepository(data, latency: latency),
-      userRepository: MockUserRepository(data, latency: latency),
-      courseRepository: MockCourseRepository(data, latency: latency),
-      scheduleRepository: MockScheduleRepository(data, latency: latency),
-      attendanceRepository: MockAttendanceRepository(data, latency: latency),
-      classroomRepository: MockClassroomRepository(data, latency: latency),
-      questionRepository: MockQuestionRepository(
-        data,
-        latency: latency,
-        simulateResponses: simulateLiveActivity,
-      ),
-      notificationRepository: notifications,
-      adminRepository: MockAdminRepository(data, latency: latency),
-      reportRepository: MockReportRepository(data, latency: latency),
-      mockStore: data,
-    );
-  }
-
   Future<void> dispose() async {
     await webRTCService.dispose();
     await webSocketService.dispose();
     await notificationService.dispose();
-    final q = questionRepository;
-    if (q is MockQuestionRepository) q.dispose();
-    await mockStore?.dispose();
     apiService.dispose();
   }
 }

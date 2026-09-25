@@ -1,7 +1,7 @@
 /// Application-wide configuration.
 ///
 /// Values can be overridden at build time with `--dart-define`, e.g.
-/// `flutter run --dart-define=API_BASE_URL=https://api.example.edu --dart-define=USE_MOCK_DATA=false`.
+/// `flutter run --dart-define=API_BASE_URL=https://api.example.edu`.
 abstract final class AppConfig {
   /// Base URL of the FastAPI backend (REST). `10.0.2.2` is the host machine
   /// as seen from the Android emulator.
@@ -22,22 +22,7 @@ abstract final class AppConfig {
     defaultValue: 'ws://10.0.2.2:8000',
   );
 
-  /// When true, the app uses in-memory mock repositories instead of the API.
-  static const bool useMockData = bool.fromEnvironment(
-    'USE_MOCK_DATA',
-    defaultValue: true,
-  );
-
-  /// When true, the live classroom uses real camera/microphone via
-  /// flutter_webrtc and the signaling server. Otherwise a mock media layer
-  /// is used so the UI can be exercised without a backend.
-  static const bool enableRealtimeMedia = bool.fromEnvironment(
-    'ENABLE_REALTIME_MEDIA',
-    defaultValue: false,
-  );
-
   static const Duration requestTimeout = Duration(seconds: 20);
-  static const Duration mockLatency = Duration(milliseconds: 350);
 }
 
 abstract final class AppConstants {

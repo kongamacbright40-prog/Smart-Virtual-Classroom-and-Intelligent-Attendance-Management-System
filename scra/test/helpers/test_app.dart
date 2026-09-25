@@ -5,8 +5,10 @@ import 'package:smart_class/core/constants/app_constants.dart';
 import 'package:smart_class/core/di/app_dependencies.dart';
 import 'package:smart_class/core/routing/route_names.dart';
 import 'package:smart_class/models/user_model.dart';
-import 'package:smart_class/repositories/mock/mock_data_store.dart';
 import 'package:smart_class/services/storage_service.dart';
+
+import '../fakes/fake_dependencies.dart';
+import '../fakes/mock_data_store.dart';
 
 /// Standard Android phone viewport used by widget tests (Pixel 7-ish).
 const Size kPhoneSize = Size(412, 915);
@@ -21,13 +23,10 @@ void setViewport(WidgetTester tester, [Size size = kPhoneSize]) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-/// Mock dependency graph with no artificial latency or background timers.
+/// Fake dependency graph with no artificial latency or background timers.
 AppDependencies testDependencies({InMemoryStore? store}) =>
-    AppDependencies.mock(
-      storage: StorageService(store ?? InMemoryStore()),
-      latency: Duration.zero,
-      simulateLiveActivity: false,
-    );
+    FakeDependencies(storage: StorageService(store ?? InMemoryStore()))
+        .dependencies;
 
 /// Pumps the full app and waits past the splash screen.
 Future<AppDependencies> pumpApp(

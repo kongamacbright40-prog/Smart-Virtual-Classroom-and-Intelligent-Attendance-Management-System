@@ -74,66 +74,6 @@ abstract interface class WebRTCService {
   Future<void> dispose();
 }
 
-/// UI-only implementation: tracks toggles without touching hardware.
-class MockWebRTCService implements WebRTCService {
-  final _controller = StreamController<MediaState>.broadcast();
-  MediaState _state = const MediaState();
-
-  @override
-  MediaState get state => _state;
-
-  @override
-  Stream<MediaState> get stateChanges => _controller.stream;
-
-  void _set(MediaState s) {
-    _state = s;
-    if (!_controller.isClosed) _controller.add(s);
-  }
-
-  @override
-  Future<void> joinRoom({
-    required String roomId,
-    required String userId,
-    bool audio = true,
-    bool video = true,
-  }) async {
-    _set(_state.copyWith(connection: MediaConnectionState.connecting));
-    _set(
-      MediaState(
-        connection: MediaConnectionState.connected,
-        microphoneEnabled: audio,
-        cameraEnabled: video,
-      ),
-    );
-  }
-
-  @override
-  Future<void> leaveRoom() async =>
-      _set(const MediaState(connection: MediaConnectionState.closed));
-
-  @override
-  Future<void> setMicrophoneEnabled(bool enabled) async =>
-      _set(_state.copyWith(microphoneEnabled: enabled));
-
-  @override
-  Future<void> setCameraEnabled(bool enabled) async =>
-      _set(_state.copyWith(cameraEnabled: enabled));
-
-  @override
-  Future<void> switchCamera() async {}
-
-  @override
-  Future<void> startScreenShare() async =>
-      _set(_state.copyWith(screenSharing: true));
-
-  @override
-  Future<void> stopScreenShare() async =>
-      _set(_state.copyWith(screenSharing: false));
-
-  @override
-  Future<void> dispose() => _controller.close();
-}
-
 /// Mesh WebRTC implementation built on the project's existing
 /// [SignalingService] (`/ws/classroom/{roomId}/{userId}`) and
 /// [PeerConnectionManager]: one camera stream shared across one peer

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import '../../models/models.dart';
+import 'package:smart_class/models/models.dart';
 
 /// Demo accounts accepted by the mock authentication repository.
 abstract final class DemoAccounts {

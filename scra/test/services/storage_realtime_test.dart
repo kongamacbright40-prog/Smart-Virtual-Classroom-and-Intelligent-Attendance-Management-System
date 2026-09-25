@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../fakes/fake_realtime.dart';
+
 import 'package:smart_class/models/models.dart';
 import 'package:smart_class/services/auth_service.dart';
 import 'package:smart_class/services/storage_service.dart';

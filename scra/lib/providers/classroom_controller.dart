@@ -12,8 +12,8 @@ import '../services/websocket_service.dart';
 /// State + actions for one live classroom session, shared by the student
 /// and lecturer experiences (classroom, chat, questions, live attendance).
 ///
-/// Realtime data arrives through repository streams (mock today, WebSocket
-/// events tomorrow); audio/video through [WebRTCService].
+/// Realtime data arrives through repository streams fed by WebSocket
+/// events; audio/video through [WebRTCService].
 class ClassroomController extends ChangeNotifier {
   ClassroomController({
     required this.sessionId,

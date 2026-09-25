@@ -1,9 +1,6 @@
-import '../../core/constants/app_constants.dart';
-
-/// Shared behaviour for mock repositories: simulated latency.
+/// Shared behaviour for the in-memory test repositories: optional latency.
 abstract class MockRepositoryBase {
-  MockRepositoryBase({Duration? latency})
-    : latency = latency ?? AppConfig.mockLatency;
+  MockRepositoryBase({Duration? latency}) : latency = latency ?? Duration.zero;
 
   final Duration latency;
 

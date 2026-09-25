@@ -40,7 +40,7 @@ class RealtimeEvent {
 }
 
 /// Abstraction over a real-time channel so repositories can switch from
-/// polling/mocks to server push without UI changes.
+/// polling to server push without UI changes.
 abstract interface class WebSocketService {
   RealtimeConnectionState get state;
   Stream<RealtimeConnectionState> get stateChanges;
@@ -171,55 +171,6 @@ class ChannelWebSocketService implements WebSocketService {
   @override
   Future<void> dispose() async {
     await disconnect();
-    await _events.close();
-    await _states.close();
-  }
-}
-
-/// Connects instantly and loops sent events back, for demos and tests.
-class MockWebSocketService implements WebSocketService {
-  final _events = StreamController<RealtimeEvent>.broadcast();
-  final _states = StreamController<RealtimeConnectionState>.broadcast();
-  RealtimeConnectionState _state = RealtimeConnectionState.disconnected;
-  final List<RealtimeEvent> sent = [];
-
-  @override
-  RealtimeConnectionState get state => _state;
-
-  @override
-  Stream<RealtimeConnectionState> get stateChanges => _states.stream;
-
-  @override
-  Stream<RealtimeEvent> get events => _events.stream;
-
-  void _setState(RealtimeConnectionState s) {
-    _state = s;
-    if (!_states.isClosed) _states.add(s);
-  }
-
-  @override
-  Future<void> connect(String path, {Map<String, String>? query}) async {
-    _setState(RealtimeConnectionState.connecting);
-    _setState(RealtimeConnectionState.connected);
-  }
-
-  /// Simulates a server push.
-  void emit(RealtimeEvent event) {
-    if (!_events.isClosed) _events.add(event);
-  }
-
-  @override
-  void send(RealtimeEvent event) {
-    if (!_state.isConnected) return;
-    sent.add(event);
-  }
-
-  @override
-  Future<void> disconnect() async =>
-      _setState(RealtimeConnectionState.disconnected);
-
-  @override
-  Future<void> dispose() async {
     await _events.close();
     await _states.close();
   }

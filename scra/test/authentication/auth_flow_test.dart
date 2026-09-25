@@ -8,8 +8,10 @@ import 'package:smart_class/features/authentication/presentation/lecturer_regist
 import 'package:smart_class/features/authentication/presentation/login_screen.dart';
 import 'package:smart_class/features/authentication/presentation/student_activation_screen.dart';
 import 'package:smart_class/models/user_model.dart';
-import 'package:smart_class/repositories/mock/mock_auth_repository.dart';
-import 'package:smart_class/repositories/mock/mock_data_store.dart';
+
+import '../fakes/mock_auth_repository.dart';
+import '../fakes/mock_data_store.dart';
+
 import 'package:smart_class/widgets/navigation/admin_navigation.dart';
 import 'package:smart_class/widgets/navigation/lecturer_navigation.dart';
 import 'package:smart_class/widgets/navigation/student_navigation.dart';

@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_class/features/authentication/providers/auth_provider.dart';
 import 'package:smart_class/models/user_model.dart';
-import 'package:smart_class/repositories/mock/mock_auth_repository.dart';
-import 'package:smart_class/repositories/mock/mock_data_store.dart';
+
+import '../fakes/mock_auth_repository.dart';
+import '../fakes/mock_data_store.dart';
+
 import 'package:smart_class/services/auth_service.dart';
 import 'package:smart_class/services/storage_service.dart';
 

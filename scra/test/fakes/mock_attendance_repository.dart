@@ -1,6 +1,7 @@
-import '../../core/errors/app_exception.dart';
-import '../../models/models.dart';
-import '../repositories.dart';
+import 'package:smart_class/core/errors/app_exception.dart';
+import 'package:smart_class/models/models.dart';
+import 'package:smart_class/repositories/repositories.dart';
+
 import 'mock_data_store.dart';
 import 'mock_repository_base.dart';
 

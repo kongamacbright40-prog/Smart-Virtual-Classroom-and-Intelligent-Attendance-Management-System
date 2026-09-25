@@ -2,9 +2,9 @@ import '../models/models.dart';
 
 /// Contracts between the UI/state layer and data sources.
 ///
-/// Every repository has a mock implementation (`repositories/mock/`) used
-/// during UI development and an API implementation (`repositories/api/`)
-/// targeting the FastAPI backend. Screens depend only on these interfaces.
+/// The app uses the API implementations in `repositories/api/` (FastAPI
+/// backend). Tests substitute in-memory fakes from `test/fakes/`. Screens
+/// depend only on these interfaces.
 
 abstract interface class AuthRepository {
   Future<AuthSessionModel> login({

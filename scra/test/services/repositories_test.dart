@@ -1,18 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
+
+import '../fakes/fake_realtime.dart';
+
 import 'package:smart_class/core/errors/app_exception.dart';
 import 'package:smart_class/models/models.dart';
 import 'package:smart_class/providers/classroom_controller.dart';
-import 'package:smart_class/repositories/mock/mock_admin_repository.dart';
-import 'package:smart_class/repositories/mock/mock_attendance_repository.dart';
-import 'package:smart_class/repositories/mock/mock_classroom_repository.dart';
-import 'package:smart_class/repositories/mock/mock_course_repository.dart';
-import 'package:smart_class/repositories/mock/mock_data_store.dart';
-import 'package:smart_class/repositories/mock/mock_notification_repository.dart';
-import 'package:smart_class/repositories/mock/mock_question_repository.dart';
-import 'package:smart_class/repositories/mock/mock_report_repository.dart';
-import 'package:smart_class/repositories/mock/mock_schedule_repository.dart';
-import 'package:smart_class/repositories/mock/mock_user_repository.dart';
-import 'package:smart_class/services/webrtc_service.dart';
+
+import '../fakes/mock_admin_repository.dart';
+import '../fakes/mock_attendance_repository.dart';
+import '../fakes/mock_classroom_repository.dart';
+import '../fakes/mock_course_repository.dart';
+import '../fakes/mock_data_store.dart';
+import '../fakes/mock_notification_repository.dart';
+import '../fakes/mock_question_repository.dart';
+import '../fakes/mock_report_repository.dart';
+import '../fakes/mock_schedule_repository.dart';
+import '../fakes/mock_user_repository.dart';
+
 import 'package:smart_class/services/websocket_service.dart';
 
 void main() {
