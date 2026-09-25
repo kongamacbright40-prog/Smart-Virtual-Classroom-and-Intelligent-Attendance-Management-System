@@ -49,6 +49,7 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
             await courseRepo.getAllCourses(status: _status, query: _query),
             await courseRepo.getAllCourses(),
             await adminRepo.getDepartments(),
+            await adminRepo.getFaculties(),
           );
         },
         builder: (context, data, reload) => RefreshIndicator(
@@ -63,7 +64,7 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
                       color: Theme.of(context).colorScheme.primaryContainer
                           .withValues(alpha: 0.16),
                       child: Text(
-                        '${data.all.length} Total Courses • 8 Faculties Active',
+                        '${data.all.length} Total Courses • ${data.faculties.where((f) => f.isActive).length} Faculties Active',
                       ),
                     ),
                   ),
@@ -128,10 +129,6 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
                     onRoster: () => Navigator.of(context).pushNamed(
                       RouteNames.adminCourseDetails,
                       arguments: course.id,
-                    ),
-                    onBulkEnroll: () => Helpers.showSnackBar(
-                      context,
-                      'Bulk enrollment import queued.',
                     ),
                     onArchive: () => _archive(context, course, reload),
                   ),
@@ -230,10 +227,11 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
 }
 
 class _CoursesData {
-  const _CoursesData(this.courses, this.all, this.departments);
+  const _CoursesData(this.courses, this.all, this.departments, this.faculties);
   final List<CourseModel> courses;
   final List<CourseModel> all;
   final List<DepartmentModel> departments;
+  final List<FacultyModel> faculties;
 }
 
 class _CourseForm extends StatefulWidget {
@@ -249,8 +247,8 @@ class _CourseFormState extends State<_CourseForm> {
   final _formKey = GlobalKey<FormState>();
   final _code = TextEditingController();
   final _title = TextEditingController();
-  final _credits = TextEditingController(text: '3');
-  final _category = TextEditingController(text: 'Core Major');
+  final _credits = TextEditingController();
+  final _category = TextEditingController();
   late String? _departmentId = widget.departments.isEmpty
       ? null
       : widget.departments.first.id;
@@ -322,6 +320,7 @@ class _CourseFormState extends State<_CourseForm> {
                 ),
                 const SizedBox(height: AppDimensions.spaceMd),
                 AppTextField(
+                  fieldKey: const Key('course_category'),
                   controller: _category,
                   label: 'Category',
                   validator: (v) => Validators.required(v, field: 'Category'),

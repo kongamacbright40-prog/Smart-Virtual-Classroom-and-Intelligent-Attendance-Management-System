@@ -77,7 +77,8 @@ class _FacultyCard extends StatelessWidget {
             spacing: AppDimensions.spaceSm,
             runSpacing: AppDimensions.spaceSm,
             children: [
-              _pill(context, faculty.category ?? 'General'),
+              if (faculty.category != null && faculty.category!.isNotEmpty)
+                _pill(context, faculty.category!),
               _pill(context, '${faculty.departmentCount} Departments'),
               _pill(context, '${faculty.courseCount} Courses'),
               _pill(

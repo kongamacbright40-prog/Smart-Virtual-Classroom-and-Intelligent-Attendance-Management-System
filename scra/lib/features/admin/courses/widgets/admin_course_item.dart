@@ -15,7 +15,6 @@ class AdminCourseItem extends StatelessWidget {
     required this.onDetails,
     required this.onRoster,
     required this.onArchive,
-    required this.onBulkEnroll,
   });
 
   final CourseModel course;
@@ -23,7 +22,6 @@ class AdminCourseItem extends StatelessWidget {
   final VoidCallback onDetails;
   final VoidCallback onRoster;
   final VoidCallback onArchive;
-  final VoidCallback onBulkEnroll;
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +57,6 @@ class AdminCourseItem extends StatelessWidget {
                       onAssign();
                     case 'enroll':
                       onRoster();
-                    case 'bulk':
-                      onBulkEnroll();
                     case 'archive':
                       onArchive();
                   }
@@ -74,7 +70,6 @@ class AdminCourseItem extends StatelessWidget {
                     value: 'enroll',
                     child: Text('View Enrollment'),
                   ),
-                  PopupMenuItem(value: 'bulk', child: Text('Bulk Enroll')),
                   PopupMenuItem(value: 'archive', child: Text('Archive')),
                 ],
               ),

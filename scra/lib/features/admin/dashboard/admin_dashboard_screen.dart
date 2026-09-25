@@ -40,9 +40,12 @@ class AdminDashboardScreen extends StatelessWidget {
         load: () async {
           final reports = context.read<ReportRepository>();
           final admin = context.read<AdminRepository>();
+          final terms = await admin.getAcademicTerms();
           return _DashboardData(
             await reports.getAdminDashboard(),
             await admin.getRecentActivity(limit: 5),
+            terms.where((t) => t.status == TermStatus.active).firstOrNull,
+            await admin.getSystemSettings(),
           );
         },
         builder: (context, data, reload) => RefreshIndicator(
@@ -56,22 +59,19 @@ class AdminDashboardScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.circle, size: 10),
                     const SizedBox(width: AppDimensions.spaceSm),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Telemetry & Campus Cloud Active\nAcademic Year 2026/2027 • Semester 2',
+                        data.activeTerm == null
+                            ? 'Campus telemetry\nNo active academic term configured'
+                            : 'Campus telemetry\n${data.activeTerm!.academicYear} • ${data.activeTerm!.name}',
                       ),
-                    ),
-                    StatusChip(
-                      label: 'Synced',
-                      tone: StatusTone.live,
-                      icon: Icons.cloud_done_outlined,
                     ),
                   ],
                 ),
               ),
               adminGap,
               AdminHeroCard(
-                title: 'Academic Nexus Cockpit',
+                title: 'Administration Dashboard',
                 subtitle:
                     '${Formatters.compactNumber(data.report.metric('total_staff'))} Faculty Members currently deployed across active lecture modules.',
                 trailing: StatusChip(
@@ -99,7 +99,7 @@ class AdminDashboardScreen extends StatelessWidget {
                         .round()
                         .toString(),
                     label: 'Active Classes',
-                    helper: 'Halls A, B & Labs',
+                    helper: 'Live classes from repository data',
                     badge: 'Live',
                     tone: StatusTone.live,
                   ),
@@ -122,7 +122,7 @@ class AdminDashboardScreen extends StatelessWidget {
                     ),
                     label: 'Avg Attendance',
                     helper:
-                        'Target: >=${Formatters.percent(data.report.metric('attendance_target'), decimals: 1)}',
+                        'Target: >=${Formatters.percent(data.report.metric('attendance_target', data.settings.minimumAttendance), decimals: 1)}',
                     badge:
                         '+${data.report.metric('attendance_change').toStringAsFixed(1)}% w/w',
                   ),
@@ -205,9 +205,9 @@ class AdminDashboardScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.bluetooth_connected_outlined),
                     const SizedBox(width: AppDimensions.spaceMd),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Infrastructure Verified\n12/12 BLE Gateways Online • Audit Log Active',
+                        'System policy\nMinimum attendance ${Formatters.percent(data.settings.minimumAttendance, decimals: 1)} • Session timeout ${data.settings.sessionTimeoutMinutes} mins',
                       ),
                     ),
                     SecondaryButton(
@@ -229,9 +229,16 @@ class AdminDashboardScreen extends StatelessWidget {
 }
 
 class _DashboardData {
-  const _DashboardData(this.report, this.activity);
+  const _DashboardData(
+    this.report,
+    this.activity,
+    this.activeTerm,
+    this.settings,
+  );
   final ReportModel report;
   final List<ActivityLogModel> activity;
+  final AcademicTermModel? activeTerm;
+  final SystemSettingsModel settings;
 }
 
 class _ActionCard extends StatelessWidget {

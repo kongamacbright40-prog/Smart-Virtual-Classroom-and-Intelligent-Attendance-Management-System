@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:smart_class/core/constants/app_dimensions.dart';
+import 'package:smart_class/core/utils/formatters.dart';
 import 'package:smart_class/core/routing/route_names.dart';
 import 'package:smart_class/core/utils/helpers.dart';
 import 'package:smart_class/features/admin/admin_ui.dart';
@@ -21,174 +22,199 @@ class AdminSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: const AdminScreenHeader(title: 'System Settings'),
-      body: AsyncView<SystemSettingsModel>(
-        load: () => context.read<AdminRepository>().getSystemSettings(),
-        builder: (context, settings, reload) => RefreshIndicator(
-          onRefresh: reload,
-          child: ListView(
-            children: [
-              AdminHeroCard(
-                title: 'Institutional Governance',
-                subtitle: 'Global configurations for Fall Semester 2026',
-                icon: Icons.cloud_done_outlined,
-                trailing: StatusChip(label: 'Synced', tone: StatusTone.live),
-              ),
-              const SizedBox(height: AppDimensions.spaceMd),
-              _Section(
-                title: 'Academic Configuration',
-                trailing: '3 Modules',
-                children: [
-                  AdminInfoRow(
-                    icon: Icons.domain_outlined,
-                    title: 'Manage Departments & Faculties',
-                    subtitle: '4 faculties, 18 departments active',
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed(RouteNames.departments),
+      body: AsyncView<_SettingsData>(
+        load: () async {
+          final repo = context.read<AdminRepository>();
+          final terms = await repo.getAcademicTerms();
+          return _SettingsData(
+            await repo.getSystemSettings(),
+            await repo.getFaculties(),
+            await repo.getDepartments(),
+            terms.where((t) => t.status == TermStatus.active).firstOrNull,
+          );
+        },
+        builder: (context, data, reload) {
+          final settings = data.settings;
+          final activeTerm = data.activeTerm;
+          return RefreshIndicator(
+            onRefresh: reload,
+            child: ListView(
+              children: [
+                AdminHeroCard(
+                  title: 'Institutional Governance',
+                  subtitle: activeTerm == null
+                      ? 'Global configurations'
+                      : 'Global configurations for ${activeTerm.name}',
+                  icon: Icons.cloud_done_outlined,
+                  trailing: StatusChip(
+                    label: settings.lastSyncedAt == null
+                        ? 'Settings'
+                        : 'Synced ${Formatters.timeAgo(settings.lastSyncedAt!)}',
+                    tone: StatusTone.live,
                   ),
-                  AdminInfoRow(
-                    icon: Icons.calendar_month_outlined,
-                    title: 'Academic Terms & Semesters',
-                    subtitle: 'Fall Semester 2026 active • Enrollment open',
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () =>
-                        Navigator.of(context)
-                            .pushNamed(RouteNames.academicTerms),
-                  ),
-                  AdminInfoRow(
-                    icon: Icons.pie_chart_outline,
-                    title: 'Course Allocation & Faculty Quota',
-                    subtitle: 'Automatic capacity & assignment limits',
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () =>
-                        ShellScope.maybeOf(context)
-                            ?.selectTab(AdminTabs.courses),
-                  ),
-                ],
-              ),
-              _Section(
-                title: 'Attendance Policies & Algorithms',
-                trailing: '4 Rules',
-                children: [
-                  AdminInfoRow(
-                    icon: Icons.timelapse_outlined,
-                    title: 'Late Arrival Threshold',
-                    subtitle:
-                        'Mark late after ${settings.lateThresholdMinutes} minutes of class start',
-                    trailing: StatusChip(
-                      label: '${settings.lateThresholdMinutes} mins',
-                      tone: StatusTone.primary,
-                      icon: Icons.tune,
-                      dense: true,
+                ),
+                const SizedBox(height: AppDimensions.spaceMd),
+                _Section(
+                  title: 'Academic Configuration',
+                  trailing: '${data.faculties.length} faculties',
+                  children: [
+                    AdminInfoRow(
+                      icon: Icons.domain_outlined,
+                      title: 'Manage Departments & Faculties',
+                      subtitle:
+                          '${data.faculties.where((f) => f.isActive).length} faculties, ${data.departments.where((d) => d.isActive).length} departments active',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () =>
+                          Navigator.of(context)
+                              .pushNamed(RouteNames.departments),
                     ),
-                    onTap: () => _threshold(context, settings, reload),
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    secondary: const Icon(Icons.sensors_outlined),
-                    title: const Text('Automatic Join / Leave Recording'),
-                    subtitle: const Text('Automate logs with WebRTC telemetry'),
-                    value: settings.autoJoinLeaveRecording,
-                    onChanged: (v) => _save(
-                      context,
-                      settings.copyWith(autoJoinLeaveRecording: v),
-                      reload,
+                    AdminInfoRow(
+                      icon: Icons.calendar_month_outlined,
+                      title: 'Academic Terms & Semesters',
+                      subtitle: activeTerm == null
+                          ? 'No active academic term'
+                          : '${activeTerm.name} • Enrollment ${activeTerm.enrollmentOpen ? 'open' : 'closed'}',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () =>
+                          Navigator.of(context)
+                              .pushNamed(RouteNames.academicTerms),
                     ),
-                  ),
-                  AdminInfoRow(
-                    icon: Icons.forum_outlined,
-                    title: 'Participation Weighting',
-                    subtitle:
-                        'Live Q&A and chat: ${settings.participationWeight}% score weight',
-                    trailing: StatusChip(
-                      label: '${settings.participationWeight}% Weight',
-                      tone: StatusTone.neutral,
-                      icon: Icons.edit_outlined,
-                      dense: true,
+                    AdminInfoRow(
+                      icon: Icons.pie_chart_outline,
+                      title: 'Course Allocation & Faculty Quota',
+                      subtitle: 'Automatic capacity & assignment limits',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () =>
+                          ShellScope.maybeOf(context)
+                              ?.selectTab(AdminTabs.courses),
                     ),
-                    onTap: () => _participation(context, settings, reload),
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    secondary: const Icon(Icons.location_on_outlined),
-                    title: const Text('Enforce Strict Geofencing'),
-                    subtitle: const Text('Verify student location on campus'),
-                    value: settings.strictGeofencing,
-                    onChanged: (v) => _save(
-                      context,
-                      settings.copyWith(strictGeofencing: v),
-                      reload,
+                  ],
+                ),
+                _Section(
+                  title: 'Attendance Policies & Algorithms',
+                  trailing:
+                      '${Formatters.percent(settings.minimumAttendance, decimals: 0)} minimum',
+                  children: [
+                    AdminInfoRow(
+                      icon: Icons.timelapse_outlined,
+                      title: 'Late Arrival Threshold',
+                      subtitle:
+                          'Mark late after ${settings.lateThresholdMinutes} minutes of class start',
+                      trailing: StatusChip(
+                        label: '${settings.lateThresholdMinutes} mins',
+                        tone: StatusTone.primary,
+                        icon: Icons.tune,
+                        dense: true,
+                      ),
+                      onTap: () => _threshold(context, settings, reload),
                     ),
-                  ),
-                ],
-              ),
-              _Section(
-                title: 'Security & Access Control',
-                trailing: 'SSO Active',
-                children: [
-                  const AdminInfoRow(
-                    icon: Icons.badge_outlined,
-                    title: 'Role Permissions & Access Matrix',
-                    subtitle: 'Super Admin, Faculty Dean, Lecturer, Student',
-                    trailing: Icon(Icons.chevron_right),
-                  ),
-                  const AdminInfoRow(
-                    icon: Icons.receipt_long_outlined,
-                    title: 'Audit Logs & Compliance',
-                    subtitle: 'Immutable tamper-proof activity ledger',
-                    trailing: Icon(Icons.chevron_right),
-                  ),
-                  AdminInfoRow(
-                    icon: Icons.timer_off_outlined,
-                    title: 'Session Inactivity Timeout',
-                    subtitle: 'Force re-authentication after idle duration',
-                    trailing: StatusChip(
-                      label: '${settings.sessionTimeoutMinutes} mins',
-                      tone: StatusTone.neutral,
-                      dense: true,
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.sensors_outlined),
+                      title: const Text('Automatic Join / Leave Recording'),
+                      subtitle: const Text(
+                        'Automate logs with WebRTC telemetry',
+                      ),
+                      value: settings.autoJoinLeaveRecording,
+                      onChanged: (v) => _save(
+                        context,
+                        settings.copyWith(autoJoinLeaveRecording: v),
+                        reload,
+                      ),
                     ),
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    secondary: const Icon(Icons.vpn_key_outlined),
-                    title: const Text('Enforce Institutional SSO (SAML 2.0)'),
-                    subtitle: const Text('Mandate university single sign-on'),
-                    value: settings.enforceSso,
-                    onChanged: (v) => _save(
-                      context,
-                      settings.copyWith(enforceSso: v),
-                      reload,
+                    AdminInfoRow(
+                      icon: Icons.forum_outlined,
+                      title: 'Participation Weighting',
+                      subtitle:
+                          'Live Q&A and chat: ${settings.participationWeight}% score weight',
+                      trailing: StatusChip(
+                        label: '${settings.participationWeight}% Weight',
+                        tone: StatusTone.neutral,
+                        icon: Icons.edit_outlined,
+                        dense: true,
+                      ),
+                      onTap: () => _participation(context, settings, reload),
                     ),
-                  ),
-                ],
-              ),
-              _Section(
-                title: 'Integrations & Infrastructure',
-                trailing: 'All Systems Nominal',
-                children: const [
-                  AdminInfoRow(
-                    icon: Icons.podcasts_outlined,
-                    title: 'WebRTC Media Server Cluster',
-                    subtitle: 'eu-central-webrtc-01 • 12ms latency',
-                    trailing: Text('Healthy'),
-                  ),
-                  AdminInfoRow(
-                    icon: Icons.sync,
-                    title: 'PostgreSQL & SIS Registrar Sync',
-                    subtitle: 'Automated 6-hour bidirectional sync',
-                    trailing: Text('Synced 18m ago'),
-                  ),
-                  AdminInfoRow(
-                    icon: Icons.cloud_queue_outlined,
-                    title: 'Cloud Storage & Archives',
-                    subtitle: 'AWS S3: 842 GB used of 2 TB allocation',
-                    trailing: Icon(Icons.chevron_right),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.location_on_outlined),
+                      title: const Text('Enforce Strict Geofencing'),
+                      subtitle: const Text('Verify student location on campus'),
+                      value: settings.strictGeofencing,
+                      onChanged: (v) => _save(
+                        context,
+                        settings.copyWith(strictGeofencing: v),
+                        reload,
+                      ),
+                    ),
+                  ],
+                ),
+                _Section(
+                  title: 'Security & Access Control',
+                  trailing: settings.enforceSso
+                      ? 'SSO enabled'
+                      : 'SSO optional',
+                  children: [
+                    AdminInfoRow(
+                      icon: Icons.badge_outlined,
+                      title: 'Role Permissions & Access Matrix',
+                      trailing: const Icon(Icons.chevron_right),
+                      subtitle: UserRole.values.map((r) => r.label).join(', '),
+                    ),
+                    const AdminInfoRow(
+                      icon: Icons.receipt_long_outlined,
+                      title: 'Audit Logs & Compliance',
+                      subtitle: 'Immutable tamper-proof activity ledger',
+                      trailing: Icon(Icons.chevron_right),
+                    ),
+                    AdminInfoRow(
+                      icon: Icons.timer_off_outlined,
+                      title: 'Session Inactivity Timeout',
+                      subtitle: 'Force re-authentication after idle duration',
+                      trailing: StatusChip(
+                        label: '${settings.sessionTimeoutMinutes} mins',
+                        tone: StatusTone.neutral,
+                        dense: true,
+                      ),
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.vpn_key_outlined),
+                      title: const Text('Enforce Institutional SSO'),
+                      subtitle: const Text('Mandate university single sign-on'),
+                      value: settings.enforceSso,
+                      onChanged: (v) => _save(
+                        context,
+                        settings.copyWith(enforceSso: v),
+                        reload,
+                      ),
+                    ),
+                  ],
+                ),
+                _Section(
+                  title: 'System Metadata',
+                  trailing: settings.lastSyncedAt == null
+                      ? null
+                      : Formatters.timeAgo(settings.lastSyncedAt!),
+                  children: [
+                    AdminInfoRow(
+                      icon: Icons.memory_outlined,
+                      title: 'Cluster Version',
+                      subtitle: settings.clusterVersion,
+                    ),
+                    AdminInfoRow(
+                      icon: Icons.sync,
+                      title: 'Last Settings Sync',
+                      subtitle: settings.lastSyncedAt == null
+                          ? 'Not available'
+                          : Formatters.date(settings.lastSyncedAt!),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -316,6 +342,19 @@ class AdminSettingsScreen extends StatelessWidget {
     );
     controller.dispose();
   }
+}
+
+class _SettingsData {
+  const _SettingsData(
+    this.settings,
+    this.faculties,
+    this.departments,
+    this.activeTerm,
+  );
+  final SystemSettingsModel settings;
+  final List<FacultyModel> faculties;
+  final List<DepartmentModel> departments;
+  final AcademicTermModel? activeTerm;
 }
 
 class _Section extends StatelessWidget {

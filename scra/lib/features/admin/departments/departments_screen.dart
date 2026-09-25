@@ -57,13 +57,23 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
         key: ValueKey('dept-$_query-$_category'),
         load: () async {
           final repo = context.read<AdminRepository>();
+          final terms = await repo.getAcademicTerms();
           return _DepartmentsData(
             await repo.getDepartments(),
             await repo.getFaculties(),
+            terms.where((t) => t.status == TermStatus.active).firstOrNull,
           );
         },
         builder: (context, data, reload) {
           final facultyById = {for (final f in data.faculties) f.id: f};
+          final categories = [
+            'All',
+            ...data.faculties
+                .map((f) => f.category)
+                .whereType<String>()
+                .where((c) => c.trim().isNotEmpty)
+                .toSet(),
+          ];
           final filtered = data.departments.where((d) {
             final q = _query.trim().toLowerCase();
             final categoryOk =
@@ -90,13 +100,7 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      for (final c in const [
-                        'All',
-                        'Science & Tech',
-                        'Engineering',
-                        'Business',
-                        'Humanities',
-                      ])
+                      for (final c in categories)
                         Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: ChoiceChip(
@@ -117,9 +121,11 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const AdminSectionTitle(
+                      AdminSectionTitle(
                         title: 'Campus Structure Overview',
-                        trailing: Text('Term 2 • 2025'),
+                        trailing: data.activeTerm == null
+                            ? null
+                            : Text(data.activeTerm!.name),
                       ),
                       const SizedBox(height: AppDimensions.spaceMd),
                       Wrap(
@@ -221,27 +227,6 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
             children: [
               const AdminSectionTitle(title: 'Faculty Options'),
               AdminInfoRow(
-                icon: Icons.groups_outlined,
-                title: 'View Student Rosters',
-                subtitle: department.name,
-                onTap: () => Navigator.pop(sheetContext),
-              ),
-              AdminInfoRow(
-                icon: Icons.person_add_alt_1,
-                title: 'Assign Head of Department',
-                subtitle: 'Update leadership',
-                onTap: () => Navigator.pop(sheetContext),
-              ),
-              AdminInfoRow(
-                icon: Icons.download_outlined,
-                title: 'Export Attendance Report',
-                subtitle: 'Prepare CSV/PDF',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  Helpers.showSnackBar(context, 'Attendance export queued.');
-                },
-              ),
-              AdminInfoRow(
                 icon: Icons.archive_outlined,
                 title: 'Archive Department',
                 subtitle: 'Deactivate ${department.code}',
@@ -303,9 +288,10 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
 }
 
 class _DepartmentsData {
-  const _DepartmentsData(this.departments, this.faculties);
+  const _DepartmentsData(this.departments, this.faculties, this.activeTerm);
   final List<DepartmentModel> departments;
   final List<FacultyModel> faculties;
+  final AcademicTermModel? activeTerm;
 }
 
 class _DepartmentForm extends StatefulWidget {

@@ -30,7 +30,7 @@ void main() {
     final navigator = tester.state<NavigatorState>(
       find.byType(Navigator).first,
     );
-    expect(find.text('Academic Nexus Cockpit'), findsOneWidget);
+    expect(find.text('Administration Dashboard'), findsOneWidget);
 
     await tester.tap(find.text('Users'));
     await pumpFrames(tester, 8);
@@ -98,6 +98,10 @@ void main() {
       'Testing Administration Systems',
     );
     await tester.enterText(find.byKey(const Key('course_credits')), '3');
+    await tester.enterText(
+      find.byKey(const Key('course_category')),
+      'Core Major',
+    );
     await tester.tap(find.text('Create Course').last);
     await pumpFrames(tester, 10);
     expect(

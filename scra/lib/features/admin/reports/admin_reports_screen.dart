@@ -46,9 +46,12 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
         load: () async {
           final adminRepo = context.read<AdminRepository>();
           final reportRepo = context.read<ReportRepository>();
+          final terms = await adminRepo.getAcademicTerms();
           return _ReportsData(
             await reportRepo.getInstitutionReport(departmentId: _departmentId),
             await adminRepo.getDepartments(),
+            terms.where((t) => t.status == TermStatus.active).firstOrNull,
+            await adminRepo.getSystemSettings(),
           );
         },
         builder: (context, data, reload) {
@@ -62,18 +65,21 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
               data.departments.where((d) => d.id == _departmentId).isEmpty
               ? null
               : data.departments.firstWhere((d) => d.id == _departmentId);
+          final target = data.report.metric(
+            'target',
+            data.settings.minimumAttendance,
+          );
           return RefreshIndicator(
             onRefresh: reload,
             child: ListView(
               children: [
                 AdminHeroCard(
                   title: 'Institutional Analytics',
-                  subtitle: 'Fall Semester 2026 • Official Registry',
+                  subtitle:
+                      data.activeTerm?.name ??
+                      '${Formatters.date(data.report.periodStart)} • ${Formatters.date(data.report.periodEnd)}',
                   icon: Icons.domain_verification_outlined,
-                  trailing: StatusChip(
-                    label: 'Live Audit',
-                    tone: StatusTone.live,
-                  ),
+                  trailing: StatusChip(label: 'Updated', tone: StatusTone.live),
                 ),
                 const SizedBox(height: AppDimensions.spaceMd),
                 PrimaryButton(
@@ -96,10 +102,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                     ChoiceChip(
                       label: const Text('Custom Range'),
                       selected: false,
-                      onSelected: (_) => Helpers.showSnackBar(
-                        context,
-                        'Custom range picker coming soon.',
-                      ),
+                      onSelected: null,
                     ),
                   ],
                 ),
@@ -137,7 +140,8 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                       tone: StatusTone.live,
                     ),
                     AnalyticsCard(
-                      title: 'At-Risk (<75%)',
+                      title:
+                          'At-Risk (<${Formatters.percent(target, decimals: 0)})',
                       value: data.report.metric('at_risk').round().toString(),
                       icon: Icons.warning_amber_outlined,
                       badge: 'Action',
@@ -148,7 +152,6 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                       value:
                           '${data.report.metric('sync_rate').toStringAsFixed(1)}%',
                       icon: Icons.cloud_done_outlined,
-                      badge: 'Healthy',
                       tone: StatusTone.success,
                     ),
                   ],
@@ -175,8 +178,8 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                       const Wrap(
                         spacing: AppDimensions.spaceMd,
                         children: [
-                          Text('● Current Term (Fall 26)'),
-                          Text('?? Prev Term (Spring 26)'),
+                          Text('● Current term'),
+                          Text('— Previous term'),
                         ],
                       ),
                       AnalyticsChart(
@@ -191,17 +194,17 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const AdminSectionTitle(
+                      AdminSectionTitle(
                         title: 'Attendance by Faculty',
-                        subtitle: 'Benchmark threshold: 85% requirement',
-                        trailing: Text('85% Goal'),
+                        subtitle:
+                            'Benchmark threshold: ${Formatters.percent(target, decimals: 0)} requirement',
+                        trailing: Text(
+                          '${Formatters.percent(target, decimals: 0)} Goal',
+                        ),
                       ),
                       const SizedBox(height: AppDimensions.spaceMd),
                       for (final row in facultyRows)
-                        _FacultyBar(
-                          row: row,
-                          target: data.report.metric('target'),
-                        ),
+                        _FacultyBar(row: row, target: target),
                     ],
                   ),
                 ),
@@ -209,11 +212,10 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                 AdminSectionTitle(
                   title: 'Course Attendance',
                   subtitle: '(${courseRows.length} Courses)',
-                  trailing: const Text('View All ›'),
                 ),
                 const SizedBox(height: AppDimensions.spaceSm),
                 for (final row in courseRows.take(6))
-                  _CourseReportRow(row: row),
+                  _CourseReportRow(row: row, target: target),
                 const SizedBox(height: AppDimensions.spaceMd),
                 PrimaryButton(
                   label: 'Export Report',
@@ -245,9 +247,16 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
 }
 
 class _ReportsData {
-  const _ReportsData(this.report, this.departments);
+  const _ReportsData(
+    this.report,
+    this.departments,
+    this.activeTerm,
+    this.settings,
+  );
   final ReportModel report;
   final List<DepartmentModel> departments;
+  final AcademicTermModel? activeTerm;
+  final SystemSettingsModel settings;
 }
 
 class _FacultyBar extends StatelessWidget {
@@ -273,7 +282,7 @@ class _FacultyBar extends StatelessWidget {
                 ),
               ),
               Text(
-                '${row.value.toStringAsFixed(1)}%${below ? ' ? Below Target' : ''}',
+                '${row.value.toStringAsFixed(1)}%${below ? ' • Below target' : ''}',
                 style: TextStyle(
                   color: below
                       ? Theme.of(context).colorScheme.error
@@ -296,8 +305,9 @@ class _FacultyBar extends StatelessWidget {
 }
 
 class _CourseReportRow extends StatelessWidget {
-  const _CourseReportRow({required this.row});
+  const _CourseReportRow({required this.row, required this.target});
   final ReportBreakdown row;
+  final double target;
 
   @override
   Widget build(BuildContext context) {
@@ -312,7 +322,9 @@ class _CourseReportRow extends StatelessWidget {
               const Spacer(),
               StatusChip(
                 label: '${row.value.toStringAsFixed(1)}%',
-                tone: row.value < 85 ? StatusTone.warning : StatusTone.success,
+                tone: row.value < target
+                    ? StatusTone.warning
+                    : StatusTone.success,
                 dense: true,
               ),
             ],
@@ -327,8 +339,10 @@ class _CourseReportRow extends StatelessWidget {
           Wrap(
             spacing: AppDimensions.spaceMd,
             children: [
-              Text('${row.meta['students'] ?? '0'} Students Enrolled'),
-              Text('${row.meta['sessions'] ?? '0 / 0'} Sessions'),
+              if (row.meta['students'] != null)
+                Text('${row.meta['students']} Students Enrolled'),
+              if (row.meta['sessions'] != null)
+                Text('${row.meta['sessions']} Sessions'),
             ],
           ),
         ],
@@ -366,10 +380,10 @@ class _ExportSheetState extends State<_ExportSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AdminSectionTitle(
+              AdminSectionTitle(
                 title: 'Export Institution Report',
                 subtitle:
-                    'Select your preferred format & options for Fall 2026',
+                    'Select your preferred format & options for ${widget.report.title}',
               ),
               const SizedBox(height: AppDimensions.spaceMd),
               for (final format in ReportFormat.values)

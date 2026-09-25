@@ -40,7 +40,7 @@ class AcademicTermItem extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.spaceSm),
           Text(
-            '${Formatters.date(term.startDate)} ? ${Formatters.date(term.endDate)} ? ${term.totalWeeks} Weeks',
+            '${Formatters.date(term.startDate)} • ${Formatters.date(term.endDate)} • ${term.totalWeeks} Weeks',
           ),
           const SizedBox(height: AppDimensions.spaceMd),
           Container(
@@ -56,7 +56,7 @@ class AcademicTermItem extends StatelessWidget {
               runSpacing: AppDimensions.spaceSm,
               children: [
                 Text(
-                  'Enrollment\n${term.enrolledStudents} Students ? ${term.courseCount} Courses',
+                  'Enrollment\n${term.enrolledStudents} Students • ${term.courseCount} Courses',
                 ),
                 Text(
                   '${term.averageAttendance == null ? 'Planning' : 'Attendance'}\n${term.averageAttendance == null ? term.code : Formatters.percent(term.averageAttendance!, decimals: 1)}',

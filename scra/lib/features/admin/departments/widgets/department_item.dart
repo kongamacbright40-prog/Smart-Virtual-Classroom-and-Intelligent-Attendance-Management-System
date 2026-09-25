@@ -128,26 +128,11 @@ class DepartmentItem extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppDimensions.spaceMd),
-          Row(
-            children: [
-              Expanded(
-                child: SecondaryButton(
-                  label: 'Schedules',
-                  icon: Icons.view_timeline_outlined,
-                  onPressed: () {},
-                  style: SecondaryButtonStyle.text,
-                ),
-              ),
-              const SizedBox(width: AppDimensions.spaceSm),
-              Expanded(
-                child: SecondaryButton(
-                  label: 'Edit',
-                  icon: Icons.edit_outlined,
-                  onPressed: onEdit,
-                  expanded: true,
-                ),
-              ),
-            ],
+          SecondaryButton(
+            label: 'Edit',
+            icon: Icons.edit_outlined,
+            onPressed: onEdit,
+            expanded: true,
           ),
         ],
       ),

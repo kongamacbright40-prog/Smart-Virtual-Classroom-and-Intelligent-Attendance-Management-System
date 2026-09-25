@@ -53,7 +53,7 @@ class AdminActivityItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${activity.actorName ?? 'System'} ? ${Formatters.timeAgo(activity.timestamp)}',
+                  '${activity.actorName ?? 'System'} • ${Formatters.timeAgo(activity.timestamp)}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],

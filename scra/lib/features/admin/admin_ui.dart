@@ -190,8 +190,8 @@ class AdminInfoRow extends StatelessWidget {
   }
 }
 
-String adminRoleLabel(dynamic role) {
-  final text = role.toString().split('.').last;
+String adminRoleLabel(Enum role) {
+  final text = role.name;
   return text[0].toUpperCase() + text.substring(1);
 }
 

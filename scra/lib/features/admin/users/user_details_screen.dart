@@ -43,7 +43,7 @@ class UserDetailsScreen extends StatelessWidget {
               title: isCreate ? 'New account' : data.user!.fullName,
               subtitle: isCreate
                   ? 'Create a student, lecturer, or administrator profile.'
-                  : '${data.user!.role.label} ? ${data.user!.email}',
+                  : '${data.user!.role.label} • ${data.user!.email}',
               icon: isCreate
                   ? Icons.person_add_alt_1
                   : Icons.manage_accounts_outlined,

@@ -8,8 +8,6 @@ import 'package:smart_class/features/admin/admin_ui.dart';
 import 'package:smart_class/features/admin/users/widgets/user_list_item.dart';
 import 'package:smart_class/models/models.dart';
 import 'package:smart_class/repositories/repositories.dart';
-import 'package:smart_class/widgets/buttons/primary_button.dart';
-import 'package:smart_class/widgets/buttons/secondary_button.dart';
 import 'package:smart_class/widgets/common/app_card.dart';
 import 'package:smart_class/widgets/common/app_scaffold.dart';
 import 'package:smart_class/widgets/common/async_view.dart';
@@ -39,17 +37,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AdminScreenHeader(
-        title: 'User Management',
-        actions: [
-          IconButton(
-            tooltip: 'Export',
-            icon: const Icon(Icons.file_download_outlined),
-            onPressed: () =>
-                Helpers.showSnackBar(context, 'User export queued.'),
-          ),
-        ],
-      ),
+      appBar: AdminScreenHeader(title: 'User Management'),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('add_user'),
         icon: const Icon(Icons.person_add_alt_1),
@@ -125,24 +113,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       onEdit: () => Navigator.of(context)
                           .pushNamed(RouteNames.userDetails, arguments: user.id)
                           .then((_) => setState(() {})),
-                      onResetPassword: () => Helpers.showSnackBar(
-                        context,
-                        'Password reset link sent to ${user.email}.',
-                      ),
+                      onResetPassword: () => _requestPasswordReset(user),
                       onToggleActive: () => _toggleUser(user, reload),
                       onDelete: () => _deleteUser(user, reload),
                     ),
                 Center(
                   child: Text(
-                    'Showing ${users.length} of ${data.all.length} verified accounts',
+                    'Showing ${users.length} of ${data.all.length} accounts',
                   ),
-                ),
-                const SizedBox(height: AppDimensions.spaceMd),
-                SecondaryButton(
-                  label: 'Load More Users',
-                  icon: Icons.sync,
-                  onPressed: () =>
-                      Helpers.showSnackBar(context, 'All demo users loaded.'),
                 ),
               ],
             ),
@@ -162,11 +140,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   );
 
   String _identifier(UserModel user) {
-    return switch (user.role) {
-      UserRole.student => user.id.toUpperCase().replaceFirst('STU-', 'ICT'),
-      UserRole.lecturer => user.id.toUpperCase().replaceFirst('LEC-', 'FAC-'),
-      UserRole.admin => user.id.toUpperCase().replaceFirst('ADM-', 'ADM-'),
-    };
+    return 'ID: ${user.id}';
+  }
+
+  Future<void> _requestPasswordReset(UserModel user) async {
+    try {
+      await context.read<AuthRepository>().requestPasswordReset(user.email);
+      if (mounted) {
+        Helpers.showSnackBar(
+          context,
+          'Password reset instructions sent to ${user.email}.',
+        );
+      }
+    } on Object catch (e) {
+      if (mounted) Helpers.showError(context, e);
+    }
   }
 
   Future<void> _toggleUser(
@@ -243,14 +231,8 @@ class _Summary extends StatelessWidget {
           const SizedBox(width: AppDimensions.spaceSm),
           Expanded(
             child: Text(
-              '${all.length} Accounts ? ${percent.toStringAsFixed(1)}% Active',
+              '${all.length} Accounts • ${percent.toStringAsFixed(1)}% Active',
             ),
-          ),
-          PrimaryButton(
-            label: 'Export',
-            icon: Icons.file_download_outlined,
-            expanded: false,
-            onPressed: () => Helpers.showSnackBar(context, 'Export queued.'),
           ),
         ],
       ),

@@ -42,7 +42,7 @@ class AdminCourseDetailsScreen extends StatelessWidget {
               AdminHeroCard(
                 title: data.course.title,
                 subtitle:
-                    '${data.course.code} ? ${data.course.departmentName ?? 'Department'}',
+                    '${data.course.code} • ${data.course.departmentName ?? 'Department'}',
                 icon: Icons.menu_book_outlined,
                 trailing: StatusChip(
                   label: data.course.status.label,
@@ -116,7 +116,7 @@ class AdminCourseDetailsScreen extends StatelessWidget {
                     const AdminSectionTitle(title: 'Attendance Summary'),
                     const SizedBox(height: AppDimensions.spaceSm),
                     Text(
-                      '${data.averageAttendance.toStringAsFixed(1)}% course average ? ${data.summaries.length} student summaries',
+                      '${data.averageAttendance.toStringAsFixed(1)}% course average • ${data.summaries.length} student summaries',
                     ),
                     const SizedBox(height: AppDimensions.spaceSm),
                     LinearProgressIndicator(
@@ -145,7 +145,7 @@ class AdminCourseDetailsScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         subtitle: Text(
-                          '${Formatters.relativeDay(session.startTime)} ? ${session.status.label}',
+                          '${Formatters.relativeDay(session.startTime)} • ${session.status.label}',
                         ),
                         trailing: Text(
                           '${session.participantCount}/${session.expectedCount}',

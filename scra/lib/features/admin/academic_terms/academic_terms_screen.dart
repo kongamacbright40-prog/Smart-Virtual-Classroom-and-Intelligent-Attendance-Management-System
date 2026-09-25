@@ -35,9 +35,18 @@ class AcademicTermsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: AsyncView<List<AcademicTermModel>>(
-        load: () => context.read<AdminRepository>().getAcademicTerms(),
-        builder: (context, terms, reload) {
+      body: AsyncView<_TermsData>(
+        load: () async {
+          final repo = context.read<AdminRepository>();
+          return _TermsData(
+            await repo.getAcademicTerms(),
+            await repo.getFaculties(),
+            await repo.getDepartments(),
+          );
+        },
+        isEmpty: (data) => data.terms.isEmpty,
+        builder: (context, data, reload) {
+          final terms = data.terms;
           final active =
               terms.where((t) => t.status == TermStatus.active).isEmpty
               ? terms.first
@@ -54,13 +63,13 @@ class AcademicTermsScreen extends StatelessWidget {
               children: [
                 AppCard(
                   color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.sync),
-                      SizedBox(width: AppDimensions.spaceSm),
+                      const Icon(Icons.school_outlined),
+                      const SizedBox(width: AppDimensions.spaceSm),
                       Expanded(
                         child: Text(
-                          '2025/2026 Academic Year • Registrar Sync Active',
+                          '${active.academicYear} Academic Year • ${active.status.label}',
                         ),
                       ),
                     ],
@@ -69,7 +78,11 @@ class AcademicTermsScreen extends StatelessWidget {
                 const SizedBox(height: AppDimensions.spaceMd),
                 _CurrentTermCard(term: active),
                 const SizedBox(height: AppDimensions.spaceMd),
-                _Snapshot(terms: terms),
+                _Snapshot(
+                  terms: terms,
+                  faculties: data.faculties,
+                  departments: data.departments,
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
                 AdminSectionTitle(
                   title: 'Previous Terms',
@@ -147,7 +160,9 @@ class _CurrentTermCard extends StatelessWidget {
             children: [
               CodeTag(term.code),
               Text(
-                '${term.totalWeeks} Weeks (${term.teachingDays ?? 0} Teaching Days)',
+                term.teachingDays == null
+                    ? '${term.totalWeeks} Weeks'
+                    : '${term.totalWeeks} Weeks (${term.teachingDays} Teaching Days)',
               ),
             ],
           ),
@@ -186,27 +201,7 @@ class _CurrentTermCard extends StatelessWidget {
             icon: Icons.check_circle_outline,
           ),
           Text(
-            'Add/Drop closes ${adminDate(term.addDropDeadline)} ? ${term.enrolledStudents} Enrolled',
-          ),
-          const SizedBox(height: AppDimensions.spaceMd),
-          Row(
-            children: [
-              Expanded(
-                child: SecondaryButton(
-                  label: 'Configure',
-                  icon: Icons.tune,
-                  onPressed: () {},
-                ),
-              ),
-              const SizedBox(width: AppDimensions.spaceSm),
-              Expanded(
-                child: SecondaryButton(
-                  label: 'Deadlines',
-                  icon: Icons.event_note_outlined,
-                  onPressed: () {},
-                ),
-              ),
-            ],
+            'Add/Drop closes ${adminDate(term.addDropDeadline)} • ${term.enrolledStudents} Enrolled',
           ),
         ],
       ),
@@ -215,8 +210,14 @@ class _CurrentTermCard extends StatelessWidget {
 }
 
 class _Snapshot extends StatelessWidget {
-  const _Snapshot({required this.terms});
+  const _Snapshot({
+    required this.terms,
+    required this.faculties,
+    required this.departments,
+  });
   final List<AcademicTermModel> terms;
+  final List<FacultyModel> faculties;
+  final List<DepartmentModel> departments;
 
   @override
   Widget build(BuildContext context) {
@@ -242,8 +243,8 @@ class _Snapshot extends StatelessWidget {
             _tile(
               context,
               Icons.account_balance_outlined,
-              '4 Faculties',
-              '18 Departments',
+              faculties.length.toString(),
+              'Faculties',
             ),
             _tile(
               context,
@@ -251,7 +252,12 @@ class _Snapshot extends StatelessWidget {
               Formatters.compactNumber(active.enrolledStudents),
               'Registered Students',
             ),
-            _tile(context, Icons.cloud_done_outlined, '98.1%', 'Session Sync'),
+            _tile(
+              context,
+              Icons.domain_outlined,
+              departments.length.toString(),
+              'Departments',
+            ),
           ],
         ),
       ],
@@ -281,6 +287,13 @@ class _Snapshot extends StatelessWidget {
   );
 }
 
+class _TermsData {
+  const _TermsData(this.terms, this.faculties, this.departments);
+  final List<AcademicTermModel> terms;
+  final List<FacultyModel> faculties;
+  final List<DepartmentModel> departments;
+}
+
 class _TermForm extends StatefulWidget {
   const _TermForm({this.term, required this.onSaved});
   final AcademicTermModel? term;
@@ -295,12 +308,10 @@ class _TermFormState extends State<_TermForm> {
   late final _name = TextEditingController(text: widget.term?.name ?? '');
   late final _code = TextEditingController(text: widget.term?.code ?? '');
   late final _year = TextEditingController(
-    text: widget.term?.academicYear ?? '2026/2027',
+    text: widget.term?.academicYear ?? '',
   );
-  late DateTime _start =
-      widget.term?.startDate ?? DateTime.now().add(const Duration(days: 30));
-  late DateTime _end =
-      widget.term?.endDate ?? DateTime.now().add(const Duration(days: 130));
+  late DateTime? _start = widget.term?.startDate;
+  late DateTime? _end = widget.term?.endDate;
   bool _saving = false;
 
   @override
@@ -313,6 +324,8 @@ class _TermFormState extends State<_TermForm> {
 
   @override
   Widget build(BuildContext context) {
+    final invalidRange =
+        _start != null && _end != null && !_end!.isAfter(_start!);
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.only(
@@ -357,20 +370,24 @@ class _TermFormState extends State<_TermForm> {
                   children: [
                     Expanded(
                       child: SecondaryButton(
-                        label: 'Start: ${Formatters.date(_start)}',
+                        label: _start == null
+                            ? 'Start: Select date'
+                            : 'Start: ${Formatters.date(_start!)}',
                         onPressed: () => _pick(true),
                       ),
                     ),
                     const SizedBox(width: AppDimensions.spaceSm),
                     Expanded(
                       child: SecondaryButton(
-                        label: 'End: ${Formatters.date(_end)}',
+                        label: _end == null
+                            ? 'End: Select date'
+                            : 'End: ${Formatters.date(_end!)}',
                         onPressed: () => _pick(false),
                       ),
                     ),
                   ],
                 ),
-                if (!_end.isAfter(_start))
+                if (invalidRange)
                   Padding(
                     padding: const EdgeInsets.only(top: AppDimensions.spaceSm),
                     child: Text(
@@ -395,11 +412,14 @@ class _TermFormState extends State<_TermForm> {
   }
 
   Future<void> _pick(bool start) async {
+    final fallback = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime(2035),
-      initialDate: start ? _start : _end,
+      initialDate: start
+          ? (_start ?? fallback)
+          : (_end ?? _start?.add(const Duration(days: 1)) ?? fallback),
     );
     if (picked != null) {
       setState(() {
@@ -413,7 +433,12 @@ class _TermFormState extends State<_TermForm> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate() || !_end.isAfter(_start)) return;
+    if (!_formKey.currentState!.validate()) return;
+    if (_start == null || _end == null) {
+      Helpers.showError(context, 'Select start and end dates.');
+      return;
+    }
+    if (!_end!.isAfter(_start!)) return;
     setState(() => _saving = true);
     final base = widget.term;
     final term = AcademicTermModel(
@@ -421,8 +446,8 @@ class _TermFormState extends State<_TermForm> {
       name: _name.text.trim(),
       code: _code.text.trim(),
       academicYear: _year.text.trim(),
-      startDate: _start,
-      endDate: _end,
+      startDate: _start!,
+      endDate: _end!,
       status: base?.status ?? TermStatus.planned,
       notes: base?.notes,
     );
