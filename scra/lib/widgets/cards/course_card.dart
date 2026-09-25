@@ -51,25 +51,34 @@ class CourseCard extends StatelessWidget {
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             CodeTag(course.code),
-                            Text('• ${course.category}',
-                                style: theme.textTheme.labelMedium),
+                            Text(
+                              '• ${course.category}',
+                              style: theme.textTheme.labelMedium,
+                            ),
                           ],
                         ),
                         const SizedBox(height: AppDimensions.spaceSm),
-                        Text(course.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleLarge),
+                        Text(
+                          course.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleLarge,
+                        ),
                         if (course.lecturerName != null)
-                          Text(course.lecturerName!,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant)),
+                          Text(
+                            course.lecturerName!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                       ],
                     ),
                   ),
                   trailing ??
-                      Icon(Icons.arrow_forward,
-                          color: theme.colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.arrow_forward,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                 ],
               ),
             ),
@@ -92,10 +101,12 @@ class CourseCard extends StatelessWidget {
                           Text(
                             Helpers.attendanceLabel(percent),
                             style: theme.textTheme.labelMedium?.copyWith(
-                                color: Helpers.attendanceColor(percent) ==
-                                        Helpers.attendanceColor(100)
-                                    ? theme.colorScheme.primary
-                                    : Helpers.attendanceColor(percent)),
+                              color:
+                                  Helpers.attendanceColor(percent) ==
+                                      Helpers.attendanceColor(100)
+                                  ? theme.colorScheme.primary
+                                  : Helpers.attendanceColor(percent),
+                            ),
                           ),
                         ],
                       ),
@@ -111,12 +122,17 @@ class CourseCard extends StatelessWidget {
                       const SizedBox(height: AppDimensions.spaceSm),
                       Row(
                         children: [
-                          Icon(Icons.event,
-                              size: 18, color: theme.colorScheme.primary),
+                          Icon(
+                            Icons.event,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
                           const SizedBox(width: AppDimensions.spaceSm),
                           Expanded(
-                            child: Text('Next: $nextSessionLabel',
-                                style: theme.textTheme.bodyMedium),
+                            child: Text(
+                              'Next: $nextSessionLabel',
+                              style: theme.textTheme.bodyMedium,
+                            ),
                           ),
                         ],
                       ),

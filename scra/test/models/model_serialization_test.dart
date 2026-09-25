@@ -36,7 +36,11 @@ void main() {
   test('Student / Lecturer / Admin models round-trip', () {
     const student = StudentModel(
       user: UserModel(
-          id: 's1', fullName: 'Amina Bello', email: 'a@b.edu', role: UserRole.student),
+        id: 's1',
+        fullName: 'Amina Bello',
+        email: 'a@b.edu',
+        role: UserRole.student,
+      ),
       matricule: 'ICT20251002',
       programme: 'Software Engineering',
       level: 200,
@@ -108,8 +112,7 @@ void main() {
       mode: SessionMode.hybrid,
       attendanceActive: true,
     );
-    final s =
-        roundTrip(session, (m) => m.toJson(), ClassSessionModel.fromJson);
+    final s = roundTrip(session, (m) => m.toJson(), ClassSessionModel.fromJson);
     expect(s.status, SessionStatus.live);
     expect(s.isLive, isTrue);
     expect(s.duration.inMinutes, 90);
@@ -155,8 +158,11 @@ void main() {
         );
 
     test('record round-trips and computes lateness', () {
-      final r = roundTrip(record(AttendanceStatus.late, late: 18),
-          (m) => m.toJson(), AttendanceRecordModel.fromJson);
+      final r = roundTrip(
+        record(AttendanceStatus.late, late: 18),
+        (m) => m.toJson(),
+        AttendanceRecordModel.fromJson,
+      );
       expect(r.status, AttendanceStatus.late);
       expect(r.minutesLate, 18);
       expect(r.durationPercent, 50);
@@ -174,7 +180,11 @@ void main() {
       expect(summary.attendedCount, 3);
       expect(summary.percentage, 75);
       expect(summary.meetsRequirement, isTrue);
-      final copy = roundTrip(summary, (m) => m.toJson(), AttendanceModel.fromJson);
+      final copy = roundTrip(
+        summary,
+        (m) => m.toJson(),
+        AttendanceModel.fromJson,
+      );
       expect(copy.percentage, 75);
     });
 
@@ -210,10 +220,14 @@ void main() {
       expect(question.responseCount, 4);
       expect(question.responseRate, 50);
       expect(question.percentFor('c'), 75);
-      expect(question.remainingAt(now.add(const Duration(seconds: 15))),
-          const Duration(seconds: 30));
-      expect(question.remainingAt(now.add(const Duration(minutes: 5))),
-          Duration.zero);
+      expect(
+        question.remainingAt(now.add(const Duration(seconds: 15))),
+        const Duration(seconds: 30),
+      );
+      expect(
+        question.remainingAt(now.add(const Duration(minutes: 5))),
+        Duration.zero,
+      );
     });
 
     test('response round-trips', () {
@@ -227,7 +241,10 @@ void main() {
         isCorrect: true,
       );
       final r = roundTrip(
-          response, (m) => m.toJson(), QuestionResponseModel.fromJson);
+        response,
+        (m) => m.toJson(),
+        QuestionResponseModel.fromJson,
+      );
       expect(r.status, ResponseStatus.synced);
       expect(r.isCorrect, isTrue);
     });
@@ -281,9 +298,15 @@ void main() {
 
   test('Academic structure models round-trip', () {
     const faculty = FacultyModel(
-        id: 'f1', name: 'Faculty of CS', code: 'FCS', departmentCount: 5);
-    expect(roundTrip(faculty, (x) => x.toJson(), FacultyModel.fromJson).code,
-        'FCS');
+      id: 'f1',
+      name: 'Faculty of CS',
+      code: 'FCS',
+      departmentCount: 5,
+    );
+    expect(
+      roundTrip(faculty, (x) => x.toJson(), FacultyModel.fromJson).code,
+      'FCS',
+    );
 
     const dept = DepartmentModel(
       id: 'd1',
@@ -293,9 +316,13 @@ void main() {
       averageAttendance: 92.4,
     );
     expect(
-        roundTrip(dept, (x) => x.toJson(), DepartmentModel.fromJson)
-            .averageAttendance,
-        92.4);
+      roundTrip(
+        dept,
+        (x) => x.toJson(),
+        DepartmentModel.fromJson,
+      ).averageAttendance,
+      92.4,
+    );
 
     final term = AcademicTermModel(
       id: 't1',
@@ -325,7 +352,11 @@ void main() {
       trend: const [ReportDataPoint(label: 'W1', value: 86.2, extra: 1180)],
       breakdown: const [
         ReportBreakdown(
-            id: 'c1', label: 'CS-301', value: 94.2, meta: {'students': '42'}),
+          id: 'c1',
+          label: 'CS-301',
+          value: 94.2,
+          meta: {'students': '42'},
+        ),
       ],
     );
     final r = roundTrip(report, (x) => x.toJson(), ReportModel.fromJson);
@@ -340,17 +371,20 @@ void main() {
       themeMode: ThemeMode.dark,
       joinWithCameraOff: true,
     );
-    final s =
-        roundTrip(settings, (x) => x.toJson(), AppSettingsModel.fromJson);
+    final s = roundTrip(settings, (x) => x.toJson(), AppSettingsModel.fromJson);
     expect(s.themeMode, ThemeMode.dark);
     expect(s.joinWithCameraOff, isTrue);
     expect(AppSettingsModel.fromJson(const {}).themeMode, ThemeMode.light);
 
     const system = SystemSettingsModel(lateThresholdMinutes: 10);
     expect(
-        roundTrip(system, (x) => x.toJson(), SystemSettingsModel.fromJson)
-            .lateThresholdMinutes,
-        10);
+      roundTrip(
+        system,
+        (x) => x.toJson(),
+        SystemSettingsModel.fromJson,
+      ).lateThresholdMinutes,
+      10,
+    );
   });
 
   test('AuthSessionModel handles expiry', () {

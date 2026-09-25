@@ -42,101 +42,99 @@ class MockAuthRepository extends MockRepositoryBase implements AuthRepository {
   }
 
   AuthSessionModel _session(UserModel user) => AuthSessionModel(
-        user: user,
-        accessToken: 'mock-token-${user.id}-${DateTime.now().millisecondsSinceEpoch}',
-        refreshToken: 'mock-refresh-${user.id}',
-        expiresAt: DateTime.now().add(const Duration(hours: 12)),
-      );
+    user: user,
+    accessToken:
+        'mock-token-${user.id}-${DateTime.now().millisecondsSinceEpoch}',
+    refreshToken: 'mock-refresh-${user.id}',
+    expiresAt: DateTime.now().add(const Duration(hours: 12)),
+  );
 
   @override
   Future<AuthSessionModel> login({
     required UserRole role,
     required String identifier,
     required String password,
-  }) =>
-      delay(() {
-        final user = _findUser(role, identifier);
-        if (user == null || _store.passwords[user.id] != password) {
-          throw const AuthException(
-            'Invalid institutional ID or password for this portal.',
-          );
-        }
-        if (!user.isActive) {
-          throw const ForbiddenException(
-            'This account has been deactivated. Contact your administrator.',
-          );
-        }
-        final active = user.copyWith(lastActiveAt: DateTime.now());
-        _store.users[user.id] = active;
-        return _session(active);
-      });
+  }) => delay(() {
+    final user = _findUser(role, identifier);
+    if (user == null || _store.passwords[user.id] != password) {
+      throw const AuthException(
+        'Invalid institutional ID or password for this portal.',
+      );
+    }
+    if (!user.isActive) {
+      throw const ForbiddenException(
+        'This account has been deactivated. Contact your administrator.',
+      );
+    }
+    final active = user.copyWith(lastActiveAt: DateTime.now());
+    _store.users[user.id] = active;
+    return _session(active);
+  });
 
   @override
   Future<AuthSessionModel> activateStudent({
     required String matricule,
     required String email,
     required String password,
-  }) =>
-      delay(() {
-        final existing = _findUser(UserRole.student, matricule);
-        if (existing != null) {
-          if (existing.email.toLowerCase() != email.trim().toLowerCase()) {
-            throw const ValidationException(
-              'The email does not match the matricule on record.',
-            );
-          }
-          _store.passwords[existing.id] = password;
-          return _session(existing);
-        }
-        final id = _store.nextId('stu');
-        final user = UserModel(
-          id: id,
-          fullName: email.split('@').first.replaceAll('.', ' '),
-          email: email.trim(),
-          role: UserRole.student,
-          createdAt: DateTime.now(),
+  }) => delay(() {
+    final existing = _findUser(UserRole.student, matricule);
+    if (existing != null) {
+      if (existing.email.toLowerCase() != email.trim().toLowerCase()) {
+        throw const ValidationException(
+          'The email does not match the matricule on record.',
         );
-        _store.users[id] = user;
-        _store.passwords[id] = password;
-        _store.students[id] = StudentModel(
-          user: user,
-          matricule: matricule.trim().toUpperCase(),
-          programme: 'Undeclared',
-          level: 100,
-          semester: 1,
-        );
-        return _session(user);
-      });
+      }
+      _store.passwords[existing.id] = password;
+      return _session(existing);
+    }
+    final id = _store.nextId('stu');
+    final user = UserModel(
+      id: id,
+      fullName: email.split('@').first.replaceAll('.', ' '),
+      email: email.trim(),
+      role: UserRole.student,
+      createdAt: DateTime.now(),
+    );
+    _store.users[id] = user;
+    _store.passwords[id] = password;
+    _store.students[id] = StudentModel(
+      user: user,
+      matricule: matricule.trim().toUpperCase(),
+      programme: 'Undeclared',
+      level: 100,
+      semester: 1,
+    );
+    return _session(user);
+  });
 
   @override
   Future<AuthSessionModel> registerLecturer({
     required String staffId,
     required String email,
     required String password,
-  }) =>
-      delay(() {
-        final existing = _findUser(UserRole.lecturer, staffId);
-        if (existing != null) {
-          _store.passwords[existing.id] = password;
-          return _session(existing);
-        }
-        final id = _store.nextId('lec');
-        final user = UserModel(
-          id: id,
-          fullName: email.split('@').first.replaceAll('.', ' '),
-          email: email.trim(),
-          role: UserRole.lecturer,
-          createdAt: DateTime.now(),
-        );
-        _store.users[id] = user;
-        _store.passwords[id] = password;
-        _store.lecturers[id] = LecturerModel(
-          user: user,
-          staffId: staffId.trim().toUpperCase(),
-          title: 'Dr.',
-        );
-        return _session(user);
-      });
+  }) => delay(() {
+    final existing = _findUser(UserRole.lecturer, staffId);
+    if (existing != null) {
+      _store.passwords[existing.id] = password;
+      return _session(existing);
+    }
+    final id = _store.nextId('lec');
+    final user = UserModel(
+      id: id,
+      fullName: email.split('@').first.replaceAll('.', ' '),
+      email: email.trim(),
+      role: UserRole.lecturer,
+      createdAt: DateTime.now(),
+    );
+    _store.users[id] = user;
+    _store.passwords[id] = password;
+    _store.lecturers[id] = LecturerModel(
+      user: user,
+      staffId: staffId.trim().toUpperCase(),
+      title: 'Dr.',
+    );
+    return _session(user);
+  });
 
   UserModel? _userByEmail(String email) {
     final e = email.trim().toLowerCase();
@@ -148,9 +146,9 @@ class MockAuthRepository extends MockRepositoryBase implements AuthRepository {
 
   @override
   Future<void> requestPasswordReset(String email) => delay(() {
-        // Always succeeds so the UI never reveals whether an account exists.
-        _resetCodes[email.trim().toLowerCase()] = demoRecoveryCode;
-      });
+    // Always succeeds so the UI never reveals whether an account exists.
+    _resetCodes[email.trim().toLowerCase()] = demoRecoveryCode;
+  });
 
   @override
   Future<void> verifyResetCode({required String email, required String code}) =>
@@ -165,23 +163,21 @@ class MockAuthRepository extends MockRepositoryBase implements AuthRepository {
     required String email,
     required String code,
     required String newPassword,
-  }) =>
-      delay(() {
-        final key = email.trim().toLowerCase();
-        if (_resetCodes[key] != code) {
-          throw const ValidationException('The recovery code is incorrect.');
-        }
-        final user = _userByEmail(email);
-        if (user != null) _store.passwords[user.id] = newPassword;
-        _resetCodes.remove(key);
-      });
+  }) => delay(() {
+    final key = email.trim().toLowerCase();
+    if (_resetCodes[key] != code) {
+      throw const ValidationException('The recovery code is incorrect.');
+    }
+    final user = _userByEmail(email);
+    if (user != null) _store.passwords[user.id] = newPassword;
+    _resetCodes.remove(key);
+  });
 
   @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
-  }) =>
-      delay(() {});
+  }) => delay(() {});
 
   @override
   Future<void> logout() => delay(() {});

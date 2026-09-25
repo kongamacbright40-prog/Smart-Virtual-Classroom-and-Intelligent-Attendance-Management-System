@@ -32,8 +32,7 @@ class AttendanceIntroScreen extends StatelessWidget {
       ),
       badge: const OnboardingBadge(label: 'Smart Presence'),
       title: 'Automatic Attendance',
-      body:
-          'Your join time, leave time and active session duration are recorded automatically.',
+      body: 'Your join time, leave time and active session duration are recorded automatically.',
       footerIcon: Icons.pin_drop_outlined,
       footerText: 'Biometric & Geo-timestamped • Zero manual roll call',
       onBack: () => Navigator.of(context).maybePop(),
@@ -58,8 +57,10 @@ class _SessionTrackingCard extends StatelessWidget {
               Icon(Icons.laptop_outlined, color: theme.colorScheme.primary),
               const SizedBox(width: AppDimensions.spaceSm),
               Expanded(
-                child: Text('Session Tracking',
-                    style: theme.textTheme.titleMedium),
+                child: Text(
+                  'Session Tracking',
+                  style: theme.textTheme.titleMedium,
+                ),
               ),
               const StatusChip(
                 label: 'Auto Verified',
@@ -114,17 +115,23 @@ class _SessionTrackingCard extends StatelessWidget {
           const SizedBox(height: AppDimensions.spaceMd),
           Row(
             children: [
-              Icon(Icons.security_update_good_outlined,
-                  size: 20, color: theme.colorScheme.primary),
+              Icon(
+                Icons.security_update_good_outlined,
+                size: 20,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(width: AppDimensions.spaceSm),
               Expanded(
-                child: Text('Biometric sync & digital footprint',
-                    style: theme.textTheme.bodyMedium),
+                child: Text(
+                  'Biometric sync & digital footprint',
+                  style: theme.textTheme.bodyMedium,
+                ),
               ),
               Text(
                 '100% Valid',
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(color: theme.colorScheme.primary),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
               ),
             ],
           ),
@@ -160,15 +167,18 @@ class _TimePoint extends StatelessWidget {
             : theme.colorScheme.surfaceContainerHigh,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon,
-          size: 14,
-          color: highlight
-              ? theme.colorScheme.onPrimary
-              : theme.colorScheme.onSurfaceVariant),
+      child: Icon(
+        icon,
+        size: 14,
+        color: highlight
+            ? theme.colorScheme.onPrimary
+            : theme.colorScheme.onSurfaceVariant,
+      ),
     );
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,

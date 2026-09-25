@@ -11,9 +11,9 @@ enum TermStatus {
   final String label;
 
   static TermStatus fromJson(Object? value) => TermStatus.values.firstWhere(
-        (e) => e.value == value,
-        orElse: () => TermStatus.planned,
-      );
+    (e) => e.value == value,
+    orElse: () => TermStatus.planned,
+  );
 }
 
 class AcademicTermModel {
@@ -75,44 +75,44 @@ class AcademicTermModel {
   }
 
   factory AcademicTermModel.fromJson(Json json) => AcademicTermModel(
-        id: json['id'].toString(),
-        name: json['name'] as String,
-        code: json['code'] as String,
-        academicYear: json['academic_year'] as String,
-        startDate: JsonX.date(json['start_date']),
-        endDate: JsonX.date(json['end_date']),
-        status: TermStatus.fromJson(json['status']),
-        termType: json['term_type'] as String? ?? 'Regular',
-        teachingDays: json['teaching_days'] == null
-            ? null
-            : JsonX.toInt(json['teaching_days']),
-        enrollmentOpen: json['enrollment_open'] as bool? ?? false,
-        addDropDeadline: JsonX.dateOrNull(json['add_drop_deadline']),
-        enrolledStudents: JsonX.toInt(json['enrolled_students']),
-        courseCount: JsonX.toInt(json['course_count']),
-        averageAttendance: json['average_attendance'] == null
-            ? null
-            : JsonX.toDouble(json['average_attendance']),
-        notes: json['notes'] as String?,
-      );
+    id: json['id'].toString(),
+    name: json['name'] as String,
+    code: json['code'] as String,
+    academicYear: json['academic_year'] as String,
+    startDate: JsonX.date(json['start_date']),
+    endDate: JsonX.date(json['end_date']),
+    status: TermStatus.fromJson(json['status']),
+    termType: json['term_type'] as String? ?? 'Regular',
+    teachingDays: json['teaching_days'] == null
+        ? null
+        : JsonX.toInt(json['teaching_days']),
+    enrollmentOpen: json['enrollment_open'] as bool? ?? false,
+    addDropDeadline: JsonX.dateOrNull(json['add_drop_deadline']),
+    enrolledStudents: JsonX.toInt(json['enrolled_students']),
+    courseCount: JsonX.toInt(json['course_count']),
+    averageAttendance: json['average_attendance'] == null
+        ? null
+        : JsonX.toDouble(json['average_attendance']),
+    notes: json['notes'] as String?,
+  );
 
   Json toJson() => {
-        'id': id,
-        'name': name,
-        'code': code,
-        'academic_year': academicYear,
-        'start_date': startDate.toIso8601String(),
-        'end_date': endDate.toIso8601String(),
-        'status': status.value,
-        'term_type': termType,
-        'teaching_days': teachingDays,
-        'enrollment_open': enrollmentOpen,
-        'add_drop_deadline': JsonX.isoOrNull(addDropDeadline),
-        'enrolled_students': enrolledStudents,
-        'course_count': courseCount,
-        'average_attendance': averageAttendance,
-        'notes': notes,
-      };
+    'id': id,
+    'name': name,
+    'code': code,
+    'academic_year': academicYear,
+    'start_date': startDate.toIso8601String(),
+    'end_date': endDate.toIso8601String(),
+    'status': status.value,
+    'term_type': termType,
+    'teaching_days': teachingDays,
+    'enrollment_open': enrollmentOpen,
+    'add_drop_deadline': JsonX.isoOrNull(addDropDeadline),
+    'enrolled_students': enrolledStudents,
+    'course_count': courseCount,
+    'average_attendance': averageAttendance,
+    'notes': notes,
+  };
 
   AcademicTermModel copyWith({
     String? name,
@@ -121,22 +121,21 @@ class AcademicTermModel {
     TermStatus? status,
     bool? enrollmentOpen,
     String? notes,
-  }) =>
-      AcademicTermModel(
-        id: id,
-        name: name ?? this.name,
-        code: code,
-        academicYear: academicYear,
-        startDate: startDate ?? this.startDate,
-        endDate: endDate ?? this.endDate,
-        status: status ?? this.status,
-        termType: termType,
-        teachingDays: teachingDays,
-        enrollmentOpen: enrollmentOpen ?? this.enrollmentOpen,
-        addDropDeadline: addDropDeadline,
-        enrolledStudents: enrolledStudents,
-        courseCount: courseCount,
-        averageAttendance: averageAttendance,
-        notes: notes ?? this.notes,
-      );
+  }) => AcademicTermModel(
+    id: id,
+    name: name ?? this.name,
+    code: code,
+    academicYear: academicYear,
+    startDate: startDate ?? this.startDate,
+    endDate: endDate ?? this.endDate,
+    status: status ?? this.status,
+    termType: termType,
+    teachingDays: teachingDays,
+    enrollmentOpen: enrollmentOpen ?? this.enrollmentOpen,
+    addDropDeadline: addDropDeadline,
+    enrolledStudents: enrolledStudents,
+    courseCount: courseCount,
+    averageAttendance: averageAttendance,
+    notes: notes ?? this.notes,
+  );
 }

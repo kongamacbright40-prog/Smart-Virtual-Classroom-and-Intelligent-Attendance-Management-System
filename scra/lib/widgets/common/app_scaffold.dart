@@ -53,8 +53,9 @@ class AppScaffold extends StatelessWidget {
     }
     content = Center(
       child: ConstrainedBox(
-        constraints:
-            const BoxConstraints(maxWidth: AppDimensions.maxContentWidth),
+        constraints: const BoxConstraints(
+          maxWidth: AppDimensions.maxContentWidth,
+        ),
         child: content,
       ),
     );

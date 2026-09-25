@@ -51,9 +51,14 @@ class _SearchFieldState extends State<SearchField> {
         isDense: true,
         fillColor: scheme.surfaceContainerLow,
         contentPadding: const EdgeInsets.symmetric(vertical: 12),
-        border: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide.none),
-        enabledBorder:
-            OutlineInputBorder(borderRadius: radius, borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide.none,
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: radius,
           borderSide: BorderSide(color: scheme.primary),

@@ -16,7 +16,10 @@ import '../../authentication/providers/auth_provider.dart';
 /// Stitch screen 01 — dark brand splash. Restores the session and routes to
 /// the right place: role home, login, or onboarding.
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key, this.minimumDuration = const Duration(milliseconds: 1600)});
+  const SplashScreen({
+    super.key,
+    this.minimumDuration = const Duration(milliseconds: 1600),
+  });
 
   final Duration minimumDuration;
 
@@ -79,7 +82,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   child: Center(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.spaceLg),
+                        horizontal: AppDimensions.spaceLg,
+                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -109,7 +113,8 @@ class _SplashScreenState extends State<SplashScreen> {
                             width: 200,
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(
-                                  AppDimensions.radiusFull),
+                                AppDimensions.radiusFull,
+                              ),
                               child: const LinearProgressIndicator(
                                 minHeight: 6,
                                 color: AppColors.sky500,
@@ -156,19 +161,26 @@ class _SplashScreenState extends State<SplashScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: AppColors.splashBackground
-                              .withValues(alpha: 0.8),
-                          borderRadius:
-                              BorderRadius.circular(AppDimensions.radiusFull),
+                          color: AppColors.splashBackground.withValues(
+                            alpha: 0.8,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusFull,
+                          ),
                           border: Border.all(color: AppColors.slate700),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.verified_user,
-                                size: 16, color: AppColors.sky400),
+                            const Icon(
+                              Icons.verified_user,
+                              size: 16,
+                              color: AppColors.sky400,
+                            ),
                             const SizedBox(width: AppDimensions.spaceSm),
                             Flexible(
                               child: Text(
@@ -241,7 +253,8 @@ class _Emblem extends StatelessWidget {
               color: AppColors.splashBackground,
               borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
               border: Border.all(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+                color: const Color(0xFF10B981).withValues(alpha: 0.5),
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

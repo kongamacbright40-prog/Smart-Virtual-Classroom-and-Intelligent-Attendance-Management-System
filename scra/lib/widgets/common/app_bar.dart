@@ -41,9 +41,9 @@ class SmartAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-        (subtitle != null || overline != null ? 68 : kToolbarHeight) +
-            (bottom?.preferredSize.height ?? 0),
-      );
+    (subtitle != null || overline != null ? 68 : kToolbarHeight) +
+        (bottom?.preferredSize.height ?? 0),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -62,8 +62,9 @@ class SmartAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final titleColumn = Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment:
-          centerTitle ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: centerTitle
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         if (overline != null)
           Text(

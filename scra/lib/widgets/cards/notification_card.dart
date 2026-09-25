@@ -8,30 +8,30 @@ import '../../models/notification_model.dart';
 (IconData, Color, Color) notificationVisuals(NotificationType type) =>
     switch (type) {
       NotificationType.classReminder => (
-          Icons.videocam_outlined,
-          AppColors.primaryFixed,
-          AppColors.primary
-        ),
+        Icons.videocam_outlined,
+        AppColors.primaryFixed,
+        AppColors.primary,
+      ),
       NotificationType.newCourse => (
-          Icons.menu_book_outlined,
-          AppColors.secondaryFixed,
-          AppColors.secondary
-        ),
+        Icons.menu_book_outlined,
+        AppColors.secondaryFixed,
+        AppColors.secondary,
+      ),
       NotificationType.attendanceUpdate => (
-          Icons.how_to_reg_outlined,
-          AppColors.successContainer,
-          AppColors.success
-        ),
+        Icons.how_to_reg_outlined,
+        AppColors.successContainer,
+        AppColors.success,
+      ),
       NotificationType.liveQuestion => (
-          Icons.bolt_outlined,
-          AppColors.warningContainer,
-          AppColors.warning
-        ),
+        Icons.bolt_outlined,
+        AppColors.warningContainer,
+        AppColors.warning,
+      ),
       NotificationType.announcement => (
-          Icons.campaign_outlined,
-          AppColors.tertiaryFixed,
-          AppColors.tertiary
-        ),
+        Icons.campaign_outlined,
+        AppColors.tertiaryFixed,
+        AppColors.tertiary,
+      ),
     };
 
 class NotificationCard extends StatelessWidget {
@@ -81,8 +81,9 @@ class NotificationCard extends StatelessWidget {
                           child: Text(
                             notification.title,
                             style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight:
-                                  unread ? FontWeight.w700 : FontWeight.w600,
+                              fontWeight: unread
+                                  ? FontWeight.w700
+                                  : FontWeight.w600,
                             ),
                           ),
                         ),

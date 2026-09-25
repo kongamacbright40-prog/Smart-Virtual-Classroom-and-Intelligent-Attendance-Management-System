@@ -22,16 +22,16 @@ class LecturerRegistrationScreen extends StatelessWidget {
         top: false,
         child: Center(
           child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(maxWidth: AppDimensions.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppDimensions.maxContentWidth,
+            ),
             child: ListView(
               padding: const EdgeInsets.all(AppDimensions.pageMargin),
               children: const [
                 RoleHeader(
                   icon: Icons.co_present_outlined,
                   title: 'Lecturer Registration',
-                  description:
-                      'Verify your institutional faculty credentials to configure course broadcast tools and academic lecture attendance.',
+                  description: 'Verify your institutional faculty credentials to configure course broadcast tools and academic lecture attendance.',
                   step: StepInfo(
                     overline: 'Faculty Verification',
                     title: 'Staff Credentials Setup',
@@ -44,8 +44,7 @@ class LecturerRegistrationScreen extends StatelessWidget {
                   role: UserRole.lecturer,
                   idLabel: 'Staff / Lecturer ID',
                   idHint: 'e.g. FAC-2024-8192',
-                  idHelper:
-                      'Found on your academic employment smartcard or faculty portal.',
+                  idHelper: 'Found on your academic employment smartcard or faculty portal.',
                   idValidator: Validators.staffId,
                   idBadge: StatusChip(
                     label: 'FACULTY ID',
@@ -59,8 +58,7 @@ class LecturerRegistrationScreen extends StatelessWidget {
                 ),
                 SizedBox(height: AppDimensions.spaceLg),
                 SecurityFooter(
-                  text:
-                      'SAML 2.0 Academic Identity • Protected by EduVerse Security',
+                  text: 'SAML 2.0 Academic Identity • Protected by EduVerse Security',
                   icon: Icons.shield_outlined,
                   pill: true,
                 ),

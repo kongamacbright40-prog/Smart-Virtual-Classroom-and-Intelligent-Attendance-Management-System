@@ -34,7 +34,9 @@ class AdminLoginScreen extends StatelessWidget {
     );
     if (ok) {
       navigator.pushNamedAndRemoveUntil(
-          AppRouter.homeFor(UserRole.admin), (_) => false);
+        AppRouter.homeFor(UserRole.admin),
+        (_) => false,
+      );
     }
   }
 
@@ -55,8 +57,9 @@ class AdminLoginScreen extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints:
-              const BoxConstraints(maxWidth: AppDimensions.maxContentWidth),
+          constraints: const BoxConstraints(
+            maxWidth: AppDimensions.maxContentWidth,
+          ),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -66,13 +69,15 @@ class AdminLoginScreen extends StatelessWidget {
                   offset: const Offset(0, -28),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.spaceLg),
+                      horizontal: AppDimensions.spaceLg,
+                    ),
                     child: Container(
                       padding: const EdgeInsets.all(AppDimensions.spaceLg),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerLowest,
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusXl),
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusXl,
+                        ),
                         boxShadow: const [
                           BoxShadow(
                             color: Color(0x1A000000),
@@ -88,10 +93,9 @@ class AdminLoginScreen extends StatelessWidget {
                             showRequired: true,
                             identifierLabel: 'Administrator ID',
                             identifierHint: 'e.g. ADM-9021-SYS',
-                            identifierValidator: (v) =>
-                                (v ?? '').contains('@')
-                                    ? Validators.email(v)
-                                    : Validators.adminId(v),
+                            identifierValidator: (v) => (v ?? '').contains('@')
+                                ? Validators.email(v)
+                                : Validators.adminId(v),
                             identifierBadge: const StatusChip(
                               label: 'SIS Admin',
                               tone: StatusTone.info,
@@ -99,11 +103,15 @@ class AdminLoginScreen extends StatelessWidget {
                             ),
                             identifierSuffix: Padding(
                               padding: const EdgeInsets.only(right: 8),
-                              child: Icon(Icons.verified_outlined,
-                                  color: theme.colorScheme.primary),
+                              child: Icon(
+                                Icons.verified_outlined,
+                                color: theme.colorScheme.primary,
+                              ),
                             ),
-                            passwordBadge: Text('FIPS 140-3',
-                                style: theme.textTheme.labelMedium),
+                            passwordBadge: Text(
+                              'FIPS 140-3',
+                              style: theme.textTheme.labelMedium,
+                            ),
                             fieldFill: theme.colorScheme.surfaceContainerLow,
                             rememberLabel: 'Remember credentials',
                             linkLabel: 'Token Help',
@@ -120,8 +128,7 @@ class AdminLoginScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: AppDimensions.spaceSm),
                           SecondaryButton(
-                            label:
-                                'Sign in with Institutional YubiKey / Hardware Token',
+                            label: 'Sign in with Institutional YubiKey / Hardware Token',
                             icon: Icons.security_update_good_outlined,
                             height: 60,
                             onPressed: () => Helpers.showSnackBar(
@@ -137,13 +144,15 @@ class AdminLoginScreen extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.spaceLg),
+                    horizontal: AppDimensions.spaceLg,
+                  ),
                   child: Container(
                     padding: const EdgeInsets.all(AppDimensions.spaceMd),
                     decoration: BoxDecoration(
                       color: AppColors.primaryFixed.withValues(alpha: 0.4),
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusXl),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusXl,
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -155,10 +164,14 @@ class AdminLoginScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: theme.colorScheme.primaryContainer,
                                 borderRadius: BorderRadius.circular(
-                                    AppDimensions.radiusMd),
+                                  AppDimensions.radiusMd,
+                                ),
                               ),
-                              child: const Icon(Icons.gavel,
-                                  color: Colors.white, size: 22),
+                              child: const Icon(
+                                Icons.gavel,
+                                color: Colors.white,
+                                size: 22,
+                              ),
                             ),
                             const SizedBox(width: AppDimensions.spaceMd),
                             Expanded(
@@ -185,11 +198,14 @@ class AdminLoginScreen extends StatelessWidget {
                         const SizedBox(height: AppDimensions.spaceMd),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: AppDimensions.spaceMd, vertical: 12),
+                            horizontal: AppDimensions.spaceMd,
+                            vertical: 12,
+                          ),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.surfaceContainerLowest,
-                            borderRadius:
-                                BorderRadius.circular(AppDimensions.radiusMd),
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusMd,
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -203,12 +219,17 @@ class AdminLoginScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: AppDimensions.spaceSm),
                               Expanded(
-                                child: Text('#ADM-LOG-8842',
-                                    style: theme.textTheme.labelLarge
-                                        ?.copyWith(fontFamily: 'monospace')),
+                                child: Text(
+                                  '#ADM-LOG-8842',
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
                               ),
-                              Text('AES-256 Encrypted',
-                                  style: theme.textTheme.labelMedium),
+                              Text(
+                                'AES-256 Encrypted',
+                                style: theme.textTheme.labelMedium,
+                              ),
                             ],
                           ),
                         ),
@@ -226,8 +247,10 @@ class AdminLoginScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                    height: MediaQuery.paddingOf(context).bottom +
-                        AppDimensions.spaceMd),
+                  height:
+                      MediaQuery.paddingOf(context).bottom +
+                      AppDimensions.spaceMd,
+                ),
               ],
             ),
           ),
@@ -276,12 +299,15 @@ class _AdminHero extends StatelessWidget {
               Flexible(
                 flex: 4,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.radiusFull),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusFull,
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -299,8 +325,9 @@ class _AdminHero extends StatelessWidget {
                         child: Text(
                           'Tier 3 Access • SAML 2.0 / FIPS',
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelMedium
-                              ?.copyWith(color: AppColors.slate300),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: AppColors.slate300,
+                          ),
                         ),
                       ),
                     ],
@@ -331,8 +358,11 @@ class _AdminHero extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: AppColors.primary,
               ),
-              child: const Icon(Icons.shield_outlined,
-                  color: Colors.white, size: 40),
+              child: const Icon(
+                Icons.shield_outlined,
+                color: Colors.white,
+                size: 40,
+              ),
             ),
           ),
           const SizedBox(height: AppDimensions.spaceMd),
@@ -351,8 +381,9 @@ class _AdminHero extends StatelessWidget {
                   child: Text(
                     'Smart Class • Institutional Gateway',
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge
-                        ?.copyWith(color: AppColors.slate300),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: AppColors.slate300,
+                    ),
                   ),
                 ),
               ],
@@ -362,14 +393,17 @@ class _AdminHero extends StatelessWidget {
           Text(
             'Institutional Administration',
             textAlign: TextAlign.center,
-            style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             'Secure administrative access.',
             textAlign: TextAlign.center,
-            style:
-                theme.textTheme.bodyLarge?.copyWith(color: AppColors.slate300),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: AppColors.slate300,
+            ),
           ),
           const SizedBox(height: AppDimensions.spaceSm),
           Container(
@@ -381,15 +415,19 @@ class _AdminHero extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.verified_user_outlined,
-                    size: 14, color: AppColors.slate300),
+                const Icon(
+                  Icons.verified_user_outlined,
+                  size: 14,
+                  color: AppColors.slate300,
+                ),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
                     'Root & Faculty Administration System',
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelMedium
-                        ?.copyWith(color: AppColors.slate300),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: AppColors.slate300,
+                    ),
                   ),
                 ),
               ],

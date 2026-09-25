@@ -10,11 +10,8 @@ enum QuestionStatus {
   final String value;
   final String label;
 
-  static QuestionStatus fromJson(Object? value) =>
-      QuestionStatus.values.firstWhere(
-        (e) => e.value == value,
-        orElse: () => QuestionStatus.draft,
-      );
+  static QuestionStatus fromJson(Object? value) => QuestionStatus.values
+      .firstWhere((e) => e.value == value, orElse: () => QuestionStatus.draft);
 }
 
 class QuestionOption {
@@ -33,25 +30,25 @@ class QuestionOption {
   final int responseCount;
 
   factory QuestionOption.fromJson(Json json) => QuestionOption(
-        id: json['id'].toString(),
-        label: json['label'] as String,
-        text: json['text'] as String,
-        responseCount: JsonX.toInt(json['response_count']),
-      );
+    id: json['id'].toString(),
+    label: json['label'] as String,
+    text: json['text'] as String,
+    responseCount: JsonX.toInt(json['response_count']),
+  );
 
   Json toJson() => {
-        'id': id,
-        'label': label,
-        'text': text,
-        'response_count': responseCount,
-      };
+    'id': id,
+    'label': label,
+    'text': text,
+    'response_count': responseCount,
+  };
 
   QuestionOption copyWith({int? responseCount}) => QuestionOption(
-        id: id,
-        label: label,
-        text: text,
-        responseCount: responseCount ?? this.responseCount,
-      );
+    id: id,
+    label: label,
+    text: text,
+    responseCount: responseCount ?? this.responseCount,
+  );
 }
 
 /// A multiple-choice live question launched by a lecturer.
@@ -86,8 +83,7 @@ class QuestionModel {
   final int expectedResponders;
   final bool countsTowardGrade;
 
-  int get responseCount =>
-      options.fold(0, (sum, o) => sum + o.responseCount);
+  int get responseCount => options.fold(0, (sum, o) => sum + o.responseCount);
 
   double get responseRate => expectedResponders == 0
       ? 0
@@ -96,8 +92,10 @@ class QuestionModel {
   double percentFor(String optionId) {
     final total = responseCount;
     if (total == 0) return 0;
-    final o = options.firstWhere((o) => o.id == optionId,
-        orElse: () => const QuestionOption(id: '', label: '', text: ''));
+    final o = options.firstWhere(
+      (o) => o.id == optionId,
+      orElse: () => const QuestionOption(id: '', label: '', text: ''),
+    );
     return o.responseCount / total * 100;
   }
 
@@ -110,55 +108,54 @@ class QuestionModel {
   }
 
   factory QuestionModel.fromJson(Json json) => QuestionModel(
-        id: json['id'].toString(),
-        sessionId: json['session_id'].toString(),
-        text: json['text'] as String,
-        options: JsonX.list(json['options'], QuestionOption.fromJson),
-        correctOptionId: json['correct_option_id'] as String?,
-        durationSeconds: json['duration_seconds'] == null
-            ? null
-            : JsonX.toInt(json['duration_seconds']),
-        status: QuestionStatus.fromJson(json['status']),
-        topic: json['topic'] as String?,
-        createdAt: JsonX.dateOrNull(json['created_at']),
-        launchedAt: JsonX.dateOrNull(json['launched_at']),
-        expectedResponders: JsonX.toInt(json['expected_responders']),
-        countsTowardGrade: json['counts_toward_grade'] as bool? ?? true,
-      );
+    id: json['id'].toString(),
+    sessionId: json['session_id'].toString(),
+    text: json['text'] as String,
+    options: JsonX.list(json['options'], QuestionOption.fromJson),
+    correctOptionId: json['correct_option_id'] as String?,
+    durationSeconds: json['duration_seconds'] == null
+        ? null
+        : JsonX.toInt(json['duration_seconds']),
+    status: QuestionStatus.fromJson(json['status']),
+    topic: json['topic'] as String?,
+    createdAt: JsonX.dateOrNull(json['created_at']),
+    launchedAt: JsonX.dateOrNull(json['launched_at']),
+    expectedResponders: JsonX.toInt(json['expected_responders']),
+    countsTowardGrade: json['counts_toward_grade'] as bool? ?? true,
+  );
 
   Json toJson() => {
-        'id': id,
-        'session_id': sessionId,
-        'text': text,
-        'options': options.map((o) => o.toJson()).toList(),
-        'correct_option_id': correctOptionId,
-        'duration_seconds': durationSeconds,
-        'status': status.value,
-        'topic': topic,
-        'created_at': JsonX.isoOrNull(createdAt),
-        'launched_at': JsonX.isoOrNull(launchedAt),
-        'expected_responders': expectedResponders,
-        'counts_toward_grade': countsTowardGrade,
-      };
+    'id': id,
+    'session_id': sessionId,
+    'text': text,
+    'options': options.map((o) => o.toJson()).toList(),
+    'correct_option_id': correctOptionId,
+    'duration_seconds': durationSeconds,
+    'status': status.value,
+    'topic': topic,
+    'created_at': JsonX.isoOrNull(createdAt),
+    'launched_at': JsonX.isoOrNull(launchedAt),
+    'expected_responders': expectedResponders,
+    'counts_toward_grade': countsTowardGrade,
+  };
 
   QuestionModel copyWith({
     List<QuestionOption>? options,
     QuestionStatus? status,
     DateTime? launchedAt,
     int? expectedResponders,
-  }) =>
-      QuestionModel(
-        id: id,
-        sessionId: sessionId,
-        text: text,
-        options: options ?? this.options,
-        correctOptionId: correctOptionId,
-        durationSeconds: durationSeconds,
-        status: status ?? this.status,
-        topic: topic,
-        createdAt: createdAt,
-        launchedAt: launchedAt ?? this.launchedAt,
-        expectedResponders: expectedResponders ?? this.expectedResponders,
-        countsTowardGrade: countsTowardGrade,
-      );
+  }) => QuestionModel(
+    id: id,
+    sessionId: sessionId,
+    text: text,
+    options: options ?? this.options,
+    correctOptionId: correctOptionId,
+    durationSeconds: durationSeconds,
+    status: status ?? this.status,
+    topic: topic,
+    createdAt: createdAt,
+    launchedAt: launchedAt ?? this.launchedAt,
+    expectedResponders: expectedResponders ?? this.expectedResponders,
+    countsTowardGrade: countsTowardGrade,
+  );
 }

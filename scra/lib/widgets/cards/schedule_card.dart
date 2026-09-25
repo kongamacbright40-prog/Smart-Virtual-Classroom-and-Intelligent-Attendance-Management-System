@@ -58,11 +58,13 @@ class ScheduleCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(isLive ? Icons.timer_outlined : Icons.schedule,
-                      size: 18,
-                      color: isLive
-                          ? AppColors.sky400
-                          : theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    isLive ? Icons.timer_outlined : Icons.schedule,
+                    size: 18,
+                    color: isLive
+                        ? AppColors.sky400
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: AppDimensions.spaceSm),
                   Expanded(
                     child: Text(
@@ -95,11 +97,13 @@ class ScheduleCard extends StatelessWidget {
                 const SizedBox(height: AppDimensions.spaceXs),
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined,
-                        size: 16,
-                        color: isLive
-                            ? AppColors.slate300
-                            : theme.colorScheme.onSurfaceVariant),
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: isLive
+                          ? AppColors.slate300
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(

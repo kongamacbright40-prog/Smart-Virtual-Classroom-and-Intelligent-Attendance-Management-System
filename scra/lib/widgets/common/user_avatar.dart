@@ -35,8 +35,10 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = backgroundColor ??
-        _palette[name.codeUnits.fold<int>(0, (a, b) => a + b) % _palette.length];
+    final bg =
+        backgroundColor ??
+        _palette[name.codeUnits.fold<int>(0, (a, b) => a + b) %
+            _palette.length];
     final avatar = CircleAvatar(
       radius: size / 2,
       backgroundColor: bg,

@@ -9,7 +9,10 @@ import '../../../widgets/inputs/app_text_field.dart';
 import '../providers/auth_provider.dart';
 
 typedef LoginSubmit = Future<void> Function(
-    String identifier, String password, bool rememberMe);
+  String identifier,
+  String password,
+  bool rememberMe,
+);
 
 /// Credentials form shared by the Login and Admin Login screens.
 ///
@@ -133,8 +136,10 @@ class _LoginFormState extends State<LoginForm> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () => setState(() => _remember = !_remember),
-                    child: Text(widget.rememberLabel,
-                        style: theme.textTheme.bodyMedium),
+                    child: Text(
+                      widget.rememberLabel,
+                      style: theme.textTheme.bodyMedium,
+                    ),
                   ),
                 ),
                 if (widget.onLink != null)
@@ -158,14 +163,18 @@ class _LoginFormState extends State<LoginForm> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline,
-                        color: theme.colorScheme.onErrorContainer, size: 20),
+                    Icon(
+                      Icons.error_outline,
+                      color: theme.colorScheme.onErrorContainer,
+                      size: 20,
+                    ),
                     const SizedBox(width: AppDimensions.spaceSm),
                     Expanded(
                       child: Text(
                         auth.errorMessage!,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onErrorContainer),
+                          color: theme.colorScheme.onErrorContainer,
+                        ),
                       ),
                     ),
                   ],

@@ -61,12 +61,17 @@ Future<void> signInAs(WidgetTester tester, UserRole role) async {
     UserRole.admin => (DemoAccounts.adminId, RouteNames.adminLogin),
   };
   final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
-  navigator.pushNamedAndRemoveUntil(route, (_) => false,
-      arguments: role == UserRole.admin ? null : role);
+  navigator.pushNamedAndRemoveUntil(
+    route,
+    (_) => false,
+    arguments: role == UserRole.admin ? null : role,
+  );
   await pumpFrames(tester);
   await tester.enterText(find.byKey(const Key('login_identifier')), identifier);
   await tester.enterText(
-      find.byKey(const Key('login_password')), DemoAccounts.password);
+    find.byKey(const Key('login_password')),
+    DemoAccounts.password,
+  );
   await tapVisible(tester, find.byKey(const Key('login_submit')));
   await pumpFrames(tester, 10);
 }

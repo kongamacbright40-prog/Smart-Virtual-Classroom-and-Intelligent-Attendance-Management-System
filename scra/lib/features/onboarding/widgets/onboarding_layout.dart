@@ -59,8 +59,9 @@ class OnboardingLayout extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(maxWidth: AppDimensions.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppDimensions.maxContentWidth,
+            ),
             child: Column(
               children: [
                 Padding(
@@ -115,10 +116,7 @@ class OnboardingLayout extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: AppDimensions.spaceLg),
-                        OnboardingIndicator(
-                          count: pageCount,
-                          index: pageIndex,
-                        ),
+                        OnboardingIndicator(count: pageCount, index: pageIndex),
                         const SizedBox(height: AppDimensions.spaceLg),
                       ],
                     ),
@@ -161,9 +159,11 @@ class OnboardingLayout extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(footerIcon,
-                              size: 16,
-                              color: theme.colorScheme.onSurfaceVariant),
+                          Icon(
+                            footerIcon,
+                            size: 16,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                           const SizedBox(width: AppDimensions.spaceSm),
                           Flexible(
                             child: Text(
@@ -313,8 +313,11 @@ class _HeroIcons extends StatelessWidget {
                   BoxShadow(color: Color(0x14000000), blurRadius: 12),
                 ],
               ),
-              child: Icon(satellites[i],
-                  size: 24, color: AppColors.primaryContainer),
+              child: Icon(
+                satellites[i],
+                size: 24,
+                color: AppColors.primaryContainer,
+              ),
             ),
           ),
       ],
@@ -357,13 +360,19 @@ class HeroPill extends StatelessWidget {
             Container(
               width: 8,
               height: 8,
-              decoration:
-                  BoxDecoration(color: dotColor, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+              ),
             ),
             const SizedBox(width: 8),
           ],
           if (icon != null) ...[
-            Icon(icon, size: 16, color: dark ? Colors.white : theme.colorScheme.primary),
+            Icon(
+              icon,
+              size: 16,
+              color: dark ? Colors.white : theme.colorScheme.primary,
+            ),
             const SizedBox(width: 6),
           ],
           Text(

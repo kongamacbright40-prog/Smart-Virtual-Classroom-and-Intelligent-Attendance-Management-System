@@ -35,10 +35,14 @@ class RoleShell extends StatefulWidget {
 }
 
 class RoleShellState extends State<RoleShell> {
-  late int _index =
-      widget.initialIndex.clamp(0, widget.destinations.length - 1);
-  late final List<Widget?> _pages =
-      List<Widget?>.filled(widget.destinations.length, null);
+  late int _index = widget.initialIndex.clamp(
+    0,
+    widget.destinations.length - 1,
+  );
+  late final List<Widget?> _pages = List<Widget?>.filled(
+    widget.destinations.length,
+    null,
+  );
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 

@@ -250,5 +250,4 @@ class AdminProfileScreen extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) =>
       confirmAndLogout(context, loginRoute: RouteNames.adminLogin);
-
 }

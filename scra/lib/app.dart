@@ -55,8 +55,10 @@ class _SmartClassAppState extends State<SmartClassApp> {
   Future<void> _onUnauthorized() async {
     if (!_auth.isAuthenticated) return;
     await _auth.handleSessionExpired();
-    AppRouter.navigatorKey.currentState
-        ?.pushNamedAndRemoveUntil(RouteNames.login, (_) => false);
+    AppRouter.navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      RouteNames.login,
+      (_) => false,
+    );
   }
 
   @override
@@ -81,12 +83,12 @@ class _SmartClassAppState extends State<SmartClassApp> {
         Provider<UserRepository>.value(value: _deps.userRepository),
         Provider<CourseRepository>.value(value: _deps.courseRepository),
         Provider<ScheduleRepository>.value(value: _deps.scheduleRepository),
-        Provider<AttendanceRepository>.value(
-            value: _deps.attendanceRepository),
+        Provider<AttendanceRepository>.value(value: _deps.attendanceRepository),
         Provider<ClassroomRepository>.value(value: _deps.classroomRepository),
         Provider<QuestionRepository>.value(value: _deps.questionRepository),
         Provider<NotificationRepository>.value(
-            value: _deps.notificationRepository),
+          value: _deps.notificationRepository,
+        ),
         Provider<AdminRepository>.value(value: _deps.adminRepository),
         Provider<ReportRepository>.value(value: _deps.reportRepository),
         Provider<ClassroomRegistry>.value(value: _classrooms),

@@ -91,7 +91,10 @@ abstract interface class ScheduleRepository {
 }
 
 abstract interface class AttendanceRepository {
-  Future<AttendanceModel> getStudentSummary(String studentId, {String? courseId});
+  Future<AttendanceModel> getStudentSummary(
+    String studentId, {
+    String? courseId,
+  });
   Future<List<AttendanceRecordModel>> getStudentRecords(
     String studentId, {
     String? courseId,
@@ -190,7 +193,9 @@ abstract interface class AdminRepository {
   Future<AcademicTermModel> saveAcademicTerm(AcademicTermModel term);
 
   Future<SystemSettingsModel> getSystemSettings();
-  Future<SystemSettingsModel> updateSystemSettings(SystemSettingsModel settings);
+  Future<SystemSettingsModel> updateSystemSettings(
+    SystemSettingsModel settings,
+  );
 
   Future<List<ActivityLogModel>> getRecentActivity({int limit = 20});
 }

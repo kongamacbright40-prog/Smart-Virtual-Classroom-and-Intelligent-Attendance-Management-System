@@ -32,12 +32,10 @@ class WelcomeScreen extends StatelessWidget {
         ),
       ),
       title: 'Welcome to Smart Class',
-      body:
-          'Attend classes virtually, participate in real time and automatically track your attendance.',
+      body: 'Attend classes virtually, participate in real time and automatically track your attendance.',
       footerIcon: Icons.lock_outline,
       footerText: 'Secured by University Single Sign-On',
-      onNext: () =>
-          Navigator.of(context).pushNamed(RouteNames.attendanceIntro),
+      onNext: () => Navigator.of(context).pushNamed(RouteNames.attendanceIntro),
       badge: const _FeatureChips(),
     );
   }

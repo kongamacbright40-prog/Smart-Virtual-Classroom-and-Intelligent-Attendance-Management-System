@@ -29,9 +29,9 @@ enum SessionMode {
   final String label;
 
   static SessionMode fromJson(Object? value) => SessionMode.values.firstWhere(
-        (e) => e.value == value,
-        orElse: () => SessionMode.hybrid,
-      );
+    (e) => e.value == value,
+    orElse: () => SessionMode.hybrid,
+  );
 }
 
 /// A single occurrence of a class (lecture, lab, seminar).
@@ -93,46 +93,46 @@ class ClassSessionModel {
   }
 
   factory ClassSessionModel.fromJson(Json json) => ClassSessionModel(
-        id: json['id'].toString(),
-        courseId: json['course_id'].toString(),
-        courseCode: json['course_code'] as String,
-        courseTitle: json['course_title'] as String,
-        title: json['title'] as String,
-        startTime: JsonX.date(json['start_time']),
-        endTime: JsonX.date(json['end_time']),
-        lecturerId: json['lecturer_id'] as String?,
-        lecturerName: json['lecturer_name'] as String?,
-        room: json['room'] as String?,
-        mode: SessionMode.fromJson(json['mode']),
-        status: SessionStatus.fromJson(json['status']),
-        sessionNumber: json['session_number'] == null
-            ? null
-            : JsonX.toInt(json['session_number']),
-        participantCount: JsonX.toInt(json['participant_count']),
-        expectedCount: JsonX.toInt(json['expected_count']),
-        attendanceActive: json['attendance_active'] as bool? ?? false,
-        materials: JsonX.stringList(json['materials']),
-      );
+    id: json['id'].toString(),
+    courseId: json['course_id'].toString(),
+    courseCode: json['course_code'] as String,
+    courseTitle: json['course_title'] as String,
+    title: json['title'] as String,
+    startTime: JsonX.date(json['start_time']),
+    endTime: JsonX.date(json['end_time']),
+    lecturerId: json['lecturer_id'] as String?,
+    lecturerName: json['lecturer_name'] as String?,
+    room: json['room'] as String?,
+    mode: SessionMode.fromJson(json['mode']),
+    status: SessionStatus.fromJson(json['status']),
+    sessionNumber: json['session_number'] == null
+        ? null
+        : JsonX.toInt(json['session_number']),
+    participantCount: JsonX.toInt(json['participant_count']),
+    expectedCount: JsonX.toInt(json['expected_count']),
+    attendanceActive: json['attendance_active'] as bool? ?? false,
+    materials: JsonX.stringList(json['materials']),
+  );
 
   Json toJson() => {
-        'id': id,
-        'course_id': courseId,
-        'course_code': courseCode,
-        'course_title': courseTitle,
-        'title': title,
-        'start_time': startTime.toIso8601String(),
-        'end_time': endTime.toIso8601String(),
-        'lecturer_id': lecturerId,
-        'lecturer_name': lecturerName,
-        'room': room,
-        'mode': mode.value,
-        'status': status.value,
-        'session_number': sessionNumber,
-        'participant_count': participantCount,
-        'expected_count': expectedCount,
-        'attendance_active': attendanceActive,
-        'materials': materials,
-      };
+    'id': id,
+    'course_id': courseId,
+    'course_code': courseCode,
+    'course_title': courseTitle,
+    'title': title,
+    'start_time': startTime.toIso8601String(),
+    'end_time': endTime.toIso8601String(),
+    'lecturer_id': lecturerId,
+    'lecturer_name': lecturerName,
+    'room': room,
+    'mode': mode.value,
+    'status': status.value,
+    'session_number': sessionNumber,
+    'participant_count': participantCount,
+    'expected_count': expectedCount,
+    'attendance_active': attendanceActive,
+    'materials': materials,
+  };
 
   ClassSessionModel copyWith({
     SessionStatus? status,
@@ -140,24 +140,23 @@ class ClassSessionModel {
     bool? attendanceActive,
     DateTime? startTime,
     DateTime? endTime,
-  }) =>
-      ClassSessionModel(
-        id: id,
-        courseId: courseId,
-        courseCode: courseCode,
-        courseTitle: courseTitle,
-        title: title,
-        startTime: startTime ?? this.startTime,
-        endTime: endTime ?? this.endTime,
-        lecturerId: lecturerId,
-        lecturerName: lecturerName,
-        room: room,
-        mode: mode,
-        status: status ?? this.status,
-        sessionNumber: sessionNumber,
-        participantCount: participantCount ?? this.participantCount,
-        expectedCount: expectedCount,
-        attendanceActive: attendanceActive ?? this.attendanceActive,
-        materials: materials,
-      );
+  }) => ClassSessionModel(
+    id: id,
+    courseId: courseId,
+    courseCode: courseCode,
+    courseTitle: courseTitle,
+    title: title,
+    startTime: startTime ?? this.startTime,
+    endTime: endTime ?? this.endTime,
+    lecturerId: lecturerId,
+    lecturerName: lecturerName,
+    room: room,
+    mode: mode,
+    status: status ?? this.status,
+    sessionNumber: sessionNumber,
+    participantCount: participantCount ?? this.participantCount,
+    expectedCount: expectedCount,
+    attendanceActive: attendanceActive ?? this.attendanceActive,
+    materials: materials,
+  );
 }

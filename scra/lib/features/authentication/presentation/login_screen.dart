@@ -41,7 +41,9 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     if (ok && auth.role != null) {
       navigator.pushNamedAndRemoveUntil(
-          AppRouter.homeFor(auth.role!), (_) => false);
+        AppRouter.homeFor(auth.role!),
+        (_) => false,
+      );
     }
   }
 
@@ -57,10 +59,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _notAvailable(String feature) => Helpers.showSnackBar(
-        context,
-        '$feature will be available once Smart Class is connected to your '
-        'campus identity provider.',
-      );
+    context,
+    '$feature will be available once Smart Class is connected to your '
+    'campus identity provider.',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(maxWidth: AppDimensions.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppDimensions.maxContentWidth,
+            ),
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppDimensions.pageMargin,
@@ -105,32 +108,41 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Flexible(
-                        child: Text(AppStrings.appName,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                                color: theme.colorScheme.primaryContainer)),
+                        child: Text(
+                          AppStrings.appName,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: theme.colorScheme.primaryContainer,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: AppDimensions.spaceSm),
                       Text('•', style: theme.textTheme.bodySmall),
                       const SizedBox(width: AppDimensions.spaceSm),
                       Flexible(
-                        child: Text(AppStrings.suiteName,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant)),
+                        child: Text(
+                          AppStrings.suiteName,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: AppDimensions.spaceSm),
-                  Text('Welcome Back',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineLarge),
+                  Text(
+                    'Welcome Back',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineLarge,
+                  ),
                   const SizedBox(height: AppDimensions.spaceXs),
                   Text(
                     'Sign in with your institutional credentials.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant),
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.spaceLg),
                   _RoleToggle(selected: _role, onSelected: _selectRole),
@@ -141,8 +153,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     identifierHint: _role == UserRole.student
                         ? 'e.g. ICT20251181 or name@student.univ.edu'
                         : 'e.g. FAC-2024-8192 or name@smartclass.edu.ac',
-                    onLink: () => Navigator.of(context)
-                        .pushNamed(RouteNames.forgotPassword),
+                    onLink: () =>
+                        Navigator.of(context)
+                            .pushNamed(RouteNames.forgotPassword),
                   ),
                   const SizedBox(height: AppDimensions.spaceLg),
                   Row(
@@ -150,10 +163,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Expanded(child: Divider()),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.spaceMd),
-                        child: Text('OR CONTINUE WITH',
-                            style: theme.textTheme.labelMedium
-                                ?.copyWith(letterSpacing: 1)),
+                          horizontal: AppDimensions.spaceMd,
+                        ),
+                        child: Text(
+                          'OR CONTINUE WITH',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            letterSpacing: 1,
+                          ),
+                        ),
                       ),
                       const Expanded(child: Divider()),
                     ],
@@ -194,13 +211,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.lock_outline,
-                          size: 14, color: theme.colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.lock_outline,
+                        size: 14,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 6),
                       Flexible(
-                        child: Text('256-bit SSL Encrypted • EduVerse Security',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.labelSmall),
+                        child: Text(
+                          '256-bit SSL Encrypted • EduVerse Security',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.labelSmall,
+                        ),
                       ),
                     ],
                   ),
@@ -248,15 +270,19 @@ class _RoleToggle extends StatelessWidget {
                       color: role == selected
                           ? theme.colorScheme.primary
                           : Colors.transparent,
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusFull),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusFull,
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         if (role == selected) ...[
-                          const Icon(Icons.check,
-                              size: 18, color: Colors.white),
+                          const Icon(
+                            Icons.check,
+                            size: 18,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 6),
                         ],
                         Flexible(
@@ -296,19 +322,24 @@ class _FirstTimeLink extends StatelessWidget {
       alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text(isStudent ? 'First time here? ' : 'New faculty member? ',
-            style: theme.textTheme.bodyMedium),
+        Text(
+          isStudent ? 'First time here? ' : 'New faculty member? ',
+          style: theme.textTheme.bodyMedium,
+        ),
         TextButton(
           key: const Key('login_first_time'),
-          onPressed: () => Navigator.of(context).pushNamed(isStudent
-              ? RouteNames.studentActivation
-              : RouteNames.lecturerRegistration),
+          onPressed: () => Navigator.of(context).pushNamed(
+            isStudent
+                ? RouteNames.studentActivation
+                : RouteNames.lecturerRegistration,
+          ),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             minimumSize: const Size(0, 36),
           ),
           child: Text(
-              isStudent ? 'Activate your account' : 'Register as lecturer'),
+            isStudent ? 'Activate your account' : 'Register as lecturer',
+          ),
         ),
       ],
     );

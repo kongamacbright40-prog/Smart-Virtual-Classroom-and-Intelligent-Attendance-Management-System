@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -34,7 +33,13 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
       appBar: AdminScreenHeader(
         title: 'Institution Reports',
         showBack: true,
-        actions: [IconButton(tooltip: 'Export', icon: const Icon(Icons.ios_share), onPressed: () => _export(context, null))],
+        actions: [
+          IconButton(
+            tooltip: 'Export',
+            icon: const Icon(Icons.ios_share),
+            onPressed: () => _export(context, null),
+          ),
+        ],
       ),
       body: AsyncView<_ReportsData>(
         key: ValueKey('reports-$_departmentId'),
@@ -47,54 +52,174 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
           );
         },
         builder: (context, data, reload) {
-          final facultyRows = data.report.breakdown.where((b) => b.meta['type'] != 'course').toList();
-          final courseRows = data.report.breakdown.where((b) => b.meta['type'] == 'course').toList();
-          final selectedDept = data.departments.where((d) => d.id == _departmentId).isEmpty ? null : data.departments.firstWhere((d) => d.id == _departmentId);
+          final facultyRows = data.report.breakdown
+              .where((b) => b.meta['type'] != 'course')
+              .toList();
+          final courseRows = data.report.breakdown
+              .where((b) => b.meta['type'] == 'course')
+              .toList();
+          final selectedDept =
+              data.departments.where((d) => d.id == _departmentId).isEmpty
+              ? null
+              : data.departments.firstWhere((d) => d.id == _departmentId);
           return RefreshIndicator(
             onRefresh: reload,
             child: ListView(
               children: [
-                AdminHeroCard(title: 'Institutional Analytics', subtitle: 'Fall Semester 2026 • Official Registry', icon: Icons.domain_verification_outlined, trailing: StatusChip(label: 'Live Audit', tone: StatusTone.live)),
+                AdminHeroCard(
+                  title: 'Institutional Analytics',
+                  subtitle: 'Fall Semester 2026 • Official Registry',
+                  icon: Icons.domain_verification_outlined,
+                  trailing: StatusChip(
+                    label: 'Live Audit',
+                    tone: StatusTone.live,
+                  ),
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                PrimaryButton(key: const Key('export_report'), label: 'Export Report', icon: Icons.download_outlined, onPressed: () => _export(context, data.report)),
+                PrimaryButton(
+                  key: const Key('export_report'),
+                  label: 'Export Report',
+                  icon: Icons.download_outlined,
+                  onPressed: () => _export(context, data.report),
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                Wrap(spacing: AppDimensions.spaceSm, runSpacing: AppDimensions.spaceSm, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                  ChoiceChip(label: const Text('This Term'), selected: true, onSelected: (_) {}),
-                  ChoiceChip(label: const Text('Custom Range'), selected: false, onSelected: (_) => Helpers.showSnackBar(context, 'Custom range picker coming soon.')),
-                ]),
+                Wrap(
+                  spacing: AppDimensions.spaceSm,
+                  runSpacing: AppDimensions.spaceSm,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('This Term'),
+                      selected: true,
+                      onSelected: (_) {},
+                    ),
+                    ChoiceChip(
+                      label: const Text('Custom Range'),
+                      selected: false,
+                      onSelected: (_) => Helpers.showSnackBar(
+                        context,
+                        'Custom range picker coming soon.',
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                AppDropdown<DepartmentModel>(label: 'Department', hint: 'All', value: selectedDept, items: data.departments, onChanged: (d) => setState(() => _departmentId = d?.id), itemLabel: (d) => d.name),
+                AppDropdown<DepartmentModel>(
+                  label: 'Department',
+                  hint: 'All',
+                  value: selectedDept,
+                  items: data.departments,
+                  onChanged: (d) => setState(() => _departmentId = d?.id),
+                  itemLabel: (d) => d.name,
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                AdminGrid(children: [
-                    AnalyticsCard(title: 'Overall Rate', value: Formatters.percent(data.report.metric('overall_rate'), decimals: 1), icon: Icons.school_outlined, badge: '+${data.report.metric('rate_change').toStringAsFixed(1)}%', tone: StatusTone.success),
-                    AnalyticsCard(title: 'Sessions', value: Formatters.compactNumber(data.report.metric('sessions')), icon: Icons.verified_outlined, badge: '${data.report.metric('sync_rate').toStringAsFixed(1)}%', tone: StatusTone.live),
-                    AnalyticsCard(title: 'At-Risk (<75%)', value: data.report.metric('at_risk').round().toString(), icon: Icons.warning_amber_outlined, badge: 'Action', tone: StatusTone.warning),
-                    AnalyticsCard(title: 'Sync', value: '${data.report.metric('sync_rate').toStringAsFixed(1)}%', icon: Icons.cloud_done_outlined, badge: 'Healthy', tone: StatusTone.success),
+                AdminGrid(
+                  children: [
+                    AnalyticsCard(
+                      title: 'Overall Rate',
+                      value: Formatters.percent(
+                        data.report.metric('overall_rate'),
+                        decimals: 1,
+                      ),
+                      icon: Icons.school_outlined,
+                      badge:
+                          '+${data.report.metric('rate_change').toStringAsFixed(1)}%',
+                      tone: StatusTone.success,
+                    ),
+                    AnalyticsCard(
+                      title: 'Sessions',
+                      value: Formatters.compactNumber(
+                        data.report.metric('sessions'),
+                      ),
+                      icon: Icons.verified_outlined,
+                      badge:
+                          '${data.report.metric('sync_rate').toStringAsFixed(1)}%',
+                      tone: StatusTone.live,
+                    ),
+                    AnalyticsCard(
+                      title: 'At-Risk (<75%)',
+                      value: data.report.metric('at_risk').round().toString(),
+                      icon: Icons.warning_amber_outlined,
+                      badge: 'Action',
+                      tone: StatusTone.warning,
+                    ),
+                    AnalyticsCard(
+                      title: 'Sync',
+                      value:
+                          '${data.report.metric('sync_rate').toStringAsFixed(1)}%',
+                      icon: Icons.cloud_done_outlined,
+                      badge: 'Healthy',
+                      tone: StatusTone.success,
+                    ),
                   ],
                 ),
                 const SizedBox(height: AppDimensions.spaceMd),
                 AppCard(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    AdminSectionTitle(title: 'Attendance Trend', subtitle: 'Weekly percentage progression', trailing: SegmentedButton<bool>(segments: const [ButtonSegment(value: true, label: Text('Weekly')), ButtonSegment(value: false, label: Text('Monthly'))], selected: {_weekly}, onSelectionChanged: (s) => setState(() => _weekly = s.first))),
-                    const SizedBox(height: AppDimensions.spaceMd),
-                    const Wrap(spacing: AppDimensions.spaceMd, children: [Text('● Current Term (Fall 26)'), Text('?? Prev Term (Spring 26)')]),
-                    AnalyticsChart(current: data.report.trend, previous: data.report.previousTrend),
-                  ]),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AdminSectionTitle(
+                        title: 'Attendance Trend',
+                        subtitle: 'Weekly percentage progression',
+                        trailing: SegmentedButton<bool>(
+                          segments: const [
+                            ButtonSegment(value: true, label: Text('Weekly')),
+                            ButtonSegment(value: false, label: Text('Monthly')),
+                          ],
+                          selected: {_weekly},
+                          onSelectionChanged: (s) =>
+                              setState(() => _weekly = s.first),
+                        ),
+                      ),
+                      const SizedBox(height: AppDimensions.spaceMd),
+                      const Wrap(
+                        spacing: AppDimensions.spaceMd,
+                        children: [
+                          Text('● Current Term (Fall 26)'),
+                          Text('?? Prev Term (Spring 26)'),
+                        ],
+                      ),
+                      AnalyticsChart(
+                        current: data.report.trend,
+                        previous: data.report.previousTrend,
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: AppDimensions.spaceMd),
                 AppCard(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const AdminSectionTitle(title: 'Attendance by Faculty', subtitle: 'Benchmark threshold: 85% requirement', trailing: Text('85% Goal')),
-                    const SizedBox(height: AppDimensions.spaceMd),
-                    for (final row in facultyRows) _FacultyBar(row: row, target: data.report.metric('target')),
-                  ]),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const AdminSectionTitle(
+                        title: 'Attendance by Faculty',
+                        subtitle: 'Benchmark threshold: 85% requirement',
+                        trailing: Text('85% Goal'),
+                      ),
+                      const SizedBox(height: AppDimensions.spaceMd),
+                      for (final row in facultyRows)
+                        _FacultyBar(
+                          row: row,
+                          target: data.report.metric('target'),
+                        ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                AdminSectionTitle(title: 'Course Attendance', subtitle: '(${courseRows.length} Courses)', trailing: const Text('View All ›')),
+                AdminSectionTitle(
+                  title: 'Course Attendance',
+                  subtitle: '(${courseRows.length} Courses)',
+                  trailing: const Text('View All ›'),
+                ),
                 const SizedBox(height: AppDimensions.spaceSm),
-                for (final row in courseRows.take(6)) _CourseReportRow(row: row),
+                for (final row in courseRows.take(6))
+                  _CourseReportRow(row: row),
                 const SizedBox(height: AppDimensions.spaceMd),
-                PrimaryButton(label: 'Export Report', icon: Icons.download_outlined, onPressed: () => _export(context, data.report)),
+                PrimaryButton(
+                  label: 'Export Report',
+                  icon: Icons.download_outlined,
+                  onPressed: () => _export(context, data.report),
+                ),
               ],
             ),
           );
@@ -104,9 +229,18 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
   }
 
   Future<void> _export(BuildContext context, ReportModel? report) async {
-    final actualReport = report ?? await context.read<ReportRepository>().getInstitutionReport(departmentId: _departmentId);
+    final actualReport =
+        report ??
+        await context.read<ReportRepository>().getInstitutionReport(
+          departmentId: _departmentId,
+        );
     if (!context.mounted) return;
-    await showModalBottomSheet<void>(context: context, showDragHandle: true, isScrollControlled: true, builder: (_) => _ExportSheet(report: actualReport));
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => _ExportSheet(report: actualReport),
+    );
   }
 }
 
@@ -126,11 +260,37 @@ class _FacultyBar extends StatelessWidget {
     final below = row.value < target;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimensions.spaceMd),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Expanded(child: Text(row.label, maxLines: 1, overflow: TextOverflow.ellipsis)), Text('${row.value.toStringAsFixed(1)}%${below ? ' ? Below Target' : ''}', style: TextStyle(color: below ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary))]),
-        const SizedBox(height: AppDimensions.spaceXs),
-        LinearProgressIndicator(value: row.value / 100, color: below ? Colors.orange : Theme.of(context).colorScheme.primary),
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  row.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                '${row.value.toStringAsFixed(1)}%${below ? ' ? Below Target' : ''}',
+                style: TextStyle(
+                  color: below
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppDimensions.spaceXs),
+          LinearProgressIndicator(
+            value: row.value / 100,
+            color: below
+                ? Colors.orange
+                : Theme.of(context).colorScheme.primary,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -143,14 +303,36 @@ class _CourseReportRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       margin: const EdgeInsets.only(bottom: AppDimensions.spaceMd),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [CodeTag(row.label), const Spacer(), StatusChip(label: '${row.value.toStringAsFixed(1)}%', tone: row.value < 85 ? StatusTone.warning : StatusTone.success, dense: true)]),
-        const SizedBox(height: AppDimensions.spaceSm),
-        Text(row.subtitle ?? row.label, style: Theme.of(context).textTheme.titleMedium),
-        Text(row.meta['lecturer'] ?? 'Unassigned'),
-        const SizedBox(height: AppDimensions.spaceSm),
-        Wrap(spacing: AppDimensions.spaceMd, children: [Text('${row.meta['students'] ?? '0'} Students Enrolled'), Text('${row.meta['sessions'] ?? '0 / 0'} Sessions')]),
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CodeTag(row.label),
+              const Spacer(),
+              StatusChip(
+                label: '${row.value.toStringAsFixed(1)}%',
+                tone: row.value < 85 ? StatusTone.warning : StatusTone.success,
+                dense: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppDimensions.spaceSm),
+          Text(
+            row.subtitle ?? row.label,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          Text(row.meta['lecturer'] ?? 'Unassigned'),
+          const SizedBox(height: AppDimensions.spaceSm),
+          Wrap(
+            spacing: AppDimensions.spaceMd,
+            children: [
+              Text('${row.meta['students'] ?? '0'} Students Enrolled'),
+              Text('${row.meta['sessions'] ?? '0 / 0'} Sessions'),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -173,23 +355,49 @@ class _ExportSheetState extends State<_ExportSheet> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.only(left: AppDimensions.spaceMd, right: AppDimensions.spaceMd, bottom: MediaQuery.viewInsetsOf(context).bottom + AppDimensions.spaceMd),
+        padding: EdgeInsets.only(
+          left: AppDimensions.spaceMd,
+          right: AppDimensions.spaceMd,
+          bottom:
+              MediaQuery.viewInsetsOf(context).bottom + AppDimensions.spaceMd,
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AdminSectionTitle(title: 'Export Institution Report', subtitle: 'Select your preferred format & options for Fall 2026'),
+              const AdminSectionTitle(
+                title: 'Export Institution Report',
+                subtitle:
+                    'Select your preferred format & options for Fall 2026',
+              ),
               const SizedBox(height: AppDimensions.spaceMd),
               for (final format in ReportFormat.values)
                 ListTile(
                   onTap: () => setState(() => _format = format),
-                  leading: Icon(_format == format ? Icons.radio_button_checked : Icons.radio_button_unchecked),
+                  leading: Icon(
+                    _format == format
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
+                  ),
                   title: Text(format.label),
                 ),
-              CheckboxListTile(value: _matricule, onChanged: (v) => setState(() => _matricule = v ?? _matricule), title: const Text('Include Student Matricule IDs')),
-              CheckboxListTile(value: _geo, onChanged: (v) => setState(() => _geo = v ?? _geo), title: const Text('Include Lecturer Geolocation & Timestamps')),
-              PrimaryButton(label: 'Export File', icon: Icons.file_download_outlined, isLoading: _exporting, onPressed: _doExport),
+              CheckboxListTile(
+                value: _matricule,
+                onChanged: (v) => setState(() => _matricule = v ?? _matricule),
+                title: const Text('Include Student Matricule IDs'),
+              ),
+              CheckboxListTile(
+                value: _geo,
+                onChanged: (v) => setState(() => _geo = v ?? _geo),
+                title: const Text('Include Lecturer Geolocation & Timestamps'),
+              ),
+              PrimaryButton(
+                label: 'Export File',
+                icon: Icons.file_download_outlined,
+                isLoading: _exporting,
+                onPressed: _doExport,
+              ),
             ],
           ),
         ),
@@ -200,8 +408,16 @@ class _ExportSheetState extends State<_ExportSheet> {
   Future<void> _doExport() async {
     setState(() => _exporting = true);
     try {
-      final file = await context.read<ReportRepository>().exportReport(widget.report.id, format: _format, includeMatricule: _matricule, includeGeolocation: _geo);
-      if (mounted) { Helpers.showSnackBar(context, 'Export ready: $file'); Navigator.pop(context); }
+      final file = await context.read<ReportRepository>().exportReport(
+        widget.report.id,
+        format: _format,
+        includeMatricule: _matricule,
+        includeGeolocation: _geo,
+      );
+      if (mounted) {
+        Helpers.showSnackBar(context, 'Export ready: $file');
+        Navigator.pop(context);
+      }
     } on Object catch (e) {
       if (mounted) Helpers.showError(context, e);
     } finally {
@@ -209,5 +425,3 @@ class _ExportSheetState extends State<_ExportSheet> {
     }
   }
 }
-
-

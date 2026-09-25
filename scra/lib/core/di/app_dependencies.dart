@@ -69,14 +69,18 @@ class AppDependencies {
   /// Builds the dependency graph selected by [AppConfig].
   static Future<AppDependencies> create() async {
     final storage = StorageService(await SharedPreferencesStore.create());
-    return AppConfig.useMockData ? mock(storage: storage) : api(storage: storage);
+    return AppConfig.useMockData
+        ? mock(storage: storage)
+        : api(storage: storage);
   }
 
   /// Graph backed by the FastAPI REST API and WebSocket events.
   static AppDependencies api({required StorageService storage}) {
     final authService = AuthService(storage);
     final apiService = ApiService(tokenProvider: authService.accessToken);
-    final socket = ChannelWebSocketService(tokenProvider: authService.accessToken);
+    final socket = ChannelWebSocketService(
+      tokenProvider: authService.accessToken,
+    );
     final repos = ApiRepositories(apiService, socket);
     return AppDependencies(
       storage: storage,

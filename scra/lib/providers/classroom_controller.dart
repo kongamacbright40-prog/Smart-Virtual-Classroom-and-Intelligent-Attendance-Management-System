@@ -26,12 +26,12 @@ class ClassroomController extends ChangeNotifier {
     required WebSocketService webSocketService,
     this.joinWithMicOff = true,
     this.joinWithCameraOff = false,
-  })  : _classroom = classroomRepository,
-        _questions = questionRepository,
-        _attendance = attendanceRepository,
-        _schedule = scheduleRepository,
-        _media = webRTCService,
-        _socket = webSocketService;
+  }) : _classroom = classroomRepository,
+       _questions = questionRepository,
+       _attendance = attendanceRepository,
+       _schedule = scheduleRepository,
+       _media = webRTCService,
+       _socket = webSocketService;
 
   final String sessionId;
   final UserModel user;
@@ -124,17 +124,21 @@ class ClassroomController extends ChangeNotifier {
         throw StateError('not live');
       }
 
-      _subscriptions.add(_socket.stateChanges.listen((s) {
-        _connection = s;
-        _notify();
-      }));
+      _subscriptions.add(
+        _socket.stateChanges.listen((s) {
+          _connection = s;
+          _notify();
+        }),
+      );
       await _socket.connect(ApiEndpoints.sessionEvents(sessionId));
       _connection = _socket.state;
 
-      _subscriptions.add(_media.stateChanges.listen((s) {
-        _mediaState = s;
-        _notify();
-      }));
+      _subscriptions.add(
+        _media.stateChanges.listen((s) {
+          _mediaState = s;
+          _notify();
+        }),
+      );
       await _media.joinRoom(
         roomId: sessionId,
         userId: user.id,
@@ -156,7 +160,9 @@ class ClassroomController extends ChangeNotifier {
       _messages
         ..clear()
         ..addAll(await _classroom.getMessages(sessionId));
-      _subscriptions.add(_classroom.watchMessages(sessionId).listen(_onMessage));
+      _subscriptions.add(
+        _classroom.watchMessages(sessionId).listen(_onMessage),
+      );
 
       _subscriptions.add(
         _questions.watchActiveQuestion(sessionId).listen(_onQuestion),
@@ -171,8 +177,10 @@ class ClassroomController extends ChangeNotifier {
           }),
         );
       } else if (attendanceActive) {
-        _myAttendance =
-            await _attendance.checkIn(sessionId: sessionId, studentId: user.id);
+        _myAttendance = await _attendance.checkIn(
+          sessionId: sessionId,
+          studentId: user.id,
+        );
       }
     } on StateError {
       _errorMessage = 'This class is not live right now.';
@@ -203,8 +211,10 @@ class ClassroomController extends ChangeNotifier {
     if (q != null) _lastQuestion = q;
     if (changed && !isLecturer && q != null) {
       try {
-        _myResponse =
-            await _questions.getResponse(questionId: q.id, studentId: user.id);
+        _myResponse = await _questions.getResponse(
+          questionId: q.id,
+          studentId: user.id,
+        );
       } on Object catch (e) {
         ErrorHandler.log(e);
       }
@@ -219,15 +229,17 @@ class ClassroomController extends ChangeNotifier {
   Future<void> toggleMicrophone() async {
     final enabled = !micEnabled;
     await _media.setMicrophoneEnabled(enabled);
-    await _safe(() => _classroom.updateMediaState(sessionId, user.id,
-        isMuted: !enabled));
+    await _safe(
+      () => _classroom.updateMediaState(sessionId, user.id, isMuted: !enabled),
+    );
   }
 
   Future<void> toggleCamera() async {
     final enabled = !cameraEnabled;
     await _media.setCameraEnabled(enabled);
-    await _safe(() =>
-        _classroom.updateMediaState(sessionId, user.id, isVideoOn: enabled));
+    await _safe(
+      () => _classroom.updateMediaState(sessionId, user.id, isVideoOn: enabled),
+    );
   }
 
   Future<void> toggleScreenShare() async {
@@ -236,8 +248,13 @@ class ClassroomController extends ChangeNotifier {
     } else {
       await _media.startScreenShare();
     }
-    await _safe(() => _classroom.updateMediaState(sessionId, user.id,
-        isScreenSharing: _media.state.screenSharing));
+    await _safe(
+      () => _classroom.updateMediaState(
+        sessionId,
+        user.id,
+        isScreenSharing: _media.state.screenSharing,
+      ),
+    );
   }
 
   Future<void> toggleHand() =>

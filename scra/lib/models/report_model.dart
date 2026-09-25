@@ -12,9 +12,9 @@ enum ReportType {
   final String label;
 
   static ReportType fromJson(Object? value) => ReportType.values.firstWhere(
-        (e) => e.value == value,
-        orElse: () => ReportType.attendance,
-      );
+    (e) => e.value == value,
+    orElse: () => ReportType.attendance,
+  );
 }
 
 enum ReportFormat {
@@ -39,10 +39,10 @@ class ReportDataPoint {
   final double? extra;
 
   factory ReportDataPoint.fromJson(Json json) => ReportDataPoint(
-        label: json['label'] as String,
-        value: JsonX.toDouble(json['value']),
-        extra: json['extra'] == null ? null : JsonX.toDouble(json['extra']),
-      );
+    label: json['label'] as String,
+    value: JsonX.toDouble(json['value']),
+    extra: json['extra'] == null ? null : JsonX.toDouble(json['extra']),
+  );
 
   Json toJson() => {'label': label, 'value': value, 'extra': extra};
 }
@@ -64,21 +64,20 @@ class ReportBreakdown {
   final Map<String, String> meta;
 
   factory ReportBreakdown.fromJson(Json json) => ReportBreakdown(
-        id: json['id'].toString(),
-        label: json['label'] as String,
-        value: JsonX.toDouble(json['value']),
-        subtitle: json['subtitle'] as String?,
-        meta: JsonX.map(json['meta'])
-            .map((k, v) => MapEntry(k, v.toString())),
-      );
+    id: json['id'].toString(),
+    label: json['label'] as String,
+    value: JsonX.toDouble(json['value']),
+    subtitle: json['subtitle'] as String?,
+    meta: JsonX.map(json['meta']).map((k, v) => MapEntry(k, v.toString())),
+  );
 
   Json toJson() => {
-        'id': id,
-        'label': label,
-        'value': value,
-        'subtitle': subtitle,
-        'meta': meta,
-      };
+    'id': id,
+    'label': label,
+    'value': value,
+    'subtitle': subtitle,
+    'meta': meta,
+  };
 }
 
 class ReportModel {
@@ -115,32 +114,31 @@ class ReportModel {
   double metric(String key, [double fallback = 0]) => metrics[key] ?? fallback;
 
   factory ReportModel.fromJson(Json json) => ReportModel(
-        id: json['id'].toString(),
-        title: json['title'] as String,
-        type: ReportType.fromJson(json['type']),
-        generatedAt: JsonX.date(json['generated_at']),
-        periodStart: JsonX.date(json['period_start']),
-        periodEnd: JsonX.date(json['period_end']),
-        scopeId: json['scope_id'] as String?,
-        metrics: JsonX.map(json['metrics'])
-            .map((k, v) => MapEntry(k, JsonX.toDouble(v))),
-        trend: JsonX.list(json['trend'], ReportDataPoint.fromJson),
-        previousTrend:
-            JsonX.list(json['previous_trend'], ReportDataPoint.fromJson),
-        breakdown: JsonX.list(json['breakdown'], ReportBreakdown.fromJson),
-      );
+    id: json['id'].toString(),
+    title: json['title'] as String,
+    type: ReportType.fromJson(json['type']),
+    generatedAt: JsonX.date(json['generated_at']),
+    periodStart: JsonX.date(json['period_start']),
+    periodEnd: JsonX.date(json['period_end']),
+    scopeId: json['scope_id'] as String?,
+    metrics: JsonX.map(json['metrics'])
+        .map((k, v) => MapEntry(k, JsonX.toDouble(v))),
+    trend: JsonX.list(json['trend'], ReportDataPoint.fromJson),
+    previousTrend: JsonX.list(json['previous_trend'], ReportDataPoint.fromJson),
+    breakdown: JsonX.list(json['breakdown'], ReportBreakdown.fromJson),
+  );
 
   Json toJson() => {
-        'id': id,
-        'title': title,
-        'type': type.value,
-        'generated_at': generatedAt.toIso8601String(),
-        'period_start': periodStart.toIso8601String(),
-        'period_end': periodEnd.toIso8601String(),
-        'scope_id': scopeId,
-        'metrics': metrics,
-        'trend': trend.map((e) => e.toJson()).toList(),
-        'previous_trend': previousTrend.map((e) => e.toJson()).toList(),
-        'breakdown': breakdown.map((e) => e.toJson()).toList(),
-      };
+    'id': id,
+    'title': title,
+    'type': type.value,
+    'generated_at': generatedAt.toIso8601String(),
+    'period_start': periodStart.toIso8601String(),
+    'period_end': periodEnd.toIso8601String(),
+    'scope_id': scopeId,
+    'metrics': metrics,
+    'trend': trend.map((e) => e.toJson()).toList(),
+    'previous_trend': previousTrend.map((e) => e.toJson()).toList(),
+    'breakdown': breakdown.map((e) => e.toJson()).toList(),
+  };
 }

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:smart_class/core/constants/app_dimensions.dart';
@@ -28,9 +27,25 @@ class AnalyticsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(icon, size: 18), const SizedBox(width: 6), Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis))]),
+          Row(
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: AppDimensions.spaceSm),
-          Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w800),
+          ),
           if (badge != null) StatusChip(label: badge!, tone: tone, dense: true),
         ],
       ),

@@ -41,24 +41,24 @@ class QuestionResponseModel {
   final bool? isCorrect;
 
   factory QuestionResponseModel.fromJson(Json json) => QuestionResponseModel(
-        id: json['id'].toString(),
-        questionId: json['question_id'].toString(),
-        studentId: json['student_id'].toString(),
-        selectedOptionId: json['selected_option_id'].toString(),
-        submittedAt: JsonX.date(json['submitted_at']),
-        status: ResponseStatus.fromJson(json['status']),
-        isCorrect: json['is_correct'] as bool?,
-      );
+    id: json['id'].toString(),
+    questionId: json['question_id'].toString(),
+    studentId: json['student_id'].toString(),
+    selectedOptionId: json['selected_option_id'].toString(),
+    submittedAt: JsonX.date(json['submitted_at']),
+    status: ResponseStatus.fromJson(json['status']),
+    isCorrect: json['is_correct'] as bool?,
+  );
 
   Json toJson() => {
-        'id': id,
-        'question_id': questionId,
-        'student_id': studentId,
-        'selected_option_id': selectedOptionId,
-        'submitted_at': submittedAt.toIso8601String(),
-        'status': status.value,
-        'is_correct': isCorrect,
-      };
+    'id': id,
+    'question_id': questionId,
+    'student_id': studentId,
+    'selected_option_id': selectedOptionId,
+    'submitted_at': submittedAt.toIso8601String(),
+    'status': status.value,
+    'is_correct': isCorrect,
+  };
 
   QuestionResponseModel copyWith({ResponseStatus? status, bool? isCorrect}) =>
       QuestionResponseModel(

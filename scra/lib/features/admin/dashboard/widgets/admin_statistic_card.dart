@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:smart_class/core/constants/app_colors.dart';
@@ -58,15 +57,22 @@ class AdminStatisticCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppDimensions.spaceMd),
-          Text(value, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
+          Text(
+            value,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           Text(label, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppDimensions.spaceXs),
-          Text(helper, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall),
+          Text(
+            helper,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall,
+          ),
         ],
       ),
     );
   }
 }
-
-
-

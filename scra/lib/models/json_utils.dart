@@ -35,8 +35,8 @@ abstract final class JsonX {
 
   static List<T> list<T>(Object? value, T Function(Json json) fromJson) =>
       value is List
-          ? value.map((e) => fromJson(Map<String, dynamic>.from(e as Map))).toList()
-          : <T>[];
+      ? value.map((e) => fromJson(Map<String, dynamic>.from(e as Map))).toList()
+      : <T>[];
 
   static Json map(Object? value) =>
       value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};

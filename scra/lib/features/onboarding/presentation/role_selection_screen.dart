@@ -97,7 +97,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 Text(AppStrings.appName, style: theme.textTheme.titleLarge),
                 Text(
                   AppStrings.suiteName.toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 1.2),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ],
             ),
@@ -130,14 +132,16 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         top: false,
         child: Center(
           child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(maxWidth: AppDimensions.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppDimensions.maxContentWidth,
+            ),
             child: Column(
               children: [
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.pageMargin),
+                      horizontal: AppDimensions.pageMargin,
+                    ),
                     children: [
                       const SizedBox(height: AppDimensions.spaceSm),
                       const Align(
@@ -150,13 +154,16 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                         ),
                       ),
                       const SizedBox(height: AppDimensions.spaceMd),
-                      Text('Select Your Portal',
-                          style: theme.textTheme.headlineLarge),
+                      Text(
+                        'Select Your Portal',
+                        style: theme.textTheme.headlineLarge,
+                      ),
                       const SizedBox(height: AppDimensions.spaceSm),
                       Text(
                         'Choose your institutional role to calibrate your workspace.',
                         style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant),
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: AppDimensions.spaceLg),
                       for (final portal in _portals) ...[
@@ -189,9 +196,11 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.lock_outline,
-                              size: 16,
-                              color: theme.colorScheme.onSurfaceVariant),
+                          Icon(
+                            Icons.lock_outline,
+                            size: 16,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                           const SizedBox(width: AppDimensions.spaceSm),
                           Flexible(
                             child: Text(
@@ -264,7 +273,9 @@ class _PortalCard extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 left: BorderSide(
-                  color: selected ? scheme.primaryContainer : Colors.transparent,
+                  color: selected
+                      ? scheme.primaryContainer
+                      : Colors.transparent,
                   width: 4,
                 ),
               ),
@@ -283,8 +294,9 @@ class _PortalCard extends StatelessWidget {
                         color: selected
                             ? AppColors.primaryFixed
                             : scheme.surfaceContainerHigh,
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusMd),
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMd,
+                        ),
                       ),
                       child: Icon(
                         portal.icon,
@@ -303,8 +315,10 @@ class _PortalCard extends StatelessWidget {
                             spacing: AppDimensions.spaceSm,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
-                              Text(portal.title,
-                                  style: theme.textTheme.titleLarge),
+                              Text(
+                                portal.title,
+                                style: theme.textTheme.titleLarge,
+                              ),
                               StatusChip(
                                 label: portal.tag,
                                 tone: selected
@@ -314,9 +328,12 @@ class _PortalCard extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text(portal.description,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: scheme.onSurfaceVariant)),
+                          Text(
+                            portal.description,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -332,8 +349,11 @@ class _PortalCard extends StatelessWidget {
                             : scheme.surfaceContainerHigh,
                       ),
                       child: selected
-                          ? const Icon(Icons.check,
-                              size: 18, color: Colors.white)
+                          ? const Icon(
+                              Icons.check,
+                              size: 18,
+                              color: Colors.white,
+                            )
                           : null,
                     ),
                   ],
@@ -346,13 +366,16 @@ class _PortalCard extends StatelessWidget {
                     for (final f in portal.features)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: selected
                               ? Colors.white
                               : scheme.surfaceContainerHigh,
-                          borderRadius:
-                              BorderRadius.circular(AppDimensions.radiusFull),
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusFull,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

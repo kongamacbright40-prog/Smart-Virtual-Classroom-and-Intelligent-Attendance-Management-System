@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:smart_class/core/constants/app_dimensions.dart';
@@ -28,11 +27,19 @@ class UserForm extends StatefulWidget {
 
 class _UserFormState extends State<UserForm> {
   final _formKey = GlobalKey<FormState>();
-  late final _name = TextEditingController(text: widget.initialUser?.fullName ?? '');
-  late final _email = TextEditingController(text: widget.initialUser?.email ?? '');
-  late final _phone = TextEditingController(text: widget.initialUser?.phone ?? '');
+  late final _name = TextEditingController(
+    text: widget.initialUser?.fullName ?? '',
+  );
+  late final _email = TextEditingController(
+    text: widget.initialUser?.email ?? '',
+  );
+  late final _phone = TextEditingController(
+    text: widget.initialUser?.phone ?? '',
+  );
   late UserRole _role = widget.initialUser?.role ?? UserRole.student;
-  late String? _departmentId = widget.initialUser?.departmentId ?? (widget.departments.isEmpty ? null : widget.departments.first.id);
+  late String? _departmentId =
+      widget.initialUser?.departmentId ??
+      (widget.departments.isEmpty ? null : widget.departments.first.id);
   bool _saving = false;
 
   @override
@@ -46,7 +53,9 @@ class _UserFormState extends State<UserForm> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
-    final dept = widget.departments.where((d) => d.id == _departmentId).firstOrNull;
+    final dept = widget.departments
+        .where((d) => d.id == _departmentId)
+        .firstOrNull;
     final base = widget.initialUser;
     final user = UserModel(
       id: base?.id ?? '',
@@ -116,7 +125,9 @@ class _UserFormState extends State<UserForm> {
           const SizedBox(height: AppDimensions.spaceMd),
           AppDropdown<DepartmentModel>(
             label: 'Department',
-            value: widget.departments.where((d) => d.id == _departmentId).firstOrNull,
+            value: widget.departments
+                .where((d) => d.id == _departmentId)
+                .firstOrNull,
             items: widget.departments,
             onChanged: (d) => setState(() => _departmentId = d?.id),
             itemLabel: (d) => d.name,

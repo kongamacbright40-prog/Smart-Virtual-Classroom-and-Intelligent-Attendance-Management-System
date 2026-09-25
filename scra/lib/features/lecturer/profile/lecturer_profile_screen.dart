@@ -148,7 +148,6 @@ class LecturerProfileScreen extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) =>
       confirmAndLogout(context, loginRoute: RouteNames.login);
-
 }
 
 class _Header extends StatelessWidget {

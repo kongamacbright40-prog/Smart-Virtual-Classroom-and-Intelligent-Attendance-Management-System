@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 
 /// Brand spinner. Use [AppLoader.overlay] to block a screen during a task.
 class AppLoader extends StatelessWidget {
-  const AppLoader({super.key, this.size = 32, this.color, this.strokeWidth = 3});
+  const AppLoader({
+    super.key,
+    this.size = 32,
+    this.color,
+    this.strokeWidth = 3,
+  });
 
   final double size;
   final Color? color;

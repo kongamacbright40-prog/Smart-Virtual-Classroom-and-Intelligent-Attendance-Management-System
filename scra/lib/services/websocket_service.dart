@@ -30,11 +30,11 @@ class RealtimeEvent {
   final Map<String, dynamic> payload;
 
   factory RealtimeEvent.fromJson(Map<String, dynamic> json) => RealtimeEvent(
-        json['type'] as String? ?? 'unknown',
-        json['payload'] is Map
-            ? Map<String, dynamic>.from(json['payload'] as Map)
-            : const {},
-      );
+    json['type'] as String? ?? 'unknown',
+    json['payload'] is Map
+        ? Map<String, dynamic>.from(json['payload'] as Map)
+        : const {},
+  );
 
   Map<String, dynamic> toJson() => {'type': type, 'payload': payload};
 }
@@ -99,9 +99,11 @@ class ChannelWebSocketService implements WebSocketService {
     _path = path;
     _query = query;
     _manualClose = false;
-    _setState(_attempts == 0
-        ? RealtimeConnectionState.connecting
-        : RealtimeConnectionState.reconnecting);
+    _setState(
+      _attempts == 0
+          ? RealtimeConnectionState.connecting
+          : RealtimeConnectionState.reconnecting,
+    );
     final token = await tokenProvider?.call();
     final params = {...?query, 'token': ?token};
     final uri = Uri.parse('$_baseUrl$path')

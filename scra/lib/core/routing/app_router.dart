@@ -58,10 +58,10 @@ class AppRouter {
 
   /// Landing route for a role after login / session restore.
   static String homeFor(UserRole role) => switch (role) {
-        UserRole.student => RouteNames.studentHome,
-        UserRole.lecturer => RouteNames.lecturerDashboard,
-        UserRole.admin => RouteNames.adminDashboard,
-      };
+    UserRole.student => RouteNames.studentHome,
+    UserRole.lecturer => RouteNames.lecturerDashboard,
+    UserRole.admin => RouteNames.adminDashboard,
+  };
 
   /// Role required to open [route], or null for public routes.
   static UserRole? requiredRole(String route) {
@@ -111,8 +111,9 @@ class AppRouter {
       RouteNames.roleSelection => const RoleSelectionScreen(),
 
       // Authentication
-      RouteNames.login =>
-        LoginScreen(initialRole: args is UserRole ? args : null),
+      RouteNames.login => LoginScreen(
+        initialRole: args is UserRole ? args : null,
+      ),
       RouteNames.studentActivation => const StudentActivationScreen(),
       RouteNames.lecturerRegistration => const LecturerRegistrationScreen(),
       RouteNames.adminLogin => const AdminLoginScreen(),
@@ -125,8 +126,9 @@ class AppRouter {
       RouteNames.studentHome => StudentNavigation(initialIndex: tab()),
       RouteNames.studentCourses => const StudentCoursesScreen(),
       RouteNames.courseDetails => CourseDetailsScreen(courseId: id()),
-      RouteNames.studentLiveClassroom =>
-        StudentLiveClassroomScreen(sessionId: id()),
+      RouteNames.studentLiveClassroom => StudentLiveClassroomScreen(
+        sessionId: id(),
+      ),
       RouteNames.classroomChat => ClassroomChatScreen(sessionId: id()),
       RouteNames.liveQuestion => LiveQuestionScreen(sessionId: id()),
       RouteNames.studentSettings => const StudentSettingsScreen(),
@@ -135,15 +137,18 @@ class AppRouter {
       RouteNames.lecturerDashboard => LecturerNavigation(initialIndex: tab()),
       RouteNames.courseRoster => CourseRosterScreen(courseId: id()),
       RouteNames.scheduleClass => ScheduleClassScreen(courseId: optionalId()),
-      RouteNames.lecturerLiveClassroom =>
-        LecturerLiveClassroomScreen(sessionId: id()),
+      RouteNames.lecturerLiveClassroom => LecturerLiveClassroomScreen(
+        sessionId: id(),
+      ),
       RouteNames.whiteboard => WhiteboardScreen(sessionId: id()),
       RouteNames.createQuestion => CreateQuestionScreen(sessionId: id()),
       RouteNames.lecturerChat => ClassroomChatScreen(sessionId: id()),
-      RouteNames.liveAttendance =>
-        LiveAttendanceScreen(sessionId: optionalId()),
-      RouteNames.attendanceReports =>
-        AttendanceReportsScreen(courseId: optionalId()),
+      RouteNames.liveAttendance => LiveAttendanceScreen(
+        sessionId: optionalId(),
+      ),
+      RouteNames.attendanceReports => AttendanceReportsScreen(
+        courseId: optionalId(),
+      ),
       RouteNames.lecturerProfile => const LecturerProfileScreen(),
 
       // Admin
@@ -152,8 +157,7 @@ class AppRouter {
       RouteNames.departments => const DepartmentsScreen(),
       RouteNames.faculties => const FacultiesScreen(),
       RouteNames.academicTerms => const AcademicTermsScreen(),
-      RouteNames.adminCourseDetails =>
-        AdminCourseDetailsScreen(courseId: id()),
+      RouteNames.adminCourseDetails => AdminCourseDetailsScreen(courseId: id()),
       RouteNames.adminReports => const AdminReportsScreen(),
       RouteNames.adminProfile => const AdminProfileScreen(),
       _ => null,

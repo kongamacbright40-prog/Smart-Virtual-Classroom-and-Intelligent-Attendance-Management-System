@@ -28,7 +28,10 @@ class ParticipationIntroScreen extends StatelessWidget {
           dotColor: AppColors.live,
           dark: true,
         ),
-        topRight: HeroPill(label: '38 Present', icon: Icons.how_to_reg_outlined),
+        topRight: HeroPill(
+          label: '38 Present',
+          icon: Icons.how_to_reg_outlined,
+        ),
         bottom: _PollPreview(),
       ),
       badge: const OnboardingBadge(
@@ -37,8 +40,7 @@ class ParticipationIntroScreen extends StatelessWidget {
         foreground: AppColors.onSecondaryFixedVariant,
       ),
       title: 'Interactive Participation',
-      body:
-          'Answer live questions and participate in classroom activities while your engagement is tracked separately from technical attendance.',
+      body: 'Answer live questions and participate in classroom activities while your engagement is tracked separately from technical attendance.',
       footerIcon: Icons.verified_outlined,
       footerText: 'Attendance & Participation sync with Campus LMS',
       nextLabel: 'Get Started',
@@ -74,8 +76,11 @@ class _PollPreview extends StatelessWidget {
                   uppercase: true,
                 ),
               ),
-              Icon(Icons.timer_outlined,
-                  size: 16, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.timer_outlined,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
               Text('00:42s', style: theme.textTheme.labelLarge),
             ],
@@ -98,7 +103,9 @@ class _PollPreview extends StatelessWidget {
             ),
           Container(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.spaceSm, vertical: 6),
+              horizontal: AppDimensions.spaceSm,
+              vertical: 6,
+            ),
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
@@ -108,9 +115,12 @@ class _PollPreview extends StatelessWidget {
                 CircleAvatar(
                   radius: 14,
                   backgroundColor: Colors.white,
-                  child: Text('98',
-                      style: theme.textTheme.labelSmall
-                          ?.copyWith(color: theme.colorScheme.secondary)),
+                  child: Text(
+                    '98',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.secondary,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: AppDimensions.spaceSm),
                 Expanded(
@@ -118,9 +128,12 @@ class _PollPreview extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Score: 98%', style: theme.textTheme.labelLarge),
-                      Text('Live Tracked',
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: theme.colorScheme.secondary)),
+                      Text(
+                        'Live Tracked',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -174,7 +187,9 @@ class _PollBar extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.spaceSm, vertical: 10),
+              horizontal: AppDimensions.spaceSm,
+              vertical: 10,
+            ),
             child: Row(
               children: [
                 CircleAvatar(
@@ -191,10 +206,12 @@ class _PollBar extends StatelessWidget {
                 ),
                 const SizedBox(width: AppDimensions.spaceSm),
                 Expanded(
-                  child: Text(label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium),
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
+                  ),
                 ),
                 Text(
                   '${(fraction * 100).round()}%',
@@ -204,8 +221,11 @@ class _PollBar extends StatelessWidget {
                 ),
                 if (selected) ...[
                   const SizedBox(width: 4),
-                  Icon(Icons.check_circle_outline,
-                      size: 18, color: theme.colorScheme.primary),
+                  Icon(
+                    Icons.check_circle_outline,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
                 ],
               ],
             ),

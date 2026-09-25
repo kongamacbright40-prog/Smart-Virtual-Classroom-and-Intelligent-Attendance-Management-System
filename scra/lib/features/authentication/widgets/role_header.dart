@@ -60,7 +60,10 @@ class RoleHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primaryContainer,
                   shape: BoxShape.circle,
-                  border: Border.all(color: theme.colorScheme.surface, width: 3),
+                  border: Border.all(
+                    color: theme.colorScheme.surface,
+                    width: 3,
+                  ),
                 ),
                 child: Icon(badgeIcon, size: 18, color: Colors.white),
               ),
@@ -68,14 +71,18 @@ class RoleHeader extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppDimensions.spaceMd),
-        Text(title,
-            textAlign: TextAlign.center, style: theme.textTheme.headlineLarge),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineLarge,
+        ),
         const SizedBox(height: AppDimensions.spaceSm),
         Text(
           description,
           textAlign: TextAlign.center,
-          style: theme.textTheme.bodyLarge
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -119,9 +126,12 @@ class StepCard extends StatelessWidget {
               CircleAvatar(
                 radius: 14,
                 backgroundColor: theme.colorScheme.primaryContainer,
-                child: Text('${info.current}',
-                    style: theme.textTheme.labelLarge
-                        ?.copyWith(color: Colors.white)),
+                child: Text(
+                  '${info.current}',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
               ),
               const SizedBox(width: AppDimensions.spaceSm),
               Expanded(
@@ -139,8 +149,10 @@ class StepCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Text('Step ${info.current} of ${info.total}',
-                  style: theme.textTheme.labelMedium),
+              Text(
+                'Step ${info.current} of ${info.total}',
+                style: theme.textTheme.labelMedium,
+              ),
             ],
           ),
           const SizedBox(height: AppDimensions.spaceSm),
@@ -178,15 +190,20 @@ class SecurityFooter extends StatelessWidget {
         Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: AppDimensions.spaceSm),
         Flexible(
-          child: Text(text,
-              textAlign: TextAlign.center, style: theme.textTheme.labelMedium),
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelMedium,
+          ),
         ),
       ],
     );
     if (!pill) return row;
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.spaceMd, vertical: 10),
+        horizontal: AppDimensions.spaceMd,
+        vertical: 10,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -236,9 +253,11 @@ class GatewayAppBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: 6),
         ],
         Flexible(
-          child: Text(title,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleLarge),
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleLarge,
+          ),
         ),
       ],
     );

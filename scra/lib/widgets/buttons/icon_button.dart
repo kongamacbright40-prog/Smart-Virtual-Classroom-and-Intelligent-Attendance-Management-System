@@ -36,7 +36,9 @@ class AppIconButton extends StatelessWidget {
     final bg = active
         ? (activeColor ?? scheme.primaryContainer)
         : (backgroundColor ?? scheme.surfaceContainerHigh);
-    final fg = active ? scheme.onPrimary : (foregroundColor ?? scheme.onSurface);
+    final fg = active
+        ? scheme.onPrimary
+        : (foregroundColor ?? scheme.onSurface);
 
     Widget button = Material(
       color: bg,
@@ -67,7 +69,9 @@ class AppIconButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: tooltip,
-      child: tooltip == null ? button : Tooltip(message: tooltip!, child: button),
+      child: tooltip == null
+          ? button
+          : Tooltip(message: tooltip!, child: button),
     );
   }
 }

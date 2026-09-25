@@ -30,14 +30,16 @@ class ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final normalized = error == null ? null : ErrorHandler.normalize(error!);
-    final isNetwork = normalized is NetworkException ||
-        normalized is TimeoutAppException;
-    final text = message ?? normalized?.message ?? AppStrings.somethingWentWrong;
+    final isNetwork =
+        normalized is NetworkException || normalized is TimeoutAppException;
+    final text =
+        message ?? normalized?.message ?? AppStrings.somethingWentWrong;
 
     return Center(
       child: Padding(
         padding: EdgeInsets.all(
-            compact ? AppDimensions.spaceMd : AppDimensions.spaceXl),
+          compact ? AppDimensions.spaceMd : AppDimensions.spaceXl,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -56,7 +58,9 @@ class ErrorState extends StatelessWidget {
             const SizedBox(height: AppDimensions.spaceMd),
             Text(
               title ??
-                  (isNetwork ? 'Connection problem' : AppStrings.somethingWentWrong),
+                  (isNetwork
+                      ? 'Connection problem'
+                      : AppStrings.somethingWentWrong),
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium,
             ),
@@ -64,8 +68,9 @@ class ErrorState extends StatelessWidget {
             Text(
               text,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             if (onRetry != null) ...[
               const SizedBox(height: AppDimensions.spaceMd),

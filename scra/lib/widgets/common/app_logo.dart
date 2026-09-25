@@ -79,11 +79,14 @@ class BrandHeader extends StatelessWidget {
                     const SizedBox(width: AppDimensions.spaceSm),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primaryFixed,
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusFull),
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusFull,
+                        ),
                       ),
                       child: Text(
                         badge!,

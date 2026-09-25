@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:smart_class/core/constants/app_dimensions.dart';
@@ -28,30 +27,54 @@ class AcademicTermItem extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(term.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium)),
+              Expanded(
+                child: Text(
+                  term.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
               StatusChip(label: term.status.label, tone: tone, dense: true),
             ],
           ),
           const SizedBox(height: AppDimensions.spaceSm),
-          Text('${Formatters.date(term.startDate)} ? ${Formatters.date(term.endDate)} ? ${term.totalWeeks} Weeks'),
+          Text(
+            '${Formatters.date(term.startDate)} ? ${Formatters.date(term.endDate)} ? ${term.totalWeeks} Weeks',
+          ),
           const SizedBox(height: AppDimensions.spaceMd),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(AppDimensions.spaceSm),
-            decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            ),
             child: Wrap(
               alignment: WrapAlignment.spaceBetween,
               spacing: AppDimensions.spaceMd,
               runSpacing: AppDimensions.spaceSm,
               children: [
-                Text('Enrollment\n${term.enrolledStudents} Students ? ${term.courseCount} Courses'),
-                Text('${term.averageAttendance == null ? 'Planning' : 'Attendance'}\n${term.averageAttendance == null ? term.code : Formatters.percent(term.averageAttendance!, decimals: 1)}'),
+                Text(
+                  'Enrollment\n${term.enrolledStudents} Students ? ${term.courseCount} Courses',
+                ),
+                Text(
+                  '${term.averageAttendance == null ? 'Planning' : 'Attendance'}\n${term.averageAttendance == null ? term.code : Formatters.percent(term.averageAttendance!, decimals: 1)}',
+                ),
               ],
             ),
           ),
           if (onEdit != null) ...[
             const SizedBox(height: AppDimensions.spaceSm),
-            Align(alignment: Alignment.centerRight, child: SecondaryButton(label: 'Edit Planning', icon: Icons.edit_calendar_outlined, expanded: false, onPressed: onEdit)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: SecondaryButton(
+                label: 'Edit Planning',
+                icon: Icons.edit_calendar_outlined,
+                expanded: false,
+                onPressed: onEdit,
+              ),
+            ),
           ],
         ],
       ),

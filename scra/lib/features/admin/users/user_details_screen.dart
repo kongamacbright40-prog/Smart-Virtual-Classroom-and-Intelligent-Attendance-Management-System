@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,7 +24,10 @@ class UserDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isCreate = userId == null;
     return AppScaffold(
-      appBar: AdminScreenHeader(title: isCreate ? 'Create User' : 'User Details', showBack: true),
+      appBar: AdminScreenHeader(
+        title: isCreate ? 'Create User' : 'User Details',
+        showBack: true,
+      ),
       scrollable: true,
       body: AsyncView<_UserDetailsData>(
         load: () async {
@@ -39,9 +41,18 @@ class UserDetailsScreen extends StatelessWidget {
           children: [
             AdminHeroCard(
               title: isCreate ? 'New account' : data.user!.fullName,
-              subtitle: isCreate ? 'Create a student, lecturer, or administrator profile.' : '${data.user!.role.label} ? ${data.user!.email}',
-              icon: isCreate ? Icons.person_add_alt_1 : Icons.manage_accounts_outlined,
-              trailing: isCreate ? null : StatusChip(label: data.user!.isActive ? 'Active' : 'Suspended', tone: adminStatusTone(data.user!.isActive)),
+              subtitle: isCreate
+                  ? 'Create a student, lecturer, or administrator profile.'
+                  : '${data.user!.role.label} ? ${data.user!.email}',
+              icon: isCreate
+                  ? Icons.person_add_alt_1
+                  : Icons.manage_accounts_outlined,
+              trailing: isCreate
+                  ? null
+                  : StatusChip(
+                      label: data.user!.isActive ? 'Active' : 'Suspended',
+                      tone: adminStatusTone(data.user!.isActive),
+                    ),
             ),
             adminGap,
             AppCard(
@@ -53,10 +64,15 @@ class UserDetailsScreen extends StatelessWidget {
                   try {
                     final repo = context.read<AdminRepository>();
                     final auth = context.read<AuthProvider>();
-                    final saved = isCreate ? await repo.createUser(user) : await repo.updateUser(user);
+                    final saved = isCreate
+                        ? await repo.createUser(user)
+                        : await repo.updateUser(user);
                     if (auth.user?.id == saved.id) await auth.updateUser(saved);
                     if (context.mounted) {
-                      Helpers.showSnackBar(context, isCreate ? 'User created.' : 'User saved.');
+                      Helpers.showSnackBar(
+                        context,
+                        isCreate ? 'User created.' : 'User saved.',
+                      );
                       Navigator.of(context).pop();
                     }
                   } on Object catch (e) {
@@ -74,9 +90,15 @@ class UserDetailsScreen extends StatelessWidget {
                     const AdminSectionTitle(title: 'Account actions'),
                     const SizedBox(height: AppDimensions.spaceMd),
                     SecondaryButton(
-                      label: data.user!.isActive ? 'Deactivate User' : 'Activate User',
-                      icon: data.user!.isActive ? Icons.person_off_outlined : Icons.check_circle_outline,
-                      foregroundColor: data.user!.isActive ? Theme.of(context).colorScheme.error : null,
+                      label: data.user!.isActive
+                          ? 'Deactivate User'
+                          : 'Activate User',
+                      icon: data.user!.isActive
+                          ? Icons.person_off_outlined
+                          : Icons.check_circle_outline,
+                      foregroundColor: data.user!.isActive
+                          ? Theme.of(context).colorScheme.error
+                          : null,
                       onPressed: () => _toggle(context, data.user!, reload),
                     ),
                     const SizedBox(height: AppDimensions.spaceSm),
@@ -96,11 +118,25 @@ class UserDetailsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _toggle(BuildContext context, UserModel user, Future<void> Function() reload) async {
-    final ok = await ConfirmationDialog.show(context, title: user.isActive ? 'Deactivate account?' : 'Activate account?', message: user.fullName, confirmLabel: user.isActive ? 'Deactivate' : 'Activate', destructive: user.isActive, icon: Icons.person_off_outlined);
+  Future<void> _toggle(
+    BuildContext context,
+    UserModel user,
+    Future<void> Function() reload,
+  ) async {
+    final ok = await ConfirmationDialog.show(
+      context,
+      title: user.isActive ? 'Deactivate account?' : 'Activate account?',
+      message: user.fullName,
+      confirmLabel: user.isActive ? 'Deactivate' : 'Activate',
+      destructive: user.isActive,
+      icon: Icons.person_off_outlined,
+    );
     if (!ok || !context.mounted) return;
     try {
-      await context.read<AdminRepository>().setUserActive(user.id, !user.isActive);
+      await context.read<AdminRepository>().setUserActive(
+        user.id,
+        !user.isActive,
+      );
       if (context.mounted) Helpers.showSnackBar(context, 'Account updated.');
       await reload();
     } on Object catch (e) {
@@ -110,7 +146,14 @@ class UserDetailsScreen extends StatelessWidget {
 
   Future<void> _delete(BuildContext context, UserModel user) async {
     final navigator = Navigator.of(context);
-    final ok = await ConfirmationDialog.show(context, title: 'Delete account?', message: 'Delete ${user.fullName}?', confirmLabel: 'Delete', destructive: true, icon: Icons.delete_outline);
+    final ok = await ConfirmationDialog.show(
+      context,
+      title: 'Delete account?',
+      message: 'Delete ${user.fullName}?',
+      confirmLabel: 'Delete',
+      destructive: true,
+      icon: Icons.delete_outline,
+    );
     if (!ok || !context.mounted) return;
     try {
       await context.read<AdminRepository>().deleteUser(user.id);
@@ -127,5 +170,3 @@ class _UserDetailsData {
   final UserModel? user;
   final List<DepartmentModel> departments;
 }
-
-

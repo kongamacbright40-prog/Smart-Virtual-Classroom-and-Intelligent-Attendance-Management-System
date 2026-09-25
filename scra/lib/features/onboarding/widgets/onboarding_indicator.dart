@@ -31,8 +31,8 @@ class OnboardingIndicator extends StatelessWidget {
                 color: i == index
                     ? scheme.primary
                     : i < index
-                        ? scheme.primary
-                        : scheme.outlineVariant,
+                    ? scheme.primary
+                    : scheme.outlineVariant,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
               ),
             ),

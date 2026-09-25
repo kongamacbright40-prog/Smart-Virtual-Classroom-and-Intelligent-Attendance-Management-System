@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:smart_class/core/constants/app_dimensions.dart';
@@ -39,7 +38,11 @@ class UserListItem extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              UserAvatar(name: user.fullName, imageUrl: user.avatarUrl, showOnline: user.isActive),
+              UserAvatar(
+                name: user.fullName,
+                imageUrl: user.avatarUrl,
+                showOnline: user.isActive,
+              ),
               const SizedBox(width: AppDimensions.spaceMd),
               Expanded(
                 child: Column(
@@ -50,11 +53,24 @@ class UserListItem extends StatelessWidget {
                       runSpacing: AppDimensions.spaceXs,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Text(user.fullName, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium),
-                        StatusChip(label: user.role.label, tone: roleTone, dense: true),
+                        Text(
+                          user.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        StatusChip(
+                          label: user.role.label,
+                          tone: roleTone,
+                          dense: true,
+                        ),
                       ],
                     ),
-                    Text(user.departmentName ?? user.email, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(
+                      user.departmentName ?? user.email,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
@@ -62,17 +78,33 @@ class UserListItem extends StatelessWidget {
                 tooltip: 'User actions',
                 onSelected: (value) {
                   switch (value) {
-                    case 'edit': onEdit();
-                    case 'reset': onResetPassword();
-                    case 'toggle': onToggleActive();
-                    case 'delete': onDelete();
+                    case 'edit':
+                      onEdit();
+                    case 'reset':
+                      onResetPassword();
+                    case 'toggle':
+                      onToggleActive();
+                    case 'delete':
+                      onDelete();
                   }
                 },
                 itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Edit Account')),
-                  const PopupMenuItem(value: 'reset', child: Text('Reset Password')),
-                  PopupMenuItem(value: 'toggle', child: Text(user.isActive ? 'Deactivate' : 'Activate')),
-                  const PopupMenuItem(value: 'delete', child: Text('Delete Record')),
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Text('Edit Account'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'reset',
+                    child: Text('Reset Password'),
+                  ),
+                  PopupMenuItem(
+                    value: 'toggle',
+                    child: Text(user.isActive ? 'Deactivate' : 'Activate'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Delete Record'),
+                  ),
                 ],
               ),
             ],
@@ -91,8 +123,17 @@ class UserListItem extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(identifier, style: Theme.of(context).textTheme.labelLarge),
-                Text('• ${user.email}', maxLines: 1, overflow: TextOverflow.ellipsis),
-                StatusChip(label: user.isActive ? 'Active' : 'Suspended', tone: user.isActive ? StatusTone.live : StatusTone.neutral, showDot: true, dense: true),
+                Text(
+                  '• ${user.email}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                StatusChip(
+                  label: user.isActive ? 'Active' : 'Suspended',
+                  tone: user.isActive ? StatusTone.live : StatusTone.neutral,
+                  showDot: true,
+                  dense: true,
+                ),
               ],
             ),
           ),

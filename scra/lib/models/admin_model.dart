@@ -42,36 +42,35 @@ class AdminModel {
   String get id => user.id;
 
   factory AdminModel.fromJson(Json json) => AdminModel(
-        user: UserModel.fromJson(JsonX.map(json['user'])),
-        adminId: json['admin_id'] as String,
-        accessLevel: AdminAccessLevel.fromJson(json['access_level']),
-        jobTitle: json['job_title'] as String?,
-        permissions: JsonX.stringList(json['permissions']),
-        twoFactorEnabled: json['two_factor_enabled'] as bool? ?? true,
-        lastLoginAt: JsonX.dateOrNull(json['last_login_at']),
-      );
+    user: UserModel.fromJson(JsonX.map(json['user'])),
+    adminId: json['admin_id'] as String,
+    accessLevel: AdminAccessLevel.fromJson(json['access_level']),
+    jobTitle: json['job_title'] as String?,
+    permissions: JsonX.stringList(json['permissions']),
+    twoFactorEnabled: json['two_factor_enabled'] as bool? ?? true,
+    lastLoginAt: JsonX.dateOrNull(json['last_login_at']),
+  );
 
   Json toJson() => {
-        'user': user.toJson(),
-        'admin_id': adminId,
-        'access_level': accessLevel.value,
-        'job_title': jobTitle,
-        'permissions': permissions,
-        'two_factor_enabled': twoFactorEnabled,
-        'last_login_at': JsonX.isoOrNull(lastLoginAt),
-      };
+    'user': user.toJson(),
+    'admin_id': adminId,
+    'access_level': accessLevel.value,
+    'job_title': jobTitle,
+    'permissions': permissions,
+    'two_factor_enabled': twoFactorEnabled,
+    'last_login_at': JsonX.isoOrNull(lastLoginAt),
+  };
 
   AdminModel copyWith({UserModel? user, bool? twoFactorEnabled}) => AdminModel(
-        user: user ?? this.user,
-        adminId: adminId,
-        accessLevel: accessLevel,
-        jobTitle: jobTitle,
-        permissions: permissions,
-        twoFactorEnabled: twoFactorEnabled ?? this.twoFactorEnabled,
-        lastLoginAt: lastLoginAt,
-      );
+    user: user ?? this.user,
+    adminId: adminId,
+    accessLevel: accessLevel,
+    jobTitle: jobTitle,
+    permissions: permissions,
+    twoFactorEnabled: twoFactorEnabled ?? this.twoFactorEnabled,
+    lastLoginAt: lastLoginAt,
+  );
 }
-
 
 enum ActivitySeverity { info, success, warning, critical }
 
@@ -98,23 +97,26 @@ class ActivityLogModel {
   final String? category;
 
   factory ActivityLogModel.fromJson(Json json) => ActivityLogModel(
-        id: json['id'].toString(),
-        title: json['title'] as String,
-        description: json['description'] as String? ?? '',
-        timestamp: JsonX.date(json['timestamp']),
-        actorName: json['actor_name'] as String?,
-        severity: JsonX.enumByName(
-            ActivitySeverity.values, json['severity'], ActivitySeverity.info),
-        category: json['category'] as String?,
-      );
+    id: json['id'].toString(),
+    title: json['title'] as String,
+    description: json['description'] as String? ?? '',
+    timestamp: JsonX.date(json['timestamp']),
+    actorName: json['actor_name'] as String?,
+    severity: JsonX.enumByName(
+      ActivitySeverity.values,
+      json['severity'],
+      ActivitySeverity.info,
+    ),
+    category: json['category'] as String?,
+  );
 
   Json toJson() => {
-        'id': id,
-        'title': title,
-        'description': description,
-        'timestamp': timestamp.toIso8601String(),
-        'actor_name': actorName,
-        'severity': severity.name,
-        'category': category,
-      };
+    'id': id,
+    'title': title,
+    'description': description,
+    'timestamp': timestamp.toIso8601String(),
+    'actor_name': actorName,
+    'severity': severity.name,
+    'category': category,
+  };
 }

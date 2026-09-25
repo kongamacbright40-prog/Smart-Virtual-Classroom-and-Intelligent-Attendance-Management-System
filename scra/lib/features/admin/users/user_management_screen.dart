@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -46,7 +45,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           IconButton(
             tooltip: 'Export',
             icon: const Icon(Icons.file_download_outlined),
-            onPressed: () => Helpers.showSnackBar(context, 'User export queued.'),
+            onPressed: () =>
+                Helpers.showSnackBar(context, 'User export queued.'),
           ),
         ],
       ),
@@ -54,13 +54,18 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         key: const Key('add_user'),
         icon: const Icon(Icons.person_add_alt_1),
         label: const Text('Add User'),
-        onPressed: () => Navigator.of(context).pushNamed(RouteNames.userDetails).then((_) => setState(() {})),
+        onPressed: () =>
+            Navigator.of(context)
+                .pushNamed(RouteNames.userDetails)
+                .then((_) => setState(() {})),
       ),
       body: AsyncView<_UsersData>(
         key: ValueKey('users-$_query-${_role?.name}-$_activeOnly'),
         load: () => _load(context),
         builder: (context, data, reload) {
-          final users = data.users.where((u) => !_activeOnly || u.isActive).toList();
+          final users = data.users
+              .where((u) => !_activeOnly || u.isActive)
+              .toList();
           return RefreshIndicator(
             onRefresh: reload,
             child: ListView(
@@ -78,9 +83,18 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   child: Row(
                     children: [
                       _roleChip('All (${data.all.length})', null),
-                      _roleChip('Students (${data.count(UserRole.student)})', UserRole.student),
-                      _roleChip('Lecturers (${data.count(UserRole.lecturer)})', UserRole.lecturer),
-                      _roleChip('Admins (${data.count(UserRole.admin)})', UserRole.admin),
+                      _roleChip(
+                        'Students (${data.count(UserRole.student)})',
+                        UserRole.student,
+                      ),
+                      _roleChip(
+                        'Lecturers (${data.count(UserRole.lecturer)})',
+                        UserRole.lecturer,
+                      ),
+                      _roleChip(
+                        'Admins (${data.count(UserRole.admin)})',
+                        UserRole.admin,
+                      ),
                       const SizedBox(width: AppDimensions.spaceSm),
                       FilterChip(
                         key: const Key('active_only_filter'),
@@ -97,21 +111,39 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     title: 'No matching users',
                     message: 'Try another search or filter.',
                     actionLabel: 'Reset Filters',
-                    onAction: () => setState(() { _query = ''; _role = null; _activeOnly = false; }),
+                    onAction: () => setState(() {
+                      _query = '';
+                      _role = null;
+                      _activeOnly = false;
+                    }),
                   )
                 else
                   for (final user in users)
                     UserListItem(
                       user: user,
                       identifier: _identifier(user),
-                      onEdit: () => Navigator.of(context).pushNamed(RouteNames.userDetails, arguments: user.id).then((_) => setState(() {})),
-                      onResetPassword: () => Helpers.showSnackBar(context, 'Password reset link sent to ${user.email}.'),
+                      onEdit: () => Navigator.of(context)
+                          .pushNamed(RouteNames.userDetails, arguments: user.id)
+                          .then((_) => setState(() {})),
+                      onResetPassword: () => Helpers.showSnackBar(
+                        context,
+                        'Password reset link sent to ${user.email}.',
+                      ),
                       onToggleActive: () => _toggleUser(user, reload),
                       onDelete: () => _deleteUser(user, reload),
                     ),
-                Center(child: Text('Showing ${users.length} of ${data.all.length} verified accounts')),
+                Center(
+                  child: Text(
+                    'Showing ${users.length} of ${data.all.length} verified accounts',
+                  ),
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                SecondaryButton(label: 'Load More Users', icon: Icons.sync, onPressed: () => Helpers.showSnackBar(context, 'All demo users loaded.')),
+                SecondaryButton(
+                  label: 'Load More Users',
+                  icon: Icons.sync,
+                  onPressed: () =>
+                      Helpers.showSnackBar(context, 'All demo users loaded.'),
+                ),
               ],
             ),
           );
@@ -121,9 +153,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   Widget _roleChip(String label, UserRole? role) => Padding(
-        padding: const EdgeInsets.only(right: AppDimensions.spaceSm),
-        child: ChoiceChip(label: Text(label), selected: _role == role, onSelected: (_) => setState(() => _role = role)),
-      );
+    padding: const EdgeInsets.only(right: AppDimensions.spaceSm),
+    child: ChoiceChip(
+      label: Text(label),
+      selected: _role == role,
+      onSelected: (_) => setState(() => _role = role),
+    ),
+  );
 
   String _identifier(UserModel user) {
     return switch (user.role) {
@@ -133,18 +169,27 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     };
   }
 
-  Future<void> _toggleUser(UserModel user, Future<void> Function() reload) async {
+  Future<void> _toggleUser(
+    UserModel user,
+    Future<void> Function() reload,
+  ) async {
     final ok = await ConfirmationDialog.show(
       context,
       title: user.isActive ? 'Deactivate user?' : 'Activate user?',
-      message: '${user.fullName} will be ${user.isActive ? 'deactivated' : 'activated'}.',
+      message:
+          '${user.fullName} will be ${user.isActive ? 'deactivated' : 'activated'}.',
       confirmLabel: user.isActive ? 'Deactivate' : 'Activate',
       destructive: user.isActive,
-      icon: user.isActive ? Icons.person_off_outlined : Icons.check_circle_outline,
+      icon: user.isActive
+          ? Icons.person_off_outlined
+          : Icons.check_circle_outline,
     );
     if (!ok || !mounted) return;
     try {
-      await context.read<AdminRepository>().setUserActive(user.id, !user.isActive);
+      await context.read<AdminRepository>().setUserActive(
+        user.id,
+        !user.isActive,
+      );
       if (mounted) Helpers.showSnackBar(context, 'User updated.');
       await reload();
     } on Object catch (e) {
@@ -152,8 +197,18 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     }
   }
 
-  Future<void> _deleteUser(UserModel user, Future<void> Function() reload) async {
-    final ok = await ConfirmationDialog.show(context, title: 'Delete user?', message: 'Delete ${user.fullName}?', confirmLabel: 'Delete', destructive: true, icon: Icons.delete_outline);
+  Future<void> _deleteUser(
+    UserModel user,
+    Future<void> Function() reload,
+  ) async {
+    final ok = await ConfirmationDialog.show(
+      context,
+      title: 'Delete user?',
+      message: 'Delete ${user.fullName}?',
+      confirmLabel: 'Delete',
+      destructive: true,
+      icon: Icons.delete_outline,
+    );
     if (!ok || !mounted) return;
     try {
       await context.read<AdminRepository>().deleteUser(user.id);
@@ -186,8 +241,17 @@ class _Summary extends StatelessWidget {
         children: [
           const Icon(Icons.circle, size: 10),
           const SizedBox(width: AppDimensions.spaceSm),
-          Expanded(child: Text('${all.length} Accounts ? ${percent.toStringAsFixed(1)}% Active')),
-          PrimaryButton(label: 'Export', icon: Icons.file_download_outlined, expanded: false, onPressed: () => Helpers.showSnackBar(context, 'Export queued.')),
+          Expanded(
+            child: Text(
+              '${all.length} Accounts ? ${percent.toStringAsFixed(1)}% Active',
+            ),
+          ),
+          PrimaryButton(
+            label: 'Export',
+            icon: Icons.file_download_outlined,
+            expanded: false,
+            onPressed: () => Helpers.showSnackBar(context, 'Export queued.'),
+          ),
         ],
       ),
     );

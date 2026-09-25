@@ -50,9 +50,12 @@ class AuthProvider extends ChangeNotifier {
       _selectedRole = await _storage.getSelectedRole();
       _rememberMe = await _storage.getRememberMe();
       final session = await _authService.restore();
-      _status =
-          session == null ? AuthStatus.unauthenticated : AuthStatus.authenticated;
-      if (session != null) await _notifications?.startListening(session.user.id);
+      _status = session == null
+          ? AuthStatus.unauthenticated
+          : AuthStatus.authenticated;
+      if (session != null) {
+        await _notifications?.startListening(session.user.id);
+      }
     } on Object catch (e) {
       ErrorHandler.log(e);
       _status = AuthStatus.unauthenticated;
@@ -107,43 +110,40 @@ class AuthProvider extends ChangeNotifier {
     required String identifier,
     required String password,
     bool rememberMe = true,
-  }) =>
-      _run(() async {
-        final session = await _repository.login(
-          role: role,
-          identifier: identifier.trim(),
-          password: password,
-        );
-        await _startSession(session, rememberMe);
-      });
+  }) => _run(() async {
+    final session = await _repository.login(
+      role: role,
+      identifier: identifier.trim(),
+      password: password,
+    );
+    await _startSession(session, rememberMe);
+  });
 
   Future<bool> activateStudent({
     required String matricule,
     required String email,
     required String password,
-  }) =>
-      _run(() async {
-        final session = await _repository.activateStudent(
-          matricule: matricule.trim().toUpperCase(),
-          email: email.trim(),
-          password: password,
-        );
-        await _startSession(session, true);
-      });
+  }) => _run(() async {
+    final session = await _repository.activateStudent(
+      matricule: matricule.trim().toUpperCase(),
+      email: email.trim(),
+      password: password,
+    );
+    await _startSession(session, true);
+  });
 
   Future<bool> registerLecturer({
     required String staffId,
     required String email,
     required String password,
-  }) =>
-      _run(() async {
-        final session = await _repository.registerLecturer(
-          staffId: staffId.trim().toUpperCase(),
-          email: email.trim(),
-          password: password,
-        );
-        await _startSession(session, true);
-      });
+  }) => _run(() async {
+    final session = await _repository.registerLecturer(
+      staffId: staffId.trim().toUpperCase(),
+      email: email.trim(),
+      password: password,
+    );
+    await _startSession(session, true);
+  });
 
   Future<bool> requestPasswordReset(String email) =>
       _run(() => _repository.requestPasswordReset(email.trim()));
@@ -155,21 +155,23 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String code,
     required String newPassword,
-  }) =>
-      _run(() => _repository.resetPassword(
-            email: email.trim(),
-            code: code,
-            newPassword: newPassword,
-          ));
+  }) => _run(
+    () => _repository.resetPassword(
+      email: email.trim(),
+      code: code,
+      newPassword: newPassword,
+    ),
+  );
 
   Future<bool> changePassword({
     required String currentPassword,
     required String newPassword,
-  }) =>
-      _run(() => _repository.changePassword(
-            currentPassword: currentPassword,
-            newPassword: newPassword,
-          ));
+  }) => _run(
+    () => _repository.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    ),
+  );
 
   /// Updates the cached user after a profile edit.
   Future<void> updateUser(UserModel updated) async {

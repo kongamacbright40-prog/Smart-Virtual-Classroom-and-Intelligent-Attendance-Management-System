@@ -27,7 +27,8 @@ class EmptyState extends StatelessWidget {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(
-            compact ? AppDimensions.spaceMd : AppDimensions.spaceXl),
+          compact ? AppDimensions.spaceMd : AppDimensions.spaceXl,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -37,21 +38,26 @@ class EmptyState extends StatelessWidget {
                 color: theme.colorScheme.surfaceContainerHigh,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon,
-                  size: compact ? 28 : 36,
-                  color: theme.colorScheme.onSurfaceVariant),
+              child: Icon(
+                icon,
+                size: compact ? 28 : 36,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: AppDimensions.spaceMd),
-            Text(title,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium,
+            ),
             if (message != null) ...[
               const SizedBox(height: AppDimensions.spaceXs),
               Text(
                 message!,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
             if (actionLabel != null && onAction != null) ...[

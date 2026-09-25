@@ -26,7 +26,9 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> update(AppSettingsModel Function(AppSettingsModel) change) async {
+  Future<void> update(
+    AppSettingsModel Function(AppSettingsModel) change,
+  ) async {
     _settings = change(_settings);
     notifyListeners();
     try {

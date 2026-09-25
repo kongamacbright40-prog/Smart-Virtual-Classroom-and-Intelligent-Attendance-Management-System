@@ -26,8 +26,7 @@ abstract final class Helpers {
   static void showError(BuildContext context, Object error) =>
       showSnackBar(context, ErrorHandler.message(error), isError: true);
 
-  static void unfocus(BuildContext context) =>
-      FocusScope.of(context).unfocus();
+  static void unfocus(BuildContext context) => FocusScope.of(context).unfocus();
 
   static bool isSmallPhone(BuildContext context) =>
       MediaQuery.sizeOf(context).width <= AppDimensions.smallPhoneWidth;

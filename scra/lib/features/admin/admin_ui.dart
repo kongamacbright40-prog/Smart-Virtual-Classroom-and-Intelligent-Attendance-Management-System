@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,7 +30,8 @@ class AdminScreenHeader extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget> actions;
 
   @override
-  Size get preferredSize => Size.fromHeight(subtitle == null ? kToolbarHeight : 68);
+  Size get preferredSize =>
+      Size.fromHeight(subtitle == null ? kToolbarHeight : 68);
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +52,8 @@ class AdminScreenHeader extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           tooltip: 'Profile',
           icon: const Icon(Icons.account_circle),
-          onPressed: () => Navigator.of(context).pushNamed(RouteNames.adminProfile),
+          onPressed: () =>
+              Navigator.of(context).pushNamed(RouteNames.adminProfile),
         ),
       ],
     );
@@ -138,7 +139,8 @@ class AdminSectionTitle extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: theme.textTheme.titleLarge),
-              if (subtitle != null) Text(subtitle!, style: theme.textTheme.bodySmall),
+              if (subtitle != null)
+                Text(subtitle!, style: theme.textTheme.bodySmall),
             ],
           ),
         ),
@@ -193,17 +195,20 @@ String adminRoleLabel(dynamic role) {
   return text[0].toUpperCase() + text.substring(1);
 }
 
-StatusTone adminStatusTone(bool active) => active ? StatusTone.success : StatusTone.neutral;
+StatusTone adminStatusTone(bool active) =>
+    active ? StatusTone.success : StatusTone.neutral;
 
-String adminDate(DateTime? value) => value == null ? '—' : Formatters.date(value);
+String adminDate(DateTime? value) =>
+    value == null ? '—' : Formatters.date(value);
 
 UserAvatar adminCurrentAvatar(BuildContext context, {double size = 36}) {
   final user = context.watch<AuthProvider>().user;
-  return UserAvatar(name: user?.fullName ?? 'Admin', imageUrl: user?.avatarUrl, size: size);
+  return UserAvatar(
+    name: user?.fullName ?? 'Admin',
+    imageUrl: user?.avatarUrl,
+    size: size,
+  );
 }
-
-
-
 
 /// Two-column grid whose rows size to their content (no fixed aspect ratio),
 /// so cards never overflow with larger text or on small phones.
@@ -227,14 +232,21 @@ class AdminGrid extends StatelessWidget {
       for (var c = 0; c < columns; c++) {
         if (c > 0) cells.add(SizedBox(width: spacing));
         final index = i + c;
-        cells.add(Expanded(
-          child: index < children.length ? children[index] : const SizedBox(),
-        ));
+        cells.add(
+          Expanded(
+            child: index < children.length ? children[index] : const SizedBox(),
+          ),
+        );
       }
       if (rows.isNotEmpty) rows.add(SizedBox(height: spacing));
-      rows.add(IntrinsicHeight(
-        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: cells),
-      ));
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: cells,
+          ),
+        ),
+      );
     }
     return Column(mainAxisSize: MainAxisSize.min, children: rows);
   }

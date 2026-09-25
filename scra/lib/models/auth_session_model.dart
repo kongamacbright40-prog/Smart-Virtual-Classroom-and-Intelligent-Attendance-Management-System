@@ -21,16 +21,16 @@ class AuthSessionModel {
       expiresAt != null && now.isAfter(expiresAt!);
 
   factory AuthSessionModel.fromJson(Json json) => AuthSessionModel(
-        user: UserModel.fromJson(JsonX.map(json['user'])),
-        accessToken: json['access_token'] as String,
-        refreshToken: json['refresh_token'] as String?,
-        expiresAt: JsonX.dateOrNull(json['expires_at']),
-      );
+    user: UserModel.fromJson(JsonX.map(json['user'])),
+    accessToken: json['access_token'] as String,
+    refreshToken: json['refresh_token'] as String?,
+    expiresAt: JsonX.dateOrNull(json['expires_at']),
+  );
 
   Json toJson() => {
-        'user': user.toJson(),
-        'access_token': accessToken,
-        'refresh_token': refreshToken,
-        'expires_at': JsonX.isoOrNull(expiresAt),
-      };
+    'user': user.toJson(),
+    'access_token': accessToken,
+    'refresh_token': refreshToken,
+    'expires_at': JsonX.isoOrNull(expiresAt),
+  };
 }

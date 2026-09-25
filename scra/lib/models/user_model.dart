@@ -11,9 +11,9 @@ enum UserRole {
   final String label;
 
   static UserRole fromJson(Object? value) => UserRole.values.firstWhere(
-        (r) => r.value == value,
-        orElse: () => UserRole.student,
-      );
+    (r) => r.value == value,
+    orElse: () => UserRole.student,
+  );
 
   static UserRole? tryParse(Object? value) {
     for (final r in UserRole.values) {
@@ -57,32 +57,32 @@ class UserModel {
       .first;
 
   factory UserModel.fromJson(Json json) => UserModel(
-        id: json['id'].toString(),
-        fullName: json['full_name'] as String,
-        email: json['email'] as String,
-        role: UserRole.fromJson(json['role']),
-        phone: json['phone'] as String?,
-        avatarUrl: json['avatar_url'] as String?,
-        departmentId: json['department_id'] as String?,
-        departmentName: json['department_name'] as String?,
-        isActive: json['is_active'] as bool? ?? true,
-        createdAt: JsonX.dateOrNull(json['created_at']),
-        lastActiveAt: JsonX.dateOrNull(json['last_active_at']),
-      );
+    id: json['id'].toString(),
+    fullName: json['full_name'] as String,
+    email: json['email'] as String,
+    role: UserRole.fromJson(json['role']),
+    phone: json['phone'] as String?,
+    avatarUrl: json['avatar_url'] as String?,
+    departmentId: json['department_id'] as String?,
+    departmentName: json['department_name'] as String?,
+    isActive: json['is_active'] as bool? ?? true,
+    createdAt: JsonX.dateOrNull(json['created_at']),
+    lastActiveAt: JsonX.dateOrNull(json['last_active_at']),
+  );
 
   Json toJson() => {
-        'id': id,
-        'full_name': fullName,
-        'email': email,
-        'role': role.value,
-        'phone': phone,
-        'avatar_url': avatarUrl,
-        'department_id': departmentId,
-        'department_name': departmentName,
-        'is_active': isActive,
-        'created_at': JsonX.isoOrNull(createdAt),
-        'last_active_at': JsonX.isoOrNull(lastActiveAt),
-      };
+    'id': id,
+    'full_name': fullName,
+    'email': email,
+    'role': role.value,
+    'phone': phone,
+    'avatar_url': avatarUrl,
+    'department_id': departmentId,
+    'department_name': departmentName,
+    'is_active': isActive,
+    'created_at': JsonX.isoOrNull(createdAt),
+    'last_active_at': JsonX.isoOrNull(lastActiveAt),
+  };
 
   UserModel copyWith({
     String? fullName,
@@ -94,20 +94,19 @@ class UserModel {
     String? departmentName,
     bool? isActive,
     DateTime? lastActiveAt,
-  }) =>
-      UserModel(
-        id: id,
-        fullName: fullName ?? this.fullName,
-        email: email ?? this.email,
-        role: role ?? this.role,
-        phone: phone ?? this.phone,
-        avatarUrl: avatarUrl ?? this.avatarUrl,
-        departmentId: departmentId ?? this.departmentId,
-        departmentName: departmentName ?? this.departmentName,
-        isActive: isActive ?? this.isActive,
-        createdAt: createdAt,
-        lastActiveAt: lastActiveAt ?? this.lastActiveAt,
-      );
+  }) => UserModel(
+    id: id,
+    fullName: fullName ?? this.fullName,
+    email: email ?? this.email,
+    role: role ?? this.role,
+    phone: phone ?? this.phone,
+    avatarUrl: avatarUrl ?? this.avatarUrl,
+    departmentId: departmentId ?? this.departmentId,
+    departmentName: departmentName ?? this.departmentName,
+    isActive: isActive ?? this.isActive,
+    createdAt: createdAt,
+    lastActiveAt: lastActiveAt ?? this.lastActiveAt,
+  );
 
   @override
   bool operator ==(Object other) =>

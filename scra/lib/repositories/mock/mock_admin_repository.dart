@@ -4,7 +4,8 @@ import '../repositories.dart';
 import 'mock_data_store.dart';
 import 'mock_repository_base.dart';
 
-class MockAdminRepository extends MockRepositoryBase implements AdminRepository {
+class MockAdminRepository extends MockRepositoryBase
+    implements AdminRepository {
   MockAdminRepository(this._store, {super.latency});
 
   final MockDataStore _store;
@@ -24,11 +25,10 @@ class MockAdminRepository extends MockRepositoryBase implements AdminRepository 
           return u.fullName.toLowerCase().contains(q) ||
               u.email.toLowerCase().contains(q) ||
               (ident?.toLowerCase().contains(q) ?? false);
-        }).toList()
-          ..sort((a, b) {
-            final r = a.role.index.compareTo(b.role.index);
-            return r != 0 ? -r : a.fullName.compareTo(b.fullName);
-          });
+        }).toList()..sort((a, b) {
+          final r = a.role.index.compareTo(b.role.index);
+          return r != 0 ? -r : a.fullName.compareTo(b.fullName);
+        });
       });
 
   /// Institutional identifier (matricule / staff ID / admin ID) for a user.
@@ -39,117 +39,118 @@ class MockAdminRepository extends MockRepositoryBase implements AdminRepository 
 
   @override
   Future<UserModel> getUser(String userId) => delay(() {
-        final u = _store.users[userId];
-        if (u == null) throw const NotFoundException('User not found.');
-        return u;
-      });
+    final u = _store.users[userId];
+    if (u == null) throw const NotFoundException('User not found.');
+    return u;
+  });
 
   @override
   Future<UserModel> createUser(UserModel user) => delay(() {
-        final exists = _store.users.values
-            .any((u) => u.email.toLowerCase() == user.email.toLowerCase());
-        if (exists) {
-          throw const ValidationException('A user with this email already exists.');
-        }
-        final prefix = switch (user.role) {
-          UserRole.student => 'stu',
-          UserRole.lecturer => 'lec',
-          UserRole.admin => 'adm',
-        };
-        final id = _store.nextId(prefix);
-        final created = UserModel(
-          id: id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-          phone: user.phone,
-          departmentId: user.departmentId,
-          departmentName: _store.departments[user.departmentId]?.name ??
-              user.departmentName,
-          createdAt: DateTime.now(),
+    final exists = _store.users.values.any(
+      (u) => u.email.toLowerCase() == user.email.toLowerCase(),
+    );
+    if (exists) {
+      throw const ValidationException('A user with this email already exists.');
+    }
+    final prefix = switch (user.role) {
+      UserRole.student => 'stu',
+      UserRole.lecturer => 'lec',
+      UserRole.admin => 'adm',
+    };
+    final id = _store.nextId(prefix);
+    final created = UserModel(
+      id: id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      departmentId: user.departmentId,
+      departmentName:
+          _store.departments[user.departmentId]?.name ?? user.departmentName,
+      createdAt: DateTime.now(),
+    );
+    _store.users[id] = created;
+    switch (created.role) {
+      case UserRole.student:
+        _store.students[id] = StudentModel(
+          user: created,
+          matricule: 'ICT${DateTime.now().year}${id.split('-').last}',
+          programme: created.departmentName ?? 'Undeclared',
+          level: 100,
+          semester: 1,
         );
-        _store.users[id] = created;
-        switch (created.role) {
-          case UserRole.student:
-            _store.students[id] = StudentModel(
-              user: created,
-              matricule: 'ICT${DateTime.now().year}${id.split('-').last}',
-              programme: created.departmentName ?? 'Undeclared',
-              level: 100,
-              semester: 1,
-            );
-          case UserRole.lecturer:
-            _store.lecturers[id] = LecturerModel(
-              user: created,
-              staffId: 'FAC-${DateTime.now().year}-${id.split('-').last}',
-              title: 'Dr.',
-            );
-          case UserRole.admin:
-            _store.admins[id] = AdminModel(
-              user: created,
-              adminId: 'ADM-${id.split('-').last}',
-              accessLevel: AdminAccessLevel.departmental,
-            );
-        }
-        _store.activity.insert(
-          0,
-          ActivityLogModel(
-            id: _store.nextId('act'),
-            title: 'User created',
-            description: '${created.fullName} (${created.role.label}) was added.',
-            timestamp: DateTime.now(),
-            actorName: 'System Administrator',
-            severity: ActivitySeverity.success,
-            category: 'users',
-          ),
+      case UserRole.lecturer:
+        _store.lecturers[id] = LecturerModel(
+          user: created,
+          staffId: 'FAC-${DateTime.now().year}-${id.split('-').last}',
+          title: 'Dr.',
         );
-        return created;
-      });
+      case UserRole.admin:
+        _store.admins[id] = AdminModel(
+          user: created,
+          adminId: 'ADM-${id.split('-').last}',
+          accessLevel: AdminAccessLevel.departmental,
+        );
+    }
+    _store.activity.insert(
+      0,
+      ActivityLogModel(
+        id: _store.nextId('act'),
+        title: 'User created',
+        description: '${created.fullName} (${created.role.label}) was added.',
+        timestamp: DateTime.now(),
+        actorName: 'System Administrator',
+        severity: ActivitySeverity.success,
+        category: 'users',
+      ),
+    );
+    return created;
+  });
 
   @override
   Future<UserModel> updateUser(UserModel user) => delay(() {
-        if (!_store.users.containsKey(user.id)) {
-          throw const NotFoundException('User not found.');
-        }
-        _store.users[user.id] = user;
-        return user;
-      });
+    if (!_store.users.containsKey(user.id)) {
+      throw const NotFoundException('User not found.');
+    }
+    _store.users[user.id] = user;
+    return user;
+  });
 
   @override
   Future<UserModel> setUserActive(String userId, bool active) => delay(() {
-        final u = _store.users[userId];
-        if (u == null) throw const NotFoundException('User not found.');
-        final updated = u.copyWith(isActive: active);
-        _store.users[userId] = updated;
-        return updated;
-      });
+    final u = _store.users[userId];
+    if (u == null) throw const NotFoundException('User not found.');
+    final updated = u.copyWith(isActive: active);
+    _store.users[userId] = updated;
+    return updated;
+  });
 
   @override
   Future<void> deleteUser(String userId) => delay(() {
-        if (userId == MockDataStore.currentAdminId) {
-          throw const ForbiddenException('You cannot delete your own account.');
-        }
-        _store.users.remove(userId);
-        _store.students.remove(userId);
-        _store.lecturers.remove(userId);
-        _store.admins.remove(userId);
-      });
+    if (userId == MockDataStore.currentAdminId) {
+      throw const ForbiddenException('You cannot delete your own account.');
+    }
+    _store.users.remove(userId);
+    _store.students.remove(userId);
+    _store.lecturers.remove(userId);
+    _store.admins.remove(userId);
+  });
 
   @override
   Future<List<FacultyModel>> getFaculties() =>
       delay(() => _store.faculties.values.toList());
 
   @override
-  Future<List<DepartmentModel>> getDepartments({String? facultyId}) =>
-      delay(() => _store.departments.values
-          .where((d) => facultyId == null || d.facultyId == facultyId)
-          .toList());
+  Future<List<DepartmentModel>> getDepartments({String? facultyId}) => delay(
+    () => _store.departments.values
+        .where((d) => facultyId == null || d.facultyId == facultyId)
+        .toList(),
+  );
 
   @override
   Future<DepartmentModel> saveDepartment(DepartmentModel department) =>
       delay(() {
-        final id =
-            department.id.isEmpty ? _store.nextId('dep') : department.id;
+        final id = department.id.isEmpty ? _store.nextId('dep') : department.id;
         final saved = DepartmentModel(
           id: id,
           name: department.name,
@@ -171,17 +172,19 @@ class MockAdminRepository extends MockRepositoryBase implements AdminRepository 
 
   @override
   Future<DepartmentModel> archiveDepartment(String departmentId) => delay(() {
-        final d = _store.departments[departmentId];
-        if (d == null) throw const NotFoundException('Department not found.');
-        final updated = d.copyWith(isActive: false);
-        _store.departments[departmentId] = updated;
-        return updated;
-      });
+    final d = _store.departments[departmentId];
+    if (d == null) throw const NotFoundException('Department not found.');
+    final updated = d.copyWith(isActive: false);
+    _store.departments[departmentId] = updated;
+    return updated;
+  });
 
   @override
-  Future<List<AcademicTermModel>> getAcademicTerms() =>
-      delay(() => _store.terms.values.toList()
-        ..sort((a, b) => b.startDate.compareTo(a.startDate)));
+  Future<List<AcademicTermModel>> getAcademicTerms() => delay(
+    () =>
+        _store.terms.values.toList()
+          ..sort((a, b) => b.startDate.compareTo(a.startDate)),
+  );
 
   @override
   Future<AcademicTermModel> saveAcademicTerm(AcademicTermModel term) =>
@@ -217,16 +220,17 @@ class MockAdminRepository extends MockRepositoryBase implements AdminRepository 
 
   @override
   Future<SystemSettingsModel> updateSystemSettings(
-          SystemSettingsModel settings) =>
-      delay(() {
-        if (settings.participationWeight < 0 ||
-            settings.participationWeight > 100) {
-          throw const ValidationException(
-              'Participation weight must be between 0 and 100%.');
-        }
-        _store.systemSettings = settings;
-        return settings;
-      });
+    SystemSettingsModel settings,
+  ) => delay(() {
+    if (settings.participationWeight < 0 ||
+        settings.participationWeight > 100) {
+      throw const ValidationException(
+        'Participation weight must be between 0 and 100%.',
+      );
+    }
+    _store.systemSettings = settings;
+    return settings;
+  });
 
   @override
   Future<List<ActivityLogModel>> getRecentActivity({int limit = 20}) =>

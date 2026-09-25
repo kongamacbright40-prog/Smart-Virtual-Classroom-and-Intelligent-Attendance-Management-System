@@ -20,16 +20,16 @@ NavigatorState _navigator(WidgetTester tester) =>
     tester.state<NavigatorState>(find.byType(Navigator).first);
 
 void main() {
-  testWidgets('student logs in and lands on the student shell',
-      (tester) async {
+  testWidgets('student logs in and lands on the student shell', (tester) async {
     await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
     expect(find.byType(LoginScreen), findsOneWidget);
     await signInAs(tester, UserRole.student);
     expect(find.byType(StudentNavigation), findsOneWidget);
   });
 
-  testWidgets('lecturer logs in and lands on the lecturer shell',
-      (tester) async {
+  testWidgets('lecturer logs in and lands on the lecturer shell', (
+    tester,
+  ) async {
     await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
     await tester.tap(find.byKey(const Key('login_role_lecturer')));
     await tester.pump();
@@ -37,8 +37,9 @@ void main() {
     expect(find.byType(LecturerNavigation), findsOneWidget);
   });
 
-  testWidgets('admin logs in through the institutional gateway',
-      (tester) async {
+  testWidgets('admin logs in through the institutional gateway', (
+    tester,
+  ) async {
     await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
     await signInAs(tester, UserRole.admin);
     expect(find.byType(AdminNavigation), findsOneWidget);
@@ -55,25 +56,31 @@ void main() {
   testWidgets('wrong password shows an authentication error', (tester) async {
     await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
     await tester.enterText(
-        find.byKey(const Key('login_identifier')), DemoAccounts.studentId);
+      find.byKey(const Key('login_identifier')),
+      DemoAccounts.studentId,
+    );
     await tester.enterText(
-        find.byKey(const Key('login_password')), 'NotThePassword1');
+      find.byKey(const Key('login_password')),
+      'NotThePassword1',
+    );
     await tester.tap(find.byKey(const Key('login_submit')));
     await pumpFrames(tester);
     expect(find.byKey(const Key('login_error')), findsOneWidget);
     expect(find.byType(StudentNavigation), findsNothing);
   });
 
-  testWidgets('selecting Admin on the login toggle opens the admin gateway',
-      (tester) async {
+  testWidgets('selecting Admin on the login toggle opens the admin gateway', (
+    tester,
+  ) async {
     await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
     await tester.tap(find.byKey(const Key('login_role_admin')));
     await tester.pumpAndSettle();
     expect(find.byType(AdminLoginScreen), findsOneWidget);
   });
 
-  testWidgets('first-time links open activation and registration',
-      (tester) async {
+  testWidgets('first-time links open activation and registration', (
+    tester,
+  ) async {
     await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
     await tapVisible(tester, find.byKey(const Key('login_first_time')));
     await tester.pumpAndSettle();
@@ -88,8 +95,9 @@ void main() {
     expect(find.byType(LecturerRegistrationScreen), findsOneWidget);
   });
 
-  testWidgets('student activation validates and signs the student in',
-      (tester) async {
+  testWidgets('student activation validates and signs the student in', (
+    tester,
+  ) async {
     await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
     _navigator(tester).pushNamed(RouteNames.studentActivation);
     await tester.pumpAndSettle();
@@ -100,13 +108,23 @@ void main() {
 
     await tester.enterText(find.byKey(const Key('setup_id')), 'MAT-2024-9148');
     await tester.enterText(
-        find.byKey(const Key('setup_email')), 'alex.rivers@campus.edu');
-    await tester.enterText(find.byKey(const Key('setup_password')), 'Secure123!');
-    await tester.enterText(find.byKey(const Key('setup_confirm')), 'Secure123!');
+      find.byKey(const Key('setup_email')),
+      'alex.rivers@campus.edu',
+    );
+    await tester.enterText(
+      find.byKey(const Key('setup_password')),
+      'Secure123!',
+    );
+    await tester.enterText(
+      find.byKey(const Key('setup_confirm')),
+      'Secure123!',
+    );
     await tapVisible(tester, find.byKey(const Key('setup_submit')));
     await tester.pump();
-    expect(find.text('Please accept the institutional terms to continue.'),
-        findsOneWidget);
+    expect(
+      find.text('Please accept the institutional terms to continue.'),
+      findsOneWidget,
+    );
 
     await tapVisible(tester, find.byKey(const Key('setup_ack')));
     await tapVisible(tester, find.byKey(const Key('setup_submit')));
@@ -114,36 +132,46 @@ void main() {
     expect(find.byType(StudentNavigation), findsOneWidget);
   });
 
-  testWidgets('forgot password completes the three recovery steps',
-      (tester) async {
+  testWidgets('forgot password completes the three recovery steps', (
+    tester,
+  ) async {
     await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
     _navigator(tester).pushNamed(RouteNames.forgotPassword);
     await tester.pumpAndSettle();
     expect(find.byType(ForgotPasswordScreen), findsOneWidget);
 
     await tester.enterText(
-        find.byKey(const Key('recovery_email')), DemoAccounts.studentEmail);
+      find.byKey(const Key('recovery_email')),
+      DemoAccounts.studentEmail,
+    );
     await tester.tap(find.byKey(const Key('recovery_send')));
     await pumpFrames(tester);
     expect(find.text('Code Sent ✓'), findsOneWidget);
 
-    await tester.enterText(find.byKey(const Key('recovery_code')),
-        MockAuthRepository.demoRecoveryCode);
+    await tester.enterText(
+      find.byKey(const Key('recovery_code')),
+      MockAuthRepository.demoRecoveryCode,
+    );
     await pumpFrames(tester);
     expect(find.byKey(const Key('recovery_password')), findsOneWidget);
 
     await tester.enterText(
-        find.byKey(const Key('recovery_password')), 'BrandNew123!');
+      find.byKey(const Key('recovery_password')),
+      'BrandNew123!',
+    );
     await tester.enterText(
-        find.byKey(const Key('recovery_confirm')), 'BrandNew123!');
+      find.byKey(const Key('recovery_confirm')),
+      'BrandNew123!',
+    );
     await tapVisible(tester, find.byKey(const Key('recovery_update')));
     await pumpFrames(tester);
     expect(find.byKey(const Key('recovery_success')), findsOneWidget);
   });
 
   group('role-based routing', () {
-    testWidgets('unauthenticated users are redirected to login',
-        (tester) async {
+    testWidgets('unauthenticated users are redirected to login', (
+      tester,
+    ) async {
       await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
       _navigator(tester).pushNamed(RouteNames.studentCourses);
       await tester.pumpAndSettle();
@@ -154,8 +182,9 @@ void main() {
       expect(find.byType(AdminLoginScreen), findsOneWidget);
     });
 
-    testWidgets('a student cannot open lecturer or admin screens',
-        (tester) async {
+    testWidgets('a student cannot open lecturer or admin screens', (
+      tester,
+    ) async {
       await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
       await signInAs(tester, UserRole.student);
 

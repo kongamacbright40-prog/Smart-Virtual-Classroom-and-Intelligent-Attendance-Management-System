@@ -144,16 +144,18 @@ void main() {
       expect(auth.role, UserRole.student);
     });
 
-    test('activation rejects an email that does not match the matricule',
-        () async {
-      final ok = await auth.activateStudent(
-        matricule: DemoAccounts.studentId,
-        email: 'someone.else@campus.edu',
-        password: 'Secure123!',
-      );
-      expect(ok, isFalse);
-      expect(auth.errorMessage, contains('does not match'));
-    });
+    test(
+      'activation rejects an email that does not match the matricule',
+      () async {
+        final ok = await auth.activateStudent(
+          matricule: DemoAccounts.studentId,
+          email: 'someone.else@campus.edu',
+          password: 'Secure123!',
+        );
+        expect(ok, isFalse);
+        expect(auth.errorMessage, contains('does not match'));
+      },
+    );
 
     test('lecturer registration signs the lecturer in', () async {
       final ok = await auth.registerLecturer(

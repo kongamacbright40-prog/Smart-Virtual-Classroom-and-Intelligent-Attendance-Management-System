@@ -31,7 +31,11 @@ class AsyncView<T> extends StatefulWidget {
 
   /// `reload` re-runs [load]; returns a future suitable for RefreshIndicator.
   final Widget Function(
-      BuildContext context, T data, Future<void> Function() reload) builder;
+    BuildContext context,
+    T data,
+    Future<void> Function() reload,
+  )
+  builder;
   final bool Function(T data)? isEmpty;
   final Widget? empty;
   final Widget? loading;

@@ -94,7 +94,9 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
           );
     if (ok && auth.role != null) {
       navigator.pushNamedAndRemoveUntil(
-          AppRouter.homeFor(auth.role!), (_) => false);
+        AppRouter.homeFor(auth.role!),
+        (_) => false,
+      );
     }
   }
 
@@ -130,15 +132,20 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
                 ? null
                 : Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceContainerHigh,
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusSm),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusSm,
+                      ),
                     ),
-                    child: Text(widget.idSuffixLabel!,
-                        style: theme.textTheme.labelMedium),
+                    child: Text(
+                      widget.idSuffixLabel!,
+                      style: theme.textTheme.labelMedium,
+                    ),
                   ),
             helper: widget.idHelper,
             validator: widget.idValidator,
@@ -158,26 +165,33 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
                 ? null
                 : Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.secondaryFixed,
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusSm),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusSm,
+                      ),
                     ),
                     constraints: const BoxConstraints(maxWidth: 150),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.check_circle_outline,
-                            size: 14, color: AppColors.onSecondaryFixedVariant),
+                        const Icon(
+                          Icons.check_circle_outline,
+                          size: 14,
+                          color: AppColors.onSecondaryFixedVariant,
+                        ),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             domain,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.labelMedium?.copyWith(
-                                color: AppColors.onSecondaryFixedVariant),
+                              color: AppColors.onSecondaryFixedVariant,
+                            ),
                           ),
                         ),
                       ],
@@ -209,8 +223,10 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
             suffix: matches
                 ? Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: Icon(Icons.check_circle_outline,
-                        color: theme.colorScheme.secondary),
+                    child: Icon(
+                      Icons.check_circle_outline,
+                      color: theme.colorScheme.secondary,
+                    ),
                   )
                 : null,
             textInputAction: TextInputAction.done,
@@ -246,8 +262,10 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.only(top: 12),
-                      child: Text(widget.acknowledgement!,
-                          style: theme.textTheme.bodyMedium),
+                      child: Text(
+                        widget.acknowledgement!,
+                        style: theme.textTheme.bodyMedium,
+                      ),
                     ),
                   ),
                 ],
@@ -258,8 +276,9 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
                 padding: const EdgeInsets.only(top: 4, left: 12),
                 child: Text(
                   'Please accept the institutional terms to continue.',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.error),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
                 ),
               ),
           ],
@@ -268,8 +287,9 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
             Text(
               auth.errorMessage!,
               key: const Key('setup_error'),
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.error),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
             ),
           ],
           const SizedBox(height: AppDimensions.spaceLg),
@@ -292,8 +312,10 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
                   if (navigator.canPop()) {
                     navigator.pop();
                   } else {
-                    navigator.pushReplacementNamed(RouteNames.login,
-                        arguments: widget.role);
+                    navigator.pushReplacementNamed(
+                      RouteNames.login,
+                      arguments: widget.role,
+                    );
                   }
                 },
                 style: TextButton.styleFrom(

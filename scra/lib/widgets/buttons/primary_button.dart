@@ -43,8 +43,11 @@ class PrimaryButton extends StatelessWidget {
                 const SizedBox(width: AppDimensions.spaceSm),
               ],
               Flexible(
-                child: Text(label,
-                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               if (trailingIcon != null) ...[
                 const SizedBox(width: AppDimensions.spaceSm),
@@ -60,8 +63,9 @@ class PrimaryButton extends StatelessWidget {
         foregroundColor: fg,
         minimumSize: Size(expanded ? double.infinity : 64, height),
         disabledBackgroundColor: isLoading
-            ? (backgroundColor ?? Theme.of(context).colorScheme.primaryContainer)
-                .withValues(alpha: 0.8)
+            ? (backgroundColor ??
+                      Theme.of(context).colorScheme.primaryContainer)
+                  .withValues(alpha: 0.8)
             : null,
         padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spaceLg),
       ),

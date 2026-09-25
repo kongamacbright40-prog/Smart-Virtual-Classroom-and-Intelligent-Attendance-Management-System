@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -59,30 +58,81 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
             children: [
               Row(
                 children: [
-                  Expanded(child: AppCard(color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.16), child: Text('${data.all.length} Total Courses • 8 Faculties Active'))),
+                  Expanded(
+                    child: AppCard(
+                      color: Theme.of(context).colorScheme.primaryContainer
+                          .withValues(alpha: 0.16),
+                      child: Text(
+                        '${data.all.length} Total Courses • 8 Faculties Active',
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: AppDimensions.spaceSm),
-                  PrimaryButton(label: 'New Course', icon: Icons.add, expanded: false, onPressed: () => _showCourseForm(context, reload)),
+                  PrimaryButton(
+                    label: 'New Course',
+                    icon: Icons.add,
+                    expanded: false,
+                    onPressed: () => _showCourseForm(context, reload),
+                  ),
                 ],
               ),
               const SizedBox(height: AppDimensions.spaceMd),
-              SearchField(hint: 'Search courses by code, title, lecturer...', onChanged: (v) => setState(() => _query = v)),
+              SearchField(
+                hint: 'Search courses by code, title, lecturer...',
+                onChanged: (v) => setState(() => _query = v),
+              ),
               const SizedBox(height: AppDimensions.spaceMd),
-              Wrap(spacing: AppDimensions.spaceSm, children: [
-                ChoiceChip(label: Text('All (${data.all.length})'), selected: _status == null, onSelected: (_) => setState(() => _status = null)),
-                ChoiceChip(label: Text('Active (${data.all.where((c) => c.status == CourseStatus.active).length})'), selected: _status == CourseStatus.active, onSelected: (_) => setState(() => _status = CourseStatus.active)),
-                ChoiceChip(label: Text('Archived (${data.all.where((c) => c.status == CourseStatus.archived).length})'), selected: _status == CourseStatus.archived, onSelected: (_) => setState(() => _status = CourseStatus.archived)),
-              ]),
+              Wrap(
+                spacing: AppDimensions.spaceSm,
+                children: [
+                  ChoiceChip(
+                    label: Text('All (${data.all.length})'),
+                    selected: _status == null,
+                    onSelected: (_) => setState(() => _status = null),
+                  ),
+                  ChoiceChip(
+                    label: Text(
+                      'Active (${data.all.where((c) => c.status == CourseStatus.active).length})',
+                    ),
+                    selected: _status == CourseStatus.active,
+                    onSelected: (_) =>
+                        setState(() => _status = CourseStatus.active),
+                  ),
+                  ChoiceChip(
+                    label: Text(
+                      'Archived (${data.all.where((c) => c.status == CourseStatus.archived).length})',
+                    ),
+                    selected: _status == CourseStatus.archived,
+                    onSelected: (_) =>
+                        setState(() => _status = CourseStatus.archived),
+                  ),
+                ],
+              ),
               const SizedBox(height: AppDimensions.spaceMd),
               if (data.courses.isEmpty)
-                const EmptyState(title: 'No matching courses', message: 'Try another query or status tab.')
+                const EmptyState(
+                  title: 'No matching courses',
+                  message: 'Try another query or status tab.',
+                )
               else
                 for (final course in data.courses)
                   AdminCourseItem(
                     course: course,
                     onAssign: () => _assignLecturer(context, course, reload),
-                    onDetails: () => Navigator.of(context).pushNamed(RouteNames.adminCourseDetails, arguments: course.id).then((_) => setState(() {})),
-                    onRoster: () => Navigator.of(context).pushNamed(RouteNames.adminCourseDetails, arguments: course.id),
-                    onBulkEnroll: () => Helpers.showSnackBar(context, 'Bulk enrollment import queued.'),
+                    onDetails: () => Navigator.of(context)
+                        .pushNamed(
+                          RouteNames.adminCourseDetails,
+                          arguments: course.id,
+                        )
+                        .then((_) => setState(() {})),
+                    onRoster: () => Navigator.of(context).pushNamed(
+                      RouteNames.adminCourseDetails,
+                      arguments: course.id,
+                    ),
+                    onBulkEnroll: () => Helpers.showSnackBar(
+                      context,
+                      'Bulk enrollment import queued.',
+                    ),
                     onArchive: () => _archive(context, course, reload),
                   ),
             ],
@@ -92,8 +142,14 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
     );
   }
 
-  Future<void> _assignLecturer(BuildContext context, CourseModel course, Future<void> Function() reload) async {
-    final lecturers = await context.read<AdminRepository>().getUsers(role: UserRole.lecturer);
+  Future<void> _assignLecturer(
+    BuildContext context,
+    CourseModel course,
+    Future<void> Function() reload,
+  ) async {
+    final lecturers = await context.read<AdminRepository>().getUsers(
+      role: UserRole.lecturer,
+    );
     if (!context.mounted) return;
     await showModalBottomSheet<void>(
       context: context,
@@ -113,8 +169,16 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
                 onTap: () async {
                   Navigator.pop(sheetContext);
                   try {
-                    await context.read<CourseRepository>().assignLecturer(courseId: course.id, lecturerId: lecturer.id);
-                    if (context.mounted) Helpers.showSnackBar(context, '${lecturer.fullName} assigned to ${course.code}.');
+                    await context.read<CourseRepository>().assignLecturer(
+                      courseId: course.id,
+                      lecturerId: lecturer.id,
+                    );
+                    if (context.mounted) {
+                      Helpers.showSnackBar(
+                        context,
+                        '${lecturer.fullName} assigned to ${course.code}.',
+                      );
+                    }
                     await reload();
                   } on Object catch (e) {
                     if (context.mounted) Helpers.showError(context, e);
@@ -127,8 +191,19 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
     );
   }
 
-  Future<void> _archive(BuildContext context, CourseModel course, Future<void> Function() reload) async {
-    final ok = await ConfirmationDialog.show(context, title: 'Archive course?', message: course.code, confirmLabel: 'Archive', destructive: true, icon: Icons.archive_outlined);
+  Future<void> _archive(
+    BuildContext context,
+    CourseModel course,
+    Future<void> Function() reload,
+  ) async {
+    final ok = await ConfirmationDialog.show(
+      context,
+      title: 'Archive course?',
+      message: course.code,
+      confirmLabel: 'Archive',
+      destructive: true,
+      icon: Icons.archive_outlined,
+    );
     if (!ok || !context.mounted) return;
     try {
       await context.read<CourseRepository>().archiveCourse(course.id);
@@ -139,10 +214,18 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
     }
   }
 
-  Future<void> _showCourseForm(BuildContext context, Future<void> Function() reload) async {
+  Future<void> _showCourseForm(
+    BuildContext context,
+    Future<void> Function() reload,
+  ) async {
     final departments = await context.read<AdminRepository>().getDepartments();
     if (!context.mounted) return;
-    await showModalBottomSheet<void>(context: context, isScrollControlled: true, showDragHandle: true, builder: (_) => _CourseForm(departments: departments, onSaved: reload));
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _CourseForm(departments: departments, onSaved: reload),
+    );
   }
 }
 
@@ -168,18 +251,34 @@ class _CourseFormState extends State<_CourseForm> {
   final _title = TextEditingController();
   final _credits = TextEditingController(text: '3');
   final _category = TextEditingController(text: 'Core Major');
-  late String? _departmentId = widget.departments.isEmpty ? null : widget.departments.first.id;
+  late String? _departmentId = widget.departments.isEmpty
+      ? null
+      : widget.departments.first.id;
   bool _saving = false;
 
   @override
-  void dispose() { _code.dispose(); _title.dispose(); _credits.dispose(); _category.dispose(); super.dispose(); }
+  void dispose() {
+    _code.dispose();
+    _title.dispose();
+    _credits.dispose();
+    _category.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final selectedDepartment = widget.departments.where((d) => d.id == _departmentId).isEmpty ? null : widget.departments.firstWhere((d) => d.id == _departmentId);
+    final selectedDepartment =
+        widget.departments.where((d) => d.id == _departmentId).isEmpty
+        ? null
+        : widget.departments.firstWhere((d) => d.id == _departmentId);
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.only(left: AppDimensions.spaceMd, right: AppDimensions.spaceMd, bottom: MediaQuery.viewInsetsOf(context).bottom + AppDimensions.spaceMd),
+        padding: EdgeInsets.only(
+          left: AppDimensions.spaceMd,
+          right: AppDimensions.spaceMd,
+          bottom:
+              MediaQuery.viewInsetsOf(context).bottom + AppDimensions.spaceMd,
+        ),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -188,17 +287,51 @@ class _CourseFormState extends State<_CourseForm> {
               children: [
                 const AdminSectionTitle(title: 'New Course'),
                 const SizedBox(height: AppDimensions.spaceMd),
-                AppTextField(fieldKey: const Key('course_code'), controller: _code, label: 'Course code', isRequired: true, validator: Validators.courseCode),
+                AppTextField(
+                  fieldKey: const Key('course_code'),
+                  controller: _code,
+                  label: 'Course code',
+                  isRequired: true,
+                  validator: Validators.courseCode,
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                AppTextField(fieldKey: const Key('course_title'), controller: _title, label: 'Title', isRequired: true, validator: Validators.courseTitle),
+                AppTextField(
+                  fieldKey: const Key('course_title'),
+                  controller: _title,
+                  label: 'Title',
+                  isRequired: true,
+                  validator: Validators.courseTitle,
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                AppTextField(fieldKey: const Key('course_credits'), controller: _credits, label: 'Credits', isRequired: true, keyboardType: TextInputType.number, validator: Validators.credits),
+                AppTextField(
+                  fieldKey: const Key('course_credits'),
+                  controller: _credits,
+                  label: 'Credits',
+                  isRequired: true,
+                  keyboardType: TextInputType.number,
+                  validator: Validators.credits,
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                AppDropdown<DepartmentModel>(label: 'Department', value: selectedDepartment, items: widget.departments, onChanged: (d) => setState(() => _departmentId = d?.id), itemLabel: (d) => d.name, validator: (d) => d == null ? 'Department is required' : null),
+                AppDropdown<DepartmentModel>(
+                  label: 'Department',
+                  value: selectedDepartment,
+                  items: widget.departments,
+                  onChanged: (d) => setState(() => _departmentId = d?.id),
+                  itemLabel: (d) => d.name,
+                  validator: (d) => d == null ? 'Department is required' : null,
+                ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                AppTextField(controller: _category, label: 'Category', validator: (v) => Validators.required(v, field: 'Category')),
+                AppTextField(
+                  controller: _category,
+                  label: 'Category',
+                  validator: (v) => Validators.required(v, field: 'Category'),
+                ),
                 const SizedBox(height: AppDimensions.spaceLg),
-                PrimaryButton(label: 'Create Course', isLoading: _saving, onPressed: _save),
+                PrimaryButton(
+                  label: 'Create Course',
+                  isLoading: _saving,
+                  onPressed: _save,
+                ),
               ],
             ),
           ),
@@ -211,11 +344,22 @@ class _CourseFormState extends State<_CourseForm> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final dept = widget.departments.firstWhere((d) => d.id == _departmentId);
-    final course = CourseModel(id: '', code: _code.text.trim(), title: _title.text.trim(), credits: int.parse(_credits.text.trim()), departmentId: dept.id, departmentName: dept.name, category: _category.text.trim());
+    final course = CourseModel(
+      id: '',
+      code: _code.text.trim(),
+      title: _title.text.trim(),
+      credits: int.parse(_credits.text.trim()),
+      departmentId: dept.id,
+      departmentName: dept.name,
+      category: _category.text.trim(),
+    );
     try {
       await context.read<CourseRepository>().createCourse(course);
       await widget.onSaved();
-      if (mounted) { Helpers.showSnackBar(context, 'Course created.'); Navigator.pop(context); }
+      if (mounted) {
+        Helpers.showSnackBar(context, 'Course created.');
+        Navigator.pop(context);
+      }
     } on Object catch (e) {
       if (mounted) Helpers.showError(context, e);
     } finally {
@@ -223,4 +367,3 @@ class _CourseFormState extends State<_CourseForm> {
     }
   }
 }
-

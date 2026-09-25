@@ -11,43 +11,40 @@ class ApiAuthRepository extends ApiRepositoryBase implements AuthRepository {
     required UserRole role,
     required String identifier,
     required String password,
-  }) =>
-      postOne(
-        ApiEndpoints.login,
-        {'role': role.value, 'identifier': identifier, 'password': password},
-        AuthSessionModel.fromJson,
-      );
+  }) => postOne(ApiEndpoints.login, {
+    'role': role.value,
+    'identifier': identifier,
+    'password': password,
+  }, AuthSessionModel.fromJson);
 
   @override
   Future<AuthSessionModel> activateStudent({
     required String matricule,
     required String email,
     required String password,
-  }) =>
-      postOne(
-        ApiEndpoints.activateStudent,
-        {'matricule': matricule, 'email': email, 'password': password},
-        AuthSessionModel.fromJson,
-      );
+  }) => postOne(ApiEndpoints.activateStudent, {
+    'matricule': matricule,
+    'email': email,
+    'password': password,
+  }, AuthSessionModel.fromJson);
 
   @override
   Future<AuthSessionModel> registerLecturer({
     required String staffId,
     required String email,
     required String password,
-  }) =>
-      postOne(
-        ApiEndpoints.registerLecturer,
-        {'staff_id': staffId, 'email': email, 'password': password},
-        AuthSessionModel.fromJson,
-      );
+  }) => postOne(ApiEndpoints.registerLecturer, {
+    'staff_id': staffId,
+    'email': email,
+    'password': password,
+  }, AuthSessionModel.fromJson);
 
   @override
   Future<void> requestPasswordReset(String email) => api.post(
-        ApiEndpoints.passwordResetRequest,
-        body: {'email': email},
-        authenticated: false,
-      );
+    ApiEndpoints.passwordResetRequest,
+    body: {'email': email},
+    authenticated: false,
+  );
 
   @override
   Future<void> verifyResetCode({required String email, required String code}) =>
@@ -62,22 +59,20 @@ class ApiAuthRepository extends ApiRepositoryBase implements AuthRepository {
     required String email,
     required String code,
     required String newPassword,
-  }) =>
-      api.post(
-        ApiEndpoints.passwordResetConfirm,
-        body: {'email': email, 'code': code, 'new_password': newPassword},
-        authenticated: false,
-      );
+  }) => api.post(
+    ApiEndpoints.passwordResetConfirm,
+    body: {'email': email, 'code': code, 'new_password': newPassword},
+    authenticated: false,
+  );
 
   @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
-  }) =>
-      api.post(ApiEndpoints.changePassword, body: {
-        'current_password': currentPassword,
-        'new_password': newPassword,
-      });
+  }) => api.post(
+    ApiEndpoints.changePassword,
+    body: {'current_password': currentPassword, 'new_password': newPassword},
+  );
 
   @override
   Future<void> logout() => api.post(ApiEndpoints.logout);
@@ -107,7 +102,8 @@ class ApiUserRepository extends ApiRepositoryBase implements UserRepository {
       getMany(ApiEndpoints.courseRoster(courseId), StudentModel.fromJson);
 }
 
-class ApiCourseRepository extends ApiRepositoryBase implements CourseRepository {
+class ApiCourseRepository extends ApiRepositoryBase
+    implements CourseRepository {
   ApiCourseRepository(super.api);
 
   @override
@@ -123,12 +119,11 @@ class ApiCourseRepository extends ApiRepositoryBase implements CourseRepository 
     CourseStatus? status,
     String? departmentId,
     String? query,
-  }) =>
-      getMany(ApiEndpoints.courses, CourseModel.fromJson, query: {
-        'status': status?.value,
-        'department_id': departmentId,
-        'q': query,
-      });
+  }) => getMany(
+    ApiEndpoints.courses,
+    CourseModel.fromJson,
+    query: {'status': status?.value, 'department_id': departmentId, 'q': query},
+  );
 
   @override
   Future<CourseModel> getCourse(String courseId) =>
@@ -140,15 +135,18 @@ class ApiCourseRepository extends ApiRepositoryBase implements CourseRepository 
 
   @override
   Future<CourseModel> updateCourse(CourseModel course) => putOne(
-      ApiEndpoints.course(course.id), course.toJson(), CourseModel.fromJson);
+    ApiEndpoints.course(course.id),
+    course.toJson(),
+    CourseModel.fromJson,
+  );
 
   @override
   Future<CourseModel> assignLecturer({
     required String courseId,
     required String lecturerId,
-  }) =>
-      postOne(ApiEndpoints.courseAssignLecturer(courseId),
-          {'lecturer_id': lecturerId}, CourseModel.fromJson);
+  }) => postOne(ApiEndpoints.courseAssignLecturer(courseId), {
+    'lecturer_id': lecturerId,
+  }, CourseModel.fromJson);
 
   @override
   Future<CourseModel> archiveCourse(String courseId) =>
@@ -160,33 +158,37 @@ class ApiScheduleRepository extends ApiRepositoryBase
   ApiScheduleRepository(super.api);
 
   Map<String, Object?> _range(DateTime from, DateTime to) => {
-        'from': from.toIso8601String(),
-        'to': to.toIso8601String(),
-      };
+    'from': from.toIso8601String(),
+    'to': to.toIso8601String(),
+  };
 
   @override
   Future<List<ClassSessionModel>> getStudentSessions(
     String studentId, {
     required DateTime from,
     required DateTime to,
-  }) =>
-      getMany(ApiEndpoints.studentSessions(studentId),
-          ClassSessionModel.fromJson,
-          query: _range(from, to));
+  }) => getMany(
+    ApiEndpoints.studentSessions(studentId),
+    ClassSessionModel.fromJson,
+    query: _range(from, to),
+  );
 
   @override
   Future<List<ClassSessionModel>> getLecturerSessions(
     String lecturerId, {
     required DateTime from,
     required DateTime to,
-  }) =>
-      getMany(ApiEndpoints.lecturerSessions(lecturerId),
-          ClassSessionModel.fromJson,
-          query: _range(from, to));
+  }) => getMany(
+    ApiEndpoints.lecturerSessions(lecturerId),
+    ClassSessionModel.fromJson,
+    query: _range(from, to),
+  );
 
   @override
-  Future<List<ClassSessionModel>> getCourseSessions(String courseId) =>
-      getMany(ApiEndpoints.courseSessions(courseId), ClassSessionModel.fromJson);
+  Future<List<ClassSessionModel>> getCourseSessions(String courseId) => getMany(
+    ApiEndpoints.courseSessions(courseId),
+    ClassSessionModel.fromJson,
+  );
 
   @override
   Future<ClassSessionModel> getSession(String sessionId) =>

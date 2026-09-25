@@ -17,7 +17,8 @@ Future<void> confirmAndLogout(
   required String loginRoute,
 }) async {
   final auth = context.read<AuthProvider>();
-  final navigator = AppRouter.navigatorKey.currentState ?? Navigator.of(context);
+  final navigator =
+      AppRouter.navigatorKey.currentState ?? Navigator.of(context);
   final ok = await ConfirmationDialog.show(
     context,
     title: AppStrings.logoutTitle,

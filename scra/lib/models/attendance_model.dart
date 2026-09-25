@@ -71,32 +71,32 @@ class AttendanceModel {
   }
 
   factory AttendanceModel.fromJson(Json json) => AttendanceModel(
-        studentId: json['student_id'].toString(),
-        courseId: json['course_id'] as String?,
-        courseCode: json['course_code'] as String?,
-        courseTitle: json['course_title'] as String?,
-        totalSessions: JsonX.toInt(json['total_sessions']),
-        presentCount: JsonX.toInt(json['present_count']),
-        lateCount: JsonX.toInt(json['late_count']),
-        absentCount: JsonX.toInt(json['absent_count']),
-        excusedCount: JsonX.toInt(json['excused_count']),
-        participationRate: json['participation_rate'] == null
-            ? null
-            : JsonX.toDouble(json['participation_rate']),
-        requiredPercentage: JsonX.toDouble(json['required_percentage'], 75),
-      );
+    studentId: json['student_id'].toString(),
+    courseId: json['course_id'] as String?,
+    courseCode: json['course_code'] as String?,
+    courseTitle: json['course_title'] as String?,
+    totalSessions: JsonX.toInt(json['total_sessions']),
+    presentCount: JsonX.toInt(json['present_count']),
+    lateCount: JsonX.toInt(json['late_count']),
+    absentCount: JsonX.toInt(json['absent_count']),
+    excusedCount: JsonX.toInt(json['excused_count']),
+    participationRate: json['participation_rate'] == null
+        ? null
+        : JsonX.toDouble(json['participation_rate']),
+    requiredPercentage: JsonX.toDouble(json['required_percentage'], 75),
+  );
 
   Json toJson() => {
-        'student_id': studentId,
-        'course_id': courseId,
-        'course_code': courseCode,
-        'course_title': courseTitle,
-        'total_sessions': totalSessions,
-        'present_count': presentCount,
-        'late_count': lateCount,
-        'absent_count': absentCount,
-        'excused_count': excusedCount,
-        'participation_rate': participationRate,
-        'required_percentage': requiredPercentage,
-      };
+    'student_id': studentId,
+    'course_id': courseId,
+    'course_code': courseCode,
+    'course_title': courseTitle,
+    'total_sessions': totalSessions,
+    'present_count': presentCount,
+    'late_count': lateCount,
+    'absent_count': absentCount,
+    'excused_count': excusedCount,
+    'participation_rate': participationRate,
+    'required_percentage': requiredPercentage,
+  };
 }

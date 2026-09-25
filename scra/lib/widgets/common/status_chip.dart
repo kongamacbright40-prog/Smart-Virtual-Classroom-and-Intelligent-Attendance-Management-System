@@ -27,23 +27,36 @@ class StatusChip extends StatelessWidget {
   static (Color bg, Color fg) colorsFor(BuildContext context, StatusTone tone) {
     final scheme = Theme.of(context).colorScheme;
     return switch (tone) {
-      StatusTone.primary => (AppColors.primaryFixed, AppColors.onPrimaryFixedVariant),
+      StatusTone.primary => (
+        AppColors.primaryFixed,
+        AppColors.onPrimaryFixedVariant,
+      ),
       StatusTone.live => (const Color(0xFFE0F2FE), const Color(0xFF0369A1)),
-      StatusTone.success => (AppColors.successContainer, AppColors.onSuccessContainer),
-      StatusTone.warning => (AppColors.warningContainer, AppColors.onWarningContainer),
+      StatusTone.success => (
+        AppColors.successContainer,
+        AppColors.onSuccessContainer,
+      ),
+      StatusTone.warning => (
+        AppColors.warningContainer,
+        AppColors.onWarningContainer,
+      ),
       StatusTone.error => (scheme.errorContainer, scheme.onErrorContainer),
-      StatusTone.info => (AppColors.secondaryFixed, AppColors.onSecondaryFixedVariant),
-      StatusTone.neutral => (scheme.surfaceContainerHigh, scheme.onSurfaceVariant),
+      StatusTone.info => (
+        AppColors.secondaryFixed,
+        AppColors.onSecondaryFixedVariant,
+      ),
+      StatusTone.neutral => (
+        scheme.surfaceContainerHigh,
+        scheme.onSurfaceVariant,
+      ),
     };
   }
 
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = colorsFor(context, tone);
-    final style = Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: fg,
-          letterSpacing: uppercase ? 0.8 : 0.3,
-        );
+    final style = Theme.of(context).textTheme.labelSmall
+        ?.copyWith(color: fg, letterSpacing: uppercase ? 0.8 : 0.3);
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: dense ? 8 : 10,

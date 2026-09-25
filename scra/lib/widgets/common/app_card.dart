@@ -31,7 +31,8 @@ class AppCard extends StatelessWidget {
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radius),
       side: BorderSide(
-        color: borderColor ??
+        color:
+            borderColor ??
             theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
       ),
     );

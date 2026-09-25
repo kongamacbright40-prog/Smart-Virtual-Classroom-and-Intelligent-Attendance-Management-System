@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,7 +24,11 @@ class FacultiesScreen extends StatelessWidget {
           onRefresh: reload,
           child: ListView(
             children: [
-              const AdminHeroCard(title: 'Faculty Directory', subtitle: 'Dean, programme and population overview.', icon: Icons.account_balance_outlined),
+              const AdminHeroCard(
+                title: 'Faculty Directory',
+                subtitle: 'Dean, programme and population overview.',
+                icon: Icons.account_balance_outlined,
+              ),
               const SizedBox(height: AppDimensions.spaceMd),
               for (final faculty in faculties) _FacultyCard(faculty: faculty),
             ],
@@ -52,11 +55,22 @@ class _FacultyCard extends StatelessWidget {
             children: [
               CodeTag(faculty.code),
               const SizedBox(width: AppDimensions.spaceSm),
-              StatusChip(label: faculty.isActive ? 'Active' : 'Archived', tone: faculty.isActive ? StatusTone.success : StatusTone.neutral, dense: true),
+              StatusChip(
+                label: faculty.isActive ? 'Active' : 'Archived',
+                tone: faculty.isActive
+                    ? StatusTone.success
+                    : StatusTone.neutral,
+                dense: true,
+              ),
             ],
           ),
           const SizedBox(height: AppDimensions.spaceSm),
-          Text(faculty.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            faculty.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           Text('Dean: ${faculty.deanName ?? 'Unassigned'}'),
           const SizedBox(height: AppDimensions.spaceMd),
           Wrap(
@@ -66,7 +80,10 @@ class _FacultyCard extends StatelessWidget {
               _pill(context, faculty.category ?? 'General'),
               _pill(context, '${faculty.departmentCount} Departments'),
               _pill(context, '${faculty.courseCount} Courses'),
-              _pill(context, '${Formatters.compactNumber(faculty.studentCount)} Students'),
+              _pill(
+                context,
+                '${Formatters.compactNumber(faculty.studentCount)} Students',
+              ),
               _pill(context, '${faculty.staffCount} Staff'),
             ],
           ),
@@ -76,8 +93,11 @@ class _FacultyCard extends StatelessWidget {
   }
 
   Widget _pill(BuildContext context, String label) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(AppDimensions.radiusFull)),
-        child: Text(label),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+    ),
+    child: Text(label),
+  );
 }

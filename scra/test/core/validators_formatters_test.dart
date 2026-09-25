@@ -12,10 +12,14 @@ void main() {
     });
 
     test('institutional email domain', () {
-      expect(Validators.institutionalEmail('a@gmail.com', ['@campus.edu']),
-          isNotNull);
-      expect(Validators.institutionalEmail('a@campus.edu', ['@campus.edu']),
-          isNull);
+      expect(
+        Validators.institutionalEmail('a@gmail.com', ['@campus.edu']),
+        isNotNull,
+      );
+      expect(
+        Validators.institutionalEmail('a@campus.edu', ['@campus.edu']),
+        isNull,
+      );
     });
 
     test('identifier accepts ids and emails', () {
@@ -117,12 +121,14 @@ void main() {
     test('relative labels', () {
       final now = DateTime(2026, 10, 26, 9);
       expect(Formatters.relativeDay(d, now: now), 'Today, 2:05 PM');
-      expect(Formatters.relativeDay(d.add(const Duration(days: 1)), now: now),
-          'Tomorrow, 2:05 PM');
       expect(
-          Formatters.timeAgo(now.subtract(const Duration(minutes: 5)),
-              now: now),
-          '5m ago');
+        Formatters.relativeDay(d.add(const Duration(days: 1)), now: now),
+        'Tomorrow, 2:05 PM',
+      );
+      expect(
+        Formatters.timeAgo(now.subtract(const Duration(minutes: 5)), now: now),
+        '5m ago',
+      );
       expect(Formatters.timeAgo(now, now: now), 'Just now');
     });
 

@@ -9,7 +9,13 @@ abstract final class AppDateUtils {
     'July', 'August', 'September', 'October', 'November', 'December',
   ];
   static const List<String> weekdaysShort = [
-    'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
   ];
   static const List<String> weekdaysLong = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', //
@@ -61,7 +67,12 @@ abstract final class AppDateUtils {
   /// Combines a date with a `HH:mm` time string.
   static DateTime combine(DateTime date, String hhmm) {
     final minutes = parseMinutes(hhmm) ?? 0;
-    return DateTime(date.year, date.month, date.day, minutes ~/ 60,
-        minutes % 60);
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      minutes ~/ 60,
+      minutes % 60,
+    );
   }
 }

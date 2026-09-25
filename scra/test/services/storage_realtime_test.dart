@@ -29,9 +29,11 @@ void main() {
       await storage.setOnboardingCompleted(true);
       await storage.setSelectedRole(UserRole.lecturer);
       await storage.saveSession(
-          const AuthSessionModel(user: user, accessToken: 't', refreshToken: 'r'));
+        const AuthSessionModel(user: user, accessToken: 't', refreshToken: 'r'),
+      );
       await storage.saveSettings(
-          const AppSettingsModel(themeMode: ThemeMode.dark));
+        const AppSettingsModel(themeMode: ThemeMode.dark),
+      );
 
       expect(await storage.isOnboardingCompleted(), isTrue);
       expect(await storage.getSelectedRole(), UserRole.lecturer);
@@ -76,11 +78,13 @@ void main() {
 
     test('expired sessions are not restored', () async {
       final storage = StorageService(InMemoryStore());
-      await AuthService(storage).start(AuthSessionModel(
-        user: user,
-        accessToken: 'tok',
-        expiresAt: DateTime.now().subtract(const Duration(minutes: 1)),
-      ));
+      await AuthService(storage).start(
+        AuthSessionModel(
+          user: user,
+          accessToken: 'tok',
+          expiresAt: DateTime.now().subtract(const Duration(minutes: 1)),
+        ),
+      );
       expect(await AuthService(storage).restore(), isNull);
       expect(await storage.getSession(), isNull);
     });
@@ -108,7 +112,7 @@ void main() {
     test('RealtimeEvent JSON', () {
       final e = RealtimeEvent.fromJson({
         'type': 'question.launched',
-        'payload': {'id': 'q1'}
+        'payload': {'id': 'q1'},
       });
       expect(e.type, 'question.launched');
       expect(e.toJson()['payload'], {'id': 'q1'});

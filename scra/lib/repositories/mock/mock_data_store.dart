@@ -58,12 +58,12 @@ class MockDataStore {
   SystemSettingsModel systemSettings = const SystemSettingsModel();
 
   // Realtime channels (mock replacement for WebSocket events)
-  final Map<String, StreamController<List<ParticipantModel>>> participantStreams =
-      {};
+  final Map<String, StreamController<List<ParticipantModel>>>
+  participantStreams = {};
   final Map<String, StreamController<ChatMessageModel>> chatStreams = {};
   final Map<String, StreamController<QuestionModel?>> questionStreams = {};
   final Map<String, StreamController<List<AttendanceRecordModel>>>
-      attendanceStreams = {};
+  attendanceStreams = {};
   final Map<String, StreamController<NotificationModel>> notificationStreams =
       {};
 
@@ -79,8 +79,7 @@ class MockDataStore {
   StreamController<T> _controller<T>(
     Map<String, StreamController<T>> map,
     String key,
-  ) =>
-      map.putIfAbsent(key, StreamController<T>.broadcast);
+  ) => map.putIfAbsent(key, StreamController<T>.broadcast);
 
   StreamController<List<ParticipantModel>> participantChannel(String id) =>
       _controller(participantStreams, id);
@@ -127,12 +126,72 @@ class MockDataStore {
 
   void _seedStructure() {
     const facultyData = [
-      ('fac-fcs', 'Faculty of Computer Science', 'FCS-ENG', 'Prof. Kwame Mensah, Ph.D.', 'Science & Tech', 5, 12, 320, 18),
-      ('fac-ece', 'Faculty of Electrical & Computer Eng.', 'ECE-ENG', 'Dr. Mamadou Kaba, Ph.D.', 'Engineering', 4, 10, 285, 14),
-      ('fac-mas', 'Faculty of Mathematics & Statistics', 'MAS-SCI', 'Prof. Elena Rostova', 'Science & Tech', 3, 8, 410, 11),
-      ('fac-bae', 'Faculty of Business Administration', 'BAE-MGMT', 'Dr. Sarah Boateng', 'Business', 4, 14, 520, 22),
-      ('fac-hum', 'Faculty of Arts & Humanities', 'ART-HUM', 'Prof. M. Adebayo', 'Humanities', 4, 9, 360, 12),
-      ('fac-nsc', 'Faculty of Natural Sciences', 'NAT-SCI', 'Dr. Isaac Asante', 'Science & Tech', 4, 11, 395, 15),
+      (
+        'fac-fcs',
+        'Faculty of Computer Science',
+        'FCS-ENG',
+        'Prof. Kwame Mensah, Ph.D.',
+        'Science & Tech',
+        5,
+        12,
+        320,
+        18,
+      ),
+      (
+        'fac-ece',
+        'Faculty of Electrical & Computer Eng.',
+        'ECE-ENG',
+        'Dr. Mamadou Kaba, Ph.D.',
+        'Engineering',
+        4,
+        10,
+        285,
+        14,
+      ),
+      (
+        'fac-mas',
+        'Faculty of Mathematics & Statistics',
+        'MAS-SCI',
+        'Prof. Elena Rostova',
+        'Science & Tech',
+        3,
+        8,
+        410,
+        11,
+      ),
+      (
+        'fac-bae',
+        'Faculty of Business Administration',
+        'BAE-MGMT',
+        'Dr. Sarah Boateng',
+        'Business',
+        4,
+        14,
+        520,
+        22,
+      ),
+      (
+        'fac-hum',
+        'Faculty of Arts & Humanities',
+        'ART-HUM',
+        'Prof. M. Adebayo',
+        'Humanities',
+        4,
+        9,
+        360,
+        12,
+      ),
+      (
+        'fac-nsc',
+        'Faculty of Natural Sciences',
+        'NAT-SCI',
+        'Dr. Isaac Asante',
+        'Science & Tech',
+        4,
+        11,
+        395,
+        15,
+      ),
     ];
     for (final f in facultyData) {
       faculties[f.$1] = FacultyModel(
@@ -149,12 +208,84 @@ class MockDataStore {
     }
 
     const deptData = [
-      ('dep-cs', 'Dept. of Computer Science & Engineering', 'CSE', 'fac-fcs', 'Software, Algorithms & Intelligent Systems', 'Prof. Kwame Mensah, Ph.D.', 12, 320, 18, 4, 92.4),
-      ('dep-ce', 'Dept. of Robotics, Circuits & Systems', 'RCS', 'fac-ece', 'Embedded, Robotics & Computer Engineering', 'Dr. Mamadou Kaba, Ph.D.', 10, 285, 14, 2, 94.1),
-      ('dep-math', 'Dept. of Mathematics & Statistics', 'MAS', 'fac-mas', 'Applied Modeling & Data Sciences', 'Prof. Elena Rostova', 8, 410, 11, 1, 88.7),
-      ('dep-bus', 'Dept. of Management & Finance', 'MGF', 'fac-bae', 'Management, Finance & Applied Econ', 'Dr. Sarah Boateng', 14, 520, 22, 3, 90.2),
-      ('dep-eng', 'Dept. of English & Communications', 'ENC', 'fac-hum', 'Academic Writing & Media', 'Prof. M. Adebayo', 9, 360, 12, 1, 91.0),
-      ('dep-bio', 'Dept. of Biological Sciences', 'BIO', 'fac-nsc', 'Biotech, Genetics & Ecology', 'Dr. Isaac Asante', 11, 395, 15, 0, 81.5),
+      (
+        'dep-cs',
+        'Dept. of Computer Science & Engineering',
+        'CSE',
+        'fac-fcs',
+        'Software, Algorithms & Intelligent Systems',
+        'Prof. Kwame Mensah, Ph.D.',
+        12,
+        320,
+        18,
+        4,
+        92.4,
+      ),
+      (
+        'dep-ce',
+        'Dept. of Robotics, Circuits & Systems',
+        'RCS',
+        'fac-ece',
+        'Embedded, Robotics & Computer Engineering',
+        'Dr. Mamadou Kaba, Ph.D.',
+        10,
+        285,
+        14,
+        2,
+        94.1,
+      ),
+      (
+        'dep-math',
+        'Dept. of Mathematics & Statistics',
+        'MAS',
+        'fac-mas',
+        'Applied Modeling & Data Sciences',
+        'Prof. Elena Rostova',
+        8,
+        410,
+        11,
+        1,
+        88.7,
+      ),
+      (
+        'dep-bus',
+        'Dept. of Management & Finance',
+        'MGF',
+        'fac-bae',
+        'Management, Finance & Applied Econ',
+        'Dr. Sarah Boateng',
+        14,
+        520,
+        22,
+        3,
+        90.2,
+      ),
+      (
+        'dep-eng',
+        'Dept. of English & Communications',
+        'ENC',
+        'fac-hum',
+        'Academic Writing & Media',
+        'Prof. M. Adebayo',
+        9,
+        360,
+        12,
+        1,
+        91.0,
+      ),
+      (
+        'dep-bio',
+        'Dept. of Biological Sciences',
+        'BIO',
+        'fac-nsc',
+        'Biotech, Genetics & Ecology',
+        'Dr. Isaac Asante',
+        11,
+        395,
+        15,
+        0,
+        81.5,
+      ),
     ];
     for (final d in deptData) {
       departments[d.$1] = DepartmentModel(
@@ -246,11 +377,56 @@ class MockDataStore {
 
   void _seedStaff() {
     const lecturerData = [
-      ('lec-001', 'Prof. Kwame Mensah', DemoAccounts.lecturerEmail, 'FAC-2024-8192', 'Prof.', 'dep-cs', 'Algorithms & Distributed Systems', 'Faculty of CS, Block A, Room 204'),
-      ('lec-002', 'Dr. Mamadou Kaba', 'm.kaba@smartclass.edu.ac', 'FAC-2018-042', 'Dr.', 'dep-ce', 'Distributed Systems & Embedded IoT', 'Faculty of Eng., Block C, Room 314'),
-      ('lec-003', 'Dr. S. Thorne', 's.thorne@smartclass.edu.ac', 'FAC-2019-117', 'Dr.', 'dep-cs', 'Database Systems', 'Faculty of CS, Lab 4B'),
-      ('lec-004', 'Dr. E. Vance', 'e.vance@smartclass.edu.ac', 'FAC-2016-221', 'Dr.', 'dep-math', 'Real & Functional Analysis', 'Maths Block, Room 12'),
-      ('lec-005', 'Prof. M. Adebayo', 'm.adebayo@smartclass.edu.ac', 'FAC-2012-009', 'Prof.', 'dep-eng', 'Technical Communication', 'Humanities Wing, Seminar Rm 1'),
+      (
+        'lec-001',
+        'Prof. Kwame Mensah',
+        DemoAccounts.lecturerEmail,
+        'FAC-2024-8192',
+        'Prof.',
+        'dep-cs',
+        'Algorithms & Distributed Systems',
+        'Faculty of CS, Block A, Room 204',
+      ),
+      (
+        'lec-002',
+        'Dr. Mamadou Kaba',
+        'm.kaba@smartclass.edu.ac',
+        'FAC-2018-042',
+        'Dr.',
+        'dep-ce',
+        'Distributed Systems & Embedded IoT',
+        'Faculty of Eng., Block C, Room 314',
+      ),
+      (
+        'lec-003',
+        'Dr. S. Thorne',
+        's.thorne@smartclass.edu.ac',
+        'FAC-2019-117',
+        'Dr.',
+        'dep-cs',
+        'Database Systems',
+        'Faculty of CS, Lab 4B',
+      ),
+      (
+        'lec-004',
+        'Dr. E. Vance',
+        'e.vance@smartclass.edu.ac',
+        'FAC-2016-221',
+        'Dr.',
+        'dep-math',
+        'Real & Functional Analysis',
+        'Maths Block, Room 12',
+      ),
+      (
+        'lec-005',
+        'Prof. M. Adebayo',
+        'm.adebayo@smartclass.edu.ac',
+        'FAC-2012-009',
+        'Prof.',
+        'dep-eng',
+        'Technical Communication',
+        'Humanities Wing, Seminar Rm 1',
+      ),
     ];
     for (final l in lecturerData) {
       final user = UserModel(
@@ -291,7 +467,14 @@ class MockDataStore {
       adminId: DemoAccounts.adminId,
       accessLevel: AdminAccessLevel.system,
       jobTitle: 'Super Admin • Root Tier 1',
-      permissions: const ['users', 'courses', 'departments', 'terms', 'reports', 'settings'],
+      permissions: const [
+        'users',
+        'courses',
+        'departments',
+        'terms',
+        'reports',
+        'settings',
+      ],
       lastLoginAt: DateTime(now.year, now.month, now.day, 9, 15),
     );
     final admin2 = UserModel(
@@ -316,8 +499,7 @@ class MockDataStore {
         id: 'crs-cs301',
         code: 'CS-301',
         title: 'Data Structures & Algorithms',
-        description:
-            'Comprehensive study of fundamental data structures, abstract data types, dynamic memory allocation, complexity analysis, trees, graphs, and hash tables with hands-on algorithm implementation.',
+        description: 'Comprehensive study of fundamental data structures, abstract data types, dynamic memory allocation, complexity analysis, trees, graphs, and hash tables with hands-on algorithm implementation.',
         category: 'Core Major',
         credits: 4,
         creditNote: 'Theory + Lab',
@@ -341,8 +523,7 @@ class MockDataStore {
         id: 'crs-mth1221',
         code: 'MTH-1221',
         title: 'Real Analysis',
-        description:
-            'Rigorous treatment of sequences, limits, continuity, differentiation and Riemann integration on the real line.',
+        description: 'Rigorous treatment of sequences, limits, continuity, differentiation and Riemann integration on the real line.',
         category: 'Faculty Elective',
         credits: 4,
         creditNote: 'Pure Math',
@@ -364,8 +545,7 @@ class MockDataStore {
         id: 'crs-cs305',
         code: 'CS-305',
         title: 'Database Systems',
-        description:
-            'Relational modelling, SQL, normalization, transactions, indexing and query optimisation with applied PostgreSQL labs.',
+        description: 'Relational modelling, SQL, normalization, transactions, indexing and query optimisation with applied PostgreSQL labs.',
         category: 'Core Major',
         credits: 3,
         creditNote: 'Applied SQL',
@@ -387,8 +567,7 @@ class MockDataStore {
         id: 'crs-eng210',
         code: 'ENG-210',
         title: 'Academic Technical Writing',
-        description:
-            'Writing clear technical reports, research papers and documentation for scientific audiences.',
+        description: 'Writing clear technical reports, research papers and documentation for scientific audiences.',
         category: 'Faculty Elective',
         credits: 2,
         creditNote: 'Seminar',
@@ -410,8 +589,7 @@ class MockDataStore {
         id: 'crs-swe201',
         code: 'SWE-201',
         title: 'Software Engineering Principles',
-        description:
-            'Software process models, requirements, design patterns, testing and agile project delivery.',
+        description: 'Software process models, requirements, design patterns, testing and agile project delivery.',
         category: 'Core Major',
         credits: 3,
         lecturerId: 'lec-001',
@@ -431,8 +609,7 @@ class MockDataStore {
         id: 'crs-cs220',
         code: 'CS-220',
         title: 'Object-Oriented Programming',
-        description:
-            'Classes, inheritance, polymorphism, interfaces and SOLID design using Java and Dart.',
+        description: 'Classes, inheritance, polymorphism, interfaces and SOLID design using Java and Dart.',
         category: 'Core Major',
         credits: 3,
         lecturerId: 'lec-001',
@@ -452,8 +629,7 @@ class MockDataStore {
         id: 'crs-cs450',
         code: 'CS-450',
         title: 'Distributed Systems',
-        description:
-            'Consensus, replication, fault tolerance and real-time communication in distributed architectures.',
+        description: 'Consensus, replication, fault tolerance and real-time communication in distributed architectures.',
         category: 'Elective',
         credits: 3,
         lecturerId: 'lec-001',
@@ -523,8 +699,10 @@ class MockDataStore {
       courses[course.id] = course;
     }
     for (final l in lecturers.values.toList()) {
-      final ids =
-          courses.values.where((c) => c.lecturerId == l.id).map((c) => c.id).toList();
+      final ids = courses.values
+          .where((c) => c.lecturerId == l.id)
+          .map((c) => c.id)
+          .toList();
       final total = courses.values
           .where((c) => c.lecturerId == l.id)
           .fold<int>(0, (s, c) => s + c.enrolledCount);
@@ -544,27 +722,116 @@ class MockDataStore {
   }
 
   static const List<String> _firstNames = [
-    'Kofi', 'Ama', 'Yaw', 'Efua', 'Kwesi', 'Abena', 'Ifeoma', 'Tunde', 'Ngozi',
-    'Chinedu', 'Fatima', 'Musa', 'Zainab', 'Ibrahim', 'Aisha', 'Samuel',
-    'Grace', 'Daniel', 'Esther', 'Joseph', 'Mercy', 'Peter', 'Ruth', 'Paul',
-    'Linda', 'Michael', 'Joy', 'Victor', 'Precious', 'Henry', 'Blessing',
-    'Kelvin', 'Adwoa', 'Nana', 'Selorm',
+    'Kofi',
+    'Ama',
+    'Yaw',
+    'Efua',
+    'Kwesi',
+    'Abena',
+    'Ifeoma',
+    'Tunde',
+    'Ngozi',
+    'Chinedu',
+    'Fatima',
+    'Musa',
+    'Zainab',
+    'Ibrahim',
+    'Aisha',
+    'Samuel',
+    'Grace',
+    'Daniel',
+    'Esther',
+    'Joseph',
+    'Mercy',
+    'Peter',
+    'Ruth',
+    'Paul',
+    'Linda',
+    'Michael',
+    'Joy',
+    'Victor',
+    'Precious',
+    'Henry',
+    'Blessing',
+    'Kelvin',
+    'Adwoa',
+    'Nana',
+    'Selorm',
   ];
   static const List<String> _lastNames = [
-    'Mensah', 'Owusu', 'Boateng', 'Asante', 'Adeyemi', 'Okafor', 'Eze',
-    'Bello', 'Abubakar', 'Danso', 'Appiah', 'Nwosu', 'Ogunleye', 'Yeboah',
-    'Tetteh', 'Addo', 'Quaye', 'Amoah', 'Obi', 'Lawal',
+    'Mensah',
+    'Owusu',
+    'Boateng',
+    'Asante',
+    'Adeyemi',
+    'Okafor',
+    'Eze',
+    'Bello',
+    'Abubakar',
+    'Danso',
+    'Appiah',
+    'Nwosu',
+    'Ogunleye',
+    'Yeboah',
+    'Tetteh',
+    'Addo',
+    'Quaye',
+    'Amoah',
+    'Obi',
+    'Lawal',
   ];
 
   void _seedStudents() {
     const named = [
-      (currentStudentId, 'Konga Mac-Bright', DemoAccounts.studentEmail, 'ICT20251181', 'B.Sc. Software Engineering & Systems'),
-      ('stu-002', 'Amina Bello', 'amina.bello@student.univ.edu', 'ICT20251002', 'Software Engineering'),
-      ('stu-003', 'Emmanuel Kwame', 'emmanuel.kwame@student.univ.edu', 'ICT20251019', 'Computer Science'),
-      ('stu-004', 'Chiamaka Okonjo', 'chiamaka.okonjo@student.univ.edu', 'ICT20251044', 'Artificial Intelligence'),
-      ('stu-005', 'Tariq Al-Mansoor', 'tariq.almansoor@student.univ.edu', 'ICT20251088', 'Info Systems'),
-      ('stu-006', 'Sarah Osei-Bonsu', 'sarah.osei@student.univ.edu', 'ICT20251105', 'Software Engineering'),
-      ('stu-007', 'David Kalu', 'david.kalu@student.univ.edu', 'ICT20251031', 'Computer Science'),
+      (
+        currentStudentId,
+        'Konga Mac-Bright',
+        DemoAccounts.studentEmail,
+        'ICT20251181',
+        'B.Sc. Software Engineering & Systems',
+      ),
+      (
+        'stu-002',
+        'Amina Bello',
+        'amina.bello@student.univ.edu',
+        'ICT20251002',
+        'Software Engineering',
+      ),
+      (
+        'stu-003',
+        'Emmanuel Kwame',
+        'emmanuel.kwame@student.univ.edu',
+        'ICT20251019',
+        'Computer Science',
+      ),
+      (
+        'stu-004',
+        'Chiamaka Okonjo',
+        'chiamaka.okonjo@student.univ.edu',
+        'ICT20251044',
+        'Artificial Intelligence',
+      ),
+      (
+        'stu-005',
+        'Tariq Al-Mansoor',
+        'tariq.almansoor@student.univ.edu',
+        'ICT20251088',
+        'Info Systems',
+      ),
+      (
+        'stu-006',
+        'Sarah Osei-Bonsu',
+        'sarah.osei@student.univ.edu',
+        'ICT20251105',
+        'Software Engineering',
+      ),
+      (
+        'stu-007',
+        'David Kalu',
+        'david.kalu@student.univ.edu',
+        'ICT20251031',
+        'Computer Science',
+      ),
     ];
     final entries = <(String, String, String, String, String)>[...named];
     for (var i = 0; i < 35; i++) {
@@ -635,117 +902,185 @@ class MockDataStore {
   void _seedSessions() {
     // Today's timetable, anchored on "now" so there is always a live class.
     final liveStart = now.subtract(const Duration(minutes: 45));
-    _addSession(ClassSessionModel(
-      id: 'ses-mth1221-today',
-      courseId: 'crs-mth1221',
-      courseCode: 'MTH-1221',
-      courseTitle: 'Real Analysis',
-      title: 'Lecture 15: Uniform Continuity',
-      startTime: liveStart.subtract(const Duration(minutes: 150)),
-      endTime: liveStart.subtract(const Duration(minutes: 75)),
-      lecturerId: 'lec-004',
-      lecturerName: 'Dr. E. Vance',
-      room: 'Hall C • Room 102',
-      mode: SessionMode.inPerson,
-      status: SessionStatus.completed,
-      sessionNumber: 15,
-      expectedCount: 21,
-      participantCount: 20,
-    ));
-    _addSession(ClassSessionModel(
-      id: liveSessionId,
-      courseId: 'crs-cs301',
-      courseCode: 'CS-301',
-      courseTitle: 'Data Structures & Algorithms',
-      title: 'Lecture 13: Graph Traversal & BFS',
-      startTime: liveStart,
-      endTime: liveStart.add(const Duration(minutes: 90)),
-      lecturerId: 'lec-001',
-      lecturerName: 'Prof. Kwame Mensah',
-      room: 'Hall B / Virtual Stream 01',
-      mode: SessionMode.hybrid,
-      status: SessionStatus.live,
-      sessionNumber: 13,
-      expectedCount: 42,
-      participantCount: 38,
-      attendanceActive: true,
-      materials: const ['SlideDeck_13.pdf'],
-    ));
-    _addSession(ClassSessionModel(
-      id: 'ses-swe201-next',
-      courseId: 'crs-swe201',
-      courseCode: 'SWE-201',
-      courseTitle: 'Software Engineering Principles',
-      title: 'Lecture 12: Test-Driven Development',
-      startTime: now.add(const Duration(minutes: 75)),
-      endTime: now.add(const Duration(minutes: 165)),
-      lecturerId: 'lec-001',
-      lecturerName: 'Prof. Kwame Mensah',
-      room: 'Lab Hall B',
-      status: SessionStatus.scheduled,
-      sessionNumber: 12,
-      expectedCount: 40,
-    ));
-    _addSession(ClassSessionModel(
-      id: 'ses-cs305-today',
-      courseId: 'crs-cs305',
-      courseCode: 'CS-305',
-      courseTitle: 'Database Systems',
-      title: 'Lab 11: Query Optimisation',
-      startTime: now.add(const Duration(minutes: 120)),
-      endTime: now.add(const Duration(minutes: 210)),
-      lecturerId: 'lec-003',
-      lecturerName: 'Dr. S. Thorne',
-      room: 'Lab 4B • Computer Science Wing',
-      mode: SessionMode.inPerson,
-      sessionNumber: 11,
-      expectedCount: 21,
-      materials: const ['Lab11_Preparatory.zip'],
-    ));
-    _addSession(ClassSessionModel(
-      id: 'ses-eng210-today',
-      courseId: 'crs-eng210',
-      courseCode: 'ENG-210',
-      courseTitle: 'Academic Technical Writing',
-      title: 'Seminar 12: Draft Submission Review',
-      startTime: now.add(const Duration(minutes: 240)),
-      endTime: now.add(const Duration(minutes: 315)),
-      lecturerId: 'lec-005',
-      lecturerName: 'Prof. M. Adebayo',
-      room: 'Seminar Room 1',
-      mode: SessionMode.inPerson,
-      sessionNumber: 12,
-      expectedCount: 21,
-    ));
+    _addSession(
+      ClassSessionModel(
+        id: 'ses-mth1221-today',
+        courseId: 'crs-mth1221',
+        courseCode: 'MTH-1221',
+        courseTitle: 'Real Analysis',
+        title: 'Lecture 15: Uniform Continuity',
+        startTime: liveStart.subtract(const Duration(minutes: 150)),
+        endTime: liveStart.subtract(const Duration(minutes: 75)),
+        lecturerId: 'lec-004',
+        lecturerName: 'Dr. E. Vance',
+        room: 'Hall C • Room 102',
+        mode: SessionMode.inPerson,
+        status: SessionStatus.completed,
+        sessionNumber: 15,
+        expectedCount: 21,
+        participantCount: 20,
+      ),
+    );
+    _addSession(
+      ClassSessionModel(
+        id: liveSessionId,
+        courseId: 'crs-cs301',
+        courseCode: 'CS-301',
+        courseTitle: 'Data Structures & Algorithms',
+        title: 'Lecture 13: Graph Traversal & BFS',
+        startTime: liveStart,
+        endTime: liveStart.add(const Duration(minutes: 90)),
+        lecturerId: 'lec-001',
+        lecturerName: 'Prof. Kwame Mensah',
+        room: 'Hall B / Virtual Stream 01',
+        mode: SessionMode.hybrid,
+        status: SessionStatus.live,
+        sessionNumber: 13,
+        expectedCount: 42,
+        participantCount: 38,
+        attendanceActive: true,
+        materials: const ['SlideDeck_13.pdf'],
+      ),
+    );
+    _addSession(
+      ClassSessionModel(
+        id: 'ses-swe201-next',
+        courseId: 'crs-swe201',
+        courseCode: 'SWE-201',
+        courseTitle: 'Software Engineering Principles',
+        title: 'Lecture 12: Test-Driven Development',
+        startTime: now.add(const Duration(minutes: 75)),
+        endTime: now.add(const Duration(minutes: 165)),
+        lecturerId: 'lec-001',
+        lecturerName: 'Prof. Kwame Mensah',
+        room: 'Lab Hall B',
+        status: SessionStatus.scheduled,
+        sessionNumber: 12,
+        expectedCount: 40,
+      ),
+    );
+    _addSession(
+      ClassSessionModel(
+        id: 'ses-cs305-today',
+        courseId: 'crs-cs305',
+        courseCode: 'CS-305',
+        courseTitle: 'Database Systems',
+        title: 'Lab 11: Query Optimisation',
+        startTime: now.add(const Duration(minutes: 120)),
+        endTime: now.add(const Duration(minutes: 210)),
+        lecturerId: 'lec-003',
+        lecturerName: 'Dr. S. Thorne',
+        room: 'Lab 4B • Computer Science Wing',
+        mode: SessionMode.inPerson,
+        sessionNumber: 11,
+        expectedCount: 21,
+        materials: const ['Lab11_Preparatory.zip'],
+      ),
+    );
+    _addSession(
+      ClassSessionModel(
+        id: 'ses-eng210-today',
+        courseId: 'crs-eng210',
+        courseCode: 'ENG-210',
+        courseTitle: 'Academic Technical Writing',
+        title: 'Seminar 12: Draft Submission Review',
+        startTime: now.add(const Duration(minutes: 240)),
+        endTime: now.add(const Duration(minutes: 315)),
+        lecturerId: 'lec-005',
+        lecturerName: 'Prof. M. Adebayo',
+        room: 'Seminar Room 1',
+        mode: SessionMode.inPerson,
+        sessionNumber: 12,
+        expectedCount: 21,
+      ),
+    );
 
     // Upcoming week.
     const upcoming = [
-      ('crs-cs301', 'Lecture 14: Shortest Paths (Dijkstra)', 1, 10, 0, 90, 'Hall B & Virtual Room 2'),
-      ('crs-mth1221', 'Lecture 16: Riemann Integration', 1, 10, 0, 75, 'Hall C'),
-      ('crs-cs220', 'Lecture 11: Interfaces & Mixins', 1, 13, 0, 90, 'Room 304'),
+      (
+        'crs-cs301',
+        'Lecture 14: Shortest Paths (Dijkstra)',
+        1,
+        10,
+        0,
+        90,
+        'Hall B & Virtual Room 2',
+      ),
+      (
+        'crs-mth1221',
+        'Lecture 16: Riemann Integration',
+        1,
+        10,
+        0,
+        75,
+        'Hall C',
+      ),
+      (
+        'crs-cs220',
+        'Lecture 11: Interfaces & Mixins',
+        1,
+        13,
+        0,
+        90,
+        'Room 304',
+      ),
       ('crs-cs450', 'Lecture 10: Raft Consensus', 2, 11, 0, 90, 'Room 408B'),
-      ('crs-cs305', 'Lecture 12: Transactions & Isolation', 3, 11, 30, 90, 'Lab 4B'),
-      ('crs-eng210', 'Seminar 13: Peer Review Workshop', 3, 9, 0, 75, 'Seminar Rm 1'),
-      ('crs-cs301', 'Lecture 15: Minimum Spanning Trees', 3, 10, 0, 90, 'Hall B & Virtual Room 2'),
-      ('crs-swe201', 'Lecture 13: Continuous Integration', 2, 14, 0, 90, 'Lab Hall B'),
+      (
+        'crs-cs305',
+        'Lecture 12: Transactions & Isolation',
+        3,
+        11,
+        30,
+        90,
+        'Lab 4B',
+      ),
+      (
+        'crs-eng210',
+        'Seminar 13: Peer Review Workshop',
+        3,
+        9,
+        0,
+        75,
+        'Seminar Rm 1',
+      ),
+      (
+        'crs-cs301',
+        'Lecture 15: Minimum Spanning Trees',
+        3,
+        10,
+        0,
+        90,
+        'Hall B & Virtual Room 2',
+      ),
+      (
+        'crs-swe201',
+        'Lecture 13: Continuous Integration',
+        2,
+        14,
+        0,
+        90,
+        'Lab Hall B',
+      ),
     ];
     for (var i = 0; i < upcoming.length; i++) {
       final u = upcoming[i];
       final course = courses[u.$1]!;
       final start = _todayAt(u.$4, u.$5, dayOffset: u.$3);
-      _addSession(ClassSessionModel(
-        id: 'ses-up-$i',
-        courseId: course.id,
-        courseCode: course.code,
-        courseTitle: course.title,
-        title: u.$2,
-        startTime: start,
-        endTime: start.add(Duration(minutes: u.$6)),
-        lecturerId: course.lecturerId,
-        lecturerName: course.lecturerName,
-        room: u.$7,
-        expectedCount: enrollments[course.id]?.length ?? 0,
-      ));
+      _addSession(
+        ClassSessionModel(
+          id: 'ses-up-$i',
+          courseId: course.id,
+          courseCode: course.code,
+          courseTitle: course.title,
+          title: u.$2,
+          startTime: start,
+          endTime: start.add(Duration(minutes: u.$6)),
+          lecturerId: course.lecturerId,
+          lecturerName: course.lecturerName,
+          room: u.$7,
+          expectedCount: enrollments[course.id]?.length ?? 0,
+        ),
+      );
     }
 
     // Past sessions (completed) used for attendance history.
@@ -765,29 +1100,47 @@ class MockDataStore {
         'Lecture 01: Course Introduction',
       ],
       'crs-mth1221': [
-        'Lecture 14: Continuity', 'Lecture 13: Limits of Functions',
-        'Lecture 12: Series Tests', 'Lecture 11: Cauchy Sequences',
-        'Lecture 10: Subsequences', 'Lecture 09: Monotone Convergence',
-        'Lecture 08: Sequences', 'Lecture 07: Completeness Axiom',
-        'Lecture 06: Supremum & Infimum', 'Lecture 05: Countability',
+        'Lecture 14: Continuity',
+        'Lecture 13: Limits of Functions',
+        'Lecture 12: Series Tests',
+        'Lecture 11: Cauchy Sequences',
+        'Lecture 10: Subsequences',
+        'Lecture 09: Monotone Convergence',
+        'Lecture 08: Sequences',
+        'Lecture 07: Completeness Axiom',
+        'Lecture 06: Supremum & Infimum',
+        'Lecture 05: Countability',
       ],
       'crs-cs305': [
-        'Lab 10: Indexing', 'Lab 09: Normal Forms', 'Lab 08: Joins',
-        'Lab 07: Aggregations', 'Lab 06: Subqueries', 'Lab 05: ER Modelling',
-        'Lab 04: Constraints', 'Lab 03: Basic SQL', 'Lab 02: Relational Model',
+        'Lab 10: Indexing',
+        'Lab 09: Normal Forms',
+        'Lab 08: Joins',
+        'Lab 07: Aggregations',
+        'Lab 06: Subqueries',
+        'Lab 05: ER Modelling',
+        'Lab 04: Constraints',
+        'Lab 03: Basic SQL',
+        'Lab 02: Relational Model',
         'Lab 01: Introduction',
       ],
       'crs-eng210': [
-        'Seminar 11: Abstracts', 'Seminar 10: Figures & Tables',
-        'Seminar 09: Referencing', 'Seminar 08: Methods Sections',
-        'Seminar 07: Structure', 'Seminar 06: Audience',
-        'Seminar 05: Clarity', 'Seminar 04: Style',
-        'Seminar 03: Planning', 'Seminar 02: Reading Papers',
+        'Seminar 11: Abstracts',
+        'Seminar 10: Figures & Tables',
+        'Seminar 09: Referencing',
+        'Seminar 08: Methods Sections',
+        'Seminar 07: Structure',
+        'Seminar 06: Audience',
+        'Seminar 05: Clarity',
+        'Seminar 04: Style',
+        'Seminar 03: Planning',
+        'Seminar 02: Reading Papers',
         'Seminar 01: Introduction',
       ],
       'crs-swe201': [
-        'Lecture 11: Refactoring', 'Lecture 10: Code Review',
-        'Lecture 09: Unit Testing', 'Lecture 08: Design Patterns',
+        'Lecture 11: Refactoring',
+        'Lecture 10: Code Review',
+        'Lecture 09: Unit Testing',
+        'Lecture 08: Design Patterns',
       ],
       'crs-cs220': ['Lecture 10: Generics', 'Lecture 09: Polymorphism'],
       'crs-cs450': ['Lecture 09: Vector Clocks', 'Lecture 08: Replication'],
@@ -817,21 +1170,23 @@ class MockDataStore {
       for (var i = 0; i < topics.length; i++) {
         final daysAgo = 2 + i * 3 + (courseId.length % 2);
         final start = _todayAt(time.$1, time.$2, dayOffset: -daysAgo);
-        _addSession(ClassSessionModel(
-          id: 'ses-$courseId-past-$i',
-          courseId: courseId,
-          courseCode: course.code,
-          courseTitle: course.title,
-          title: topics[i],
-          startTime: start,
-          endTime: start.add(Duration(minutes: time.$3)),
-          lecturerId: course.lecturerId,
-          lecturerName: course.lecturerName,
-          room: rooms[i % rooms.length],
-          status: SessionStatus.completed,
-          sessionNumber: topics.length - i,
-          expectedCount: enrollments[courseId]?.length ?? 0,
-        ));
+        _addSession(
+          ClassSessionModel(
+            id: 'ses-$courseId-past-$i',
+            courseId: courseId,
+            courseCode: course.code,
+            courseTitle: course.title,
+            title: topics[i],
+            startTime: start,
+            endTime: start.add(Duration(minutes: time.$3)),
+            lecturerId: course.lecturerId,
+            lecturerName: course.lecturerName,
+            room: rooms[i % rooms.length],
+            status: SessionStatus.completed,
+            sessionNumber: topics.length - i,
+            expectedCount: enrollments[courseId]?.length ?? 0,
+          ),
+        );
       }
     });
   }
@@ -839,16 +1194,24 @@ class MockDataStore {
   AttendanceStatus _statusFor(String studentId, String courseId, int index) {
     // Hand-tuned outcomes that match the Stitch designs.
     if (studentId == currentStudentId) {
-      if (courseId == 'crs-cs301' && index == 3) return AttendanceStatus.excused;
+      if (courseId == 'crs-cs301' && index == 3) {
+        return AttendanceStatus.excused;
+      }
       if (courseId == 'crs-mth1221' && index == 1) return AttendanceStatus.late;
-      if (courseId == 'crs-mth1221' && index == 6) return AttendanceStatus.absent;
+      if (courseId == 'crs-mth1221' && index == 6) {
+        return AttendanceStatus.absent;
+      }
       if (courseId == 'crs-cs305' && index == 4) return AttendanceStatus.absent;
       if (courseId == 'crs-cs305' && index == 8) return AttendanceStatus.late;
-      if (courseId == 'crs-eng210' && index == 9) return AttendanceStatus.absent;
+      if (courseId == 'crs-eng210' && index == 9) {
+        return AttendanceStatus.absent;
+      }
       return AttendanceStatus.present;
     }
     if (studentId == 'stu-005') {
-      return index % 3 == 0 ? AttendanceStatus.absent : AttendanceStatus.present;
+      return index % 3 == 0
+          ? AttendanceStatus.absent
+          : AttendanceStatus.present;
     }
     if (studentId == 'stu-002' || studentId == 'stu-003') {
       return AttendanceStatus.present;
@@ -869,14 +1232,18 @@ class MockDataStore {
   ];
 
   void _seedAttendance() {
-    final completed = sessions.values
-        .where((s) => s.status == SessionStatus.completed)
-        .toList()
-      ..sort((a, b) => b.startTime.compareTo(a.startTime));
+    final completed =
+        sessions.values
+            .where((s) => s.status == SessionStatus.completed)
+            .toList()
+          ..sort((a, b) => b.startTime.compareTo(a.startTime));
     final indexByCourse = <String, int>{};
     for (final session in completed) {
-      final index = indexByCourse.update(session.courseId, (v) => v + 1,
-          ifAbsent: () => 0);
+      final index = indexByCourse.update(
+        session.courseId,
+        (v) => v + 1,
+        ifAbsent: () => 0,
+      );
       final enrolled = enrollments[session.courseId] ?? const [];
       final minutes = session.duration.inMinutes;
       for (final studentId in enrolled) {
@@ -910,8 +1277,8 @@ class MockDataStore {
           verificationMethod: status == AttendanceStatus.excused
               ? 'Medical Slip #MED-881 Approved'
               : status.countsAsAttended
-                  ? _verificationMethods[index % _verificationMethods.length]
-                  : 'No Check-in Recorded',
+              ? _verificationMethods[index % _verificationMethods.length]
+              : 'No Check-in Recorded',
           lecturerName: session.lecturerName,
           room: session.room,
         );
@@ -952,8 +1319,7 @@ class MockDataStore {
         status: status,
         sessionStart: live.startTime,
         checkedInAt: checkIn,
-        minutesLogged:
-            checkIn == null ? 0 : now.difference(checkIn).inMinutes,
+        minutesLogged: checkIn == null ? 0 : now.difference(checkIn).inMinutes,
         sessionMinutes: live.duration.inMinutes,
         verificationMethod: checkIn == null
             ? 'No proximity detected'
@@ -983,24 +1349,62 @@ class MockDataStore {
         .toList();
     for (var i = 0; i < present.length; i++) {
       final r = present[i];
-      list.add(ParticipantModel(
-        userId: r.studentId,
-        name: r.studentName,
-        role: UserRole.student,
-        joinedAt: r.checkedInAt ?? live.startTime,
-        isVideoOn: i % 3 == 0,
-        isHandRaised: r.studentId == 'stu-007',
-      ));
+      list.add(
+        ParticipantModel(
+          userId: r.studentId,
+          name: r.studentName,
+          role: UserRole.student,
+          joinedAt: r.checkedInAt ?? live.startTime,
+          isVideoOn: i % 3 == 0,
+          isHandRaised: r.studentId == 'stu-007',
+        ),
+      );
     }
     participants[live.id] = list;
 
     final chat = [
-      ('lec-001', 'Prof. Kwame Mensah', UserRole.lecturer, 'Welcome everyone! Today we cover BFS and graph traversal. Slides are in the course materials.', 40),
-      ('stu-002', 'Amina Bello', UserRole.student, 'Good morning Prof! Will BFS be on the midterm?', 36),
-      ('lec-001', 'Prof. Kwame Mensah', UserRole.lecturer, 'Yes — both BFS and DFS, including complexity analysis.', 35),
-      ('stu-003', 'Emmanuel Kwame', UserRole.student, 'Is the adjacency list always better than the matrix for sparse graphs?', 20),
-      ('stu-004', 'Chiamaka Okonjo', UserRole.student, 'I think it saves memory: O(V + E) instead of O(V²).', 18),
-      ('stu-007', 'David Kalu', UserRole.student, 'Can you repeat the queue step for the visited set?', 6),
+      (
+        'lec-001',
+        'Prof. Kwame Mensah',
+        UserRole.lecturer,
+        'Welcome everyone! Today we cover BFS and graph traversal. Slides are in the course materials.',
+        40,
+      ),
+      (
+        'stu-002',
+        'Amina Bello',
+        UserRole.student,
+        'Good morning Prof! Will BFS be on the midterm?',
+        36,
+      ),
+      (
+        'lec-001',
+        'Prof. Kwame Mensah',
+        UserRole.lecturer,
+        'Yes — both BFS and DFS, including complexity analysis.',
+        35,
+      ),
+      (
+        'stu-003',
+        'Emmanuel Kwame',
+        UserRole.student,
+        'Is the adjacency list always better than the matrix for sparse graphs?',
+        20,
+      ),
+      (
+        'stu-004',
+        'Chiamaka Okonjo',
+        UserRole.student,
+        'I think it saves memory: O(V + E) instead of O(V²).',
+        18,
+      ),
+      (
+        'stu-007',
+        'David Kalu',
+        UserRole.student,
+        'Can you repeat the queue step for the visited set?',
+        6,
+      ),
     ];
     messages[live.id] = [
       for (var i = 0; i < chat.length; i++)
@@ -1023,8 +1427,7 @@ class MockDataStore {
     questions['q-live-1'] = QuestionModel(
       id: 'q-live-1',
       sessionId: live.id,
-      text:
-          'What is the average time complexity of Binary Search on a sorted array?',
+      text: 'What is the average time complexity of Binary Search on a sorted array?',
       topic: 'Algorithms & Complexity • Single Choice',
       options: [
         for (var i = 0; i < opts.length; i++)
@@ -1046,17 +1449,116 @@ class MockDataStore {
 
   void _seedNotifications() {
     final items = [
-      (currentStudentId, 'CS-301 is live now', 'Prof. Kwame Mensah started "Lecture 13: Graph Traversal & BFS". Smart attendance is active.', NotificationType.classReminder, 44, false, liveSessionId, 'Join Now'),
-      (currentStudentId, 'New live question', 'A participation check is open in CS-301. Answer before the timer ends.', NotificationType.liveQuestion, 1, false, 'q-live-1', 'Answer'),
-      (currentStudentId, 'Attendance updated', 'MTH-1221 Session 13 was marked Late (18 min delay). You can submit an appeal within 48 hours.', NotificationType.attendanceUpdate, 180, false, null, null),
-      (currentStudentId, 'Room change: CS-305', 'Lab 11 moves to Lab 4B • Computer Science Wing.', NotificationType.classReminder, 300, true, 'ses-cs305-today', null),
-      (currentStudentId, 'Enrolled in ENG-210', 'You have been enrolled in Academic Technical Writing for this term.', NotificationType.newCourse, 60 * 24 * 3, true, 'crs-eng210', null),
-      (currentStudentId, 'Mid-semester exam timetable published', 'The Registrar has published the mid-semester examination timetable.', NotificationType.announcement, 60 * 24 * 5, true, null, null),
-      ('lec-001', '2 attendance appeals pending', 'MTH-1221 students submitted medical leave slips for review.', NotificationType.attendanceUpdate, 90, false, null, 'Review'),
-      ('lec-001', 'SWE-201 starts soon', 'Lecture 12: Test-Driven Development begins in Lab Hall B.', NotificationType.classReminder, 5, false, 'ses-swe201-next', null),
-      ('lec-001', 'Faculty board meeting', 'Faculty board meeting moved to Friday 3:00 PM.', NotificationType.announcement, 60 * 26, true, null, null),
-      (currentAdminId, 'Registrar sync completed', 'PostgreSQL & SIS sync finished successfully (1,420 records).', NotificationType.announcement, 18, false, null, null),
-      (currentAdminId, 'EEE-402 needs a lecturer', 'Embedded Systems Architecture has no assigned instructor.', NotificationType.newCourse, 240, false, 'crs-eee402', 'Assign'),
+      (
+        currentStudentId,
+        'CS-301 is live now',
+        'Prof. Kwame Mensah started "Lecture 13: Graph Traversal & BFS". Smart attendance is active.',
+        NotificationType.classReminder,
+        44,
+        false,
+        liveSessionId,
+        'Join Now',
+      ),
+      (
+        currentStudentId,
+        'New live question',
+        'A participation check is open in CS-301. Answer before the timer ends.',
+        NotificationType.liveQuestion,
+        1,
+        false,
+        'q-live-1',
+        'Answer',
+      ),
+      (
+        currentStudentId,
+        'Attendance updated',
+        'MTH-1221 Session 13 was marked Late (18 min delay). You can submit an appeal within 48 hours.',
+        NotificationType.attendanceUpdate,
+        180,
+        false,
+        null,
+        null,
+      ),
+      (
+        currentStudentId,
+        'Room change: CS-305',
+        'Lab 11 moves to Lab 4B • Computer Science Wing.',
+        NotificationType.classReminder,
+        300,
+        true,
+        'ses-cs305-today',
+        null,
+      ),
+      (
+        currentStudentId,
+        'Enrolled in ENG-210',
+        'You have been enrolled in Academic Technical Writing for this term.',
+        NotificationType.newCourse,
+        60 * 24 * 3,
+        true,
+        'crs-eng210',
+        null,
+      ),
+      (
+        currentStudentId,
+        'Mid-semester exam timetable published',
+        'The Registrar has published the mid-semester examination timetable.',
+        NotificationType.announcement,
+        60 * 24 * 5,
+        true,
+        null,
+        null,
+      ),
+      (
+        'lec-001',
+        '2 attendance appeals pending',
+        'MTH-1221 students submitted medical leave slips for review.',
+        NotificationType.attendanceUpdate,
+        90,
+        false,
+        null,
+        'Review',
+      ),
+      (
+        'lec-001',
+        'SWE-201 starts soon',
+        'Lecture 12: Test-Driven Development begins in Lab Hall B.',
+        NotificationType.classReminder,
+        5,
+        false,
+        'ses-swe201-next',
+        null,
+      ),
+      (
+        'lec-001',
+        'Faculty board meeting',
+        'Faculty board meeting moved to Friday 3:00 PM.',
+        NotificationType.announcement,
+        60 * 26,
+        true,
+        null,
+        null,
+      ),
+      (
+        currentAdminId,
+        'Registrar sync completed',
+        'PostgreSQL & SIS sync finished successfully (1,420 records).',
+        NotificationType.announcement,
+        18,
+        false,
+        null,
+        null,
+      ),
+      (
+        currentAdminId,
+        'EEE-402 needs a lecturer',
+        'Embedded Systems Architecture has no assigned instructor.',
+        NotificationType.newCourse,
+        240,
+        false,
+        'crs-eee402',
+        'Assign',
+      ),
     ];
     for (var i = 0; i < items.length; i++) {
       final n = items[i];
@@ -1076,23 +1578,60 @@ class MockDataStore {
 
   void _seedActivity() {
     final items = [
-      ('New lecturer onboarded', 'Dr. S. Thorne completed faculty registration.', 'System', ActivitySeverity.success, 'users', 25),
-      ('Course created', 'EEE-402 Embedded Systems Architecture added to Fall term.', 'Sarah Jenkins', ActivitySeverity.info, 'courses', 90),
-      ('Attendance threshold alert', '48 students are below the 75% attendance requirement.', 'Attendance Engine', ActivitySeverity.warning, 'attendance', 180),
-      ('Registrar sync', 'PostgreSQL & SIS registrar sync completed in 42s.', 'Scheduler', ActivitySeverity.success, 'system', 18),
-      ('Failed login attempts', '5 failed admin login attempts from an unknown device.', 'Security Monitor', ActivitySeverity.critical, 'security', 400),
+      (
+        'New lecturer onboarded',
+        'Dr. S. Thorne completed faculty registration.',
+        'System',
+        ActivitySeverity.success,
+        'users',
+        25,
+      ),
+      (
+        'Course created',
+        'EEE-402 Embedded Systems Architecture added to Fall term.',
+        'Sarah Jenkins',
+        ActivitySeverity.info,
+        'courses',
+        90,
+      ),
+      (
+        'Attendance threshold alert',
+        '48 students are below the 75% attendance requirement.',
+        'Attendance Engine',
+        ActivitySeverity.warning,
+        'attendance',
+        180,
+      ),
+      (
+        'Registrar sync',
+        'PostgreSQL & SIS registrar sync completed in 42s.',
+        'Scheduler',
+        ActivitySeverity.success,
+        'system',
+        18,
+      ),
+      (
+        'Failed login attempts',
+        '5 failed admin login attempts from an unknown device.',
+        'Security Monitor',
+        ActivitySeverity.critical,
+        'security',
+        400,
+      ),
     ];
     for (var i = 0; i < items.length; i++) {
       final a = items[i];
-      activity.add(ActivityLogModel(
-        id: 'act-$i',
-        title: a.$1,
-        description: a.$2,
-        actorName: a.$3,
-        severity: a.$4,
-        category: a.$5,
-        timestamp: now.subtract(Duration(minutes: a.$6)),
-      ));
+      activity.add(
+        ActivityLogModel(
+          id: 'act-$i',
+          title: a.$1,
+          description: a.$2,
+          actorName: a.$3,
+          severity: a.$4,
+          category: a.$5,
+          timestamp: now.subtract(Duration(minutes: a.$6)),
+        ),
+      );
     }
     activity.sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }

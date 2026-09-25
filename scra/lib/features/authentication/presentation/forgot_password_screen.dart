@@ -47,7 +47,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     _password.addListener(() => setState(() {}));
     _confirm.addListener(() => setState(() {}));
     WidgetsBinding.instance.addPostFrameCallback(
-        (_) => context.read<AuthProvider>().clearError());
+      (_) => context.read<AuthProvider>().clearError(),
+    );
   }
 
   @override
@@ -77,8 +78,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _sendCode() async {
     FocusScope.of(context).unfocus();
     if (!(_emailForm.currentState?.validate() ?? false)) return;
-    final ok =
-        await context.read<AuthProvider>().requestPasswordReset(_email.text);
+    final ok = await context.read<AuthProvider>().requestPasswordReset(
+      _email.text,
+    );
     if (!mounted || !ok) return;
     setState(() => _step = _RecoveryStep.code);
     _startCountdown();
@@ -88,9 +90,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final error = Validators.recoveryCode(_code.text);
     setState(() => _codeError = error);
     if (error != null) return;
-    final ok = await context
-        .read<AuthProvider>()
-        .verifyResetCode(_email.text, _code.text);
+    final ok = await context.read<AuthProvider>().verifyResetCode(
+      _email.text,
+      _code.text,
+    );
     if (!mounted || !ok) return;
     setState(() => _step = _RecoveryStep.password);
   }
@@ -99,10 +102,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     FocusScope.of(context).unfocus();
     if (!(_passwordForm.currentState?.validate() ?? false)) return;
     final ok = await context.read<AuthProvider>().resetPassword(
-          email: _email.text,
-          code: _code.text,
-          newPassword: _password.text,
-        );
+      email: _email.text,
+      code: _code.text,
+      newPassword: _password.text,
+    );
     if (!mounted || !ok) return;
     _timer?.cancel();
     setState(() => _step = _RecoveryStep.done);
@@ -130,8 +133,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         top: false,
         child: Center(
           child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(maxWidth: AppDimensions.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppDimensions.maxContentWidth,
+            ),
             child: ListView(
               padding: const EdgeInsets.all(AppDimensions.pageMargin),
               children: [
@@ -139,8 +143,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   icon: Icons.security,
                   badgeIcon: Icons.vpn_key,
                   title: 'Reset Password',
-                  description:
-                      'Enter your institutional email to receive a recovery code.',
+                  description: 'Enter your institutional email to receive a recovery code.',
                 ),
                 const SizedBox(height: AppDimensions.spaceLg),
                 Container(
@@ -149,12 +152,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     color: theme.colorScheme.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
                     border: Border.all(
-                      color:
-                          theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.4,
+                      ),
                     ),
                   ),
                   child: _step == _RecoveryStep.done
-                      ? _SuccessPanel(onReturn: () => Navigator.of(context).maybePop())
+                      ? _SuccessPanel(
+                          onReturn: () => Navigator.of(context).maybePop(),
+                        )
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -173,7 +179,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 auth.errorMessage!,
                                 key: const Key('recovery_error'),
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.error),
+                                  color: theme.colorScheme.error,
+                                ),
                               ),
                             ],
                             const SizedBox(height: AppDimensions.spaceLg),
@@ -190,8 +197,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.support_agent,
-                        size: 18, color: theme.colorScheme.onSurfaceVariant),
+                    Icon(
+                      Icons.support_agent,
+                      size: 18,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: AppDimensions.spaceSm),
                     Flexible(
                       child: Text.rich(
@@ -227,28 +237,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _primaryAction(bool busy) => switch (_step) {
-        _RecoveryStep.email => PrimaryButton(
-            key: const Key('recovery_send'),
-            label: 'Send Recovery Code',
-            trailingIcon: Icons.send,
-            isLoading: busy,
-            onPressed: _sendCode,
-          ),
-        _RecoveryStep.code => PrimaryButton(
-            key: const Key('recovery_verify'),
-            label: 'Verify Code',
-            trailingIcon: Icons.arrow_forward,
-            isLoading: busy,
-            onPressed: _verifyCode,
-          ),
-        _ => PrimaryButton(
-            key: const Key('recovery_update'),
-            label: 'Update Password',
-            trailingIcon: Icons.check,
-            isLoading: busy,
-            onPressed: _updatePassword,
-          ),
-      };
+    _RecoveryStep.email => PrimaryButton(
+      key: const Key('recovery_send'),
+      label: 'Send Recovery Code',
+      trailingIcon: Icons.send,
+      isLoading: busy,
+      onPressed: _sendCode,
+    ),
+    _RecoveryStep.code => PrimaryButton(
+      key: const Key('recovery_verify'),
+      label: 'Verify Code',
+      trailingIcon: Icons.arrow_forward,
+      isLoading: busy,
+      onPressed: _verifyCode,
+    ),
+    _ => PrimaryButton(
+      key: const Key('recovery_update'),
+      label: 'Update Password',
+      trailingIcon: Icons.check,
+      isLoading: busy,
+      onPressed: _updatePassword,
+    ),
+  };
 
   Widget _emailSection(ThemeData theme) {
     final sent = _step != _RecoveryStep.email;
@@ -300,7 +310,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 text: Formatters.countdown(_resendIn)
                                     .replaceFirst(RegExp(r'^0'), ''),
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700),
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ],
                           ),
@@ -340,11 +351,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Row(
             children: [
               Expanded(
-                child: Text('Enter ${AppConstants.recoveryCodeLength}-digit code.',
-                    style: theme.textTheme.titleMedium),
+                child: Text(
+                  'Enter ${AppConstants.recoveryCodeLength}-digit code.',
+                  style: theme.textTheme.titleMedium,
+                ),
               ),
-              Text(verified ? 'Verified ✓' : 'Step 2 of 3',
-                  style: theme.textTheme.labelMedium),
+              Text(
+                verified ? 'Verified ✓' : 'Step 2 of 3',
+                style: theme.textTheme.labelMedium,
+              ),
             ],
           ),
           const SizedBox(height: AppDimensions.spaceSm),
@@ -396,8 +411,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             suffix: matches
                 ? Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: Icon(Icons.check_circle_outline,
-                        color: theme.colorScheme.secondary),
+                    child: Icon(
+                      Icons.check_circle_outline,
+                      color: theme.colorScheme.secondary,
+                    ),
                   )
                 : null,
             validator: (v) => Validators.confirmPassword(v, _password.text),
@@ -445,8 +462,9 @@ class CodeInput extends StatelessWidget {
                           color: i == text.length && enabled
                               ? AppColors.primaryFixed.withValues(alpha: 0.5)
                               : theme.colorScheme.surfaceContainerLowest,
-                          borderRadius:
-                              BorderRadius.circular(AppDimensions.radiusMd),
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusMd,
+                          ),
                           border: Border.all(
                             color: i == text.length && enabled
                                 ? theme.colorScheme.primary

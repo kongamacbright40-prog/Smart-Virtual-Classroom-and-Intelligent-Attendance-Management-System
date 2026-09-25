@@ -4,8 +4,9 @@ import 'date_utils.dart';
 /// Centralized form validators. Each returns `null` when valid, or an error
 /// message suitable for [TextFormField.validator].
 abstract final class Validators {
-  static final RegExp _email =
-      RegExp(r'^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$');
+  static final RegExp _email = RegExp(
+    r'^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$',
+  );
   static final RegExp _phone = RegExp(r'^\+?[0-9]{7,15}$');
   static final RegExp _studentId = RegExp(r'^[A-Z]{2,4}-?\d{4}-?\d{3,6}$');
   static final RegExp _staffId = RegExp(r'^[A-Z]{2,4}-?\d{4}-?\d{3,6}$');
@@ -14,7 +15,9 @@ abstract final class Validators {
   static final RegExp _time24h = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
   static final RegExp _upper = RegExp(r'[A-Z]');
   static final RegExp _digit = RegExp(r'\d');
-  static final RegExp _special = RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=~`\[\]\\/;]');
+  static final RegExp _special = RegExp(
+    r'[!@#$%^&*(),.?":{}|<>_\-+=~`\[\]\\/;]',
+  );
 
   static String? required(String? value, {String field = 'This field'}) {
     if (value == null || value.trim().isEmpty) return '$field is required';
@@ -169,10 +172,14 @@ abstract final class Validators {
     if (filled.length < AppConstants.minQuestionOptions) {
       return 'Provide at least ${AppConstants.minQuestionOptions} answer options';
     }
-    if (filled.length != options.length) return 'Answer options cannot be empty';
+    if (filled.length != options.length) {
+      return 'Answer options cannot be empty';
+    }
     final unique = filled.map((o) => o.trim().toLowerCase()).toSet();
     if (unique.length != filled.length) return 'Answer options must be unique';
-    if (correctIndex == null || correctIndex < 0 || correctIndex >= options.length) {
+    if (correctIndex == null ||
+        correctIndex < 0 ||
+        correctIndex >= options.length) {
       return 'Select the correct answer';
     }
     return null;
@@ -211,14 +218,13 @@ class PasswordStrength {
   final bool hasDigit;
   final bool hasSpecial;
 
-  int get score => [hasMinLength, hasUppercase, hasDigit, hasSpecial]
-      .where((r) => r)
-      .length;
+  int get score =>
+      [hasMinLength, hasUppercase, hasDigit, hasSpecial].where((r) => r).length;
 
   String get label => switch (score) {
-        0 || 1 => 'Weak',
-        2 => 'Fair',
-        3 => 'Strong',
-        _ => 'Very Strong',
-      };
+    0 || 1 => 'Weak',
+    2 => 'Fair',
+    3 => 'Strong',
+    _ => 'Very Strong',
+  };
 }

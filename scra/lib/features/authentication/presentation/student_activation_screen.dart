@@ -23,8 +23,9 @@ class StudentActivationScreen extends StatelessWidget {
         top: false,
         child: Center(
           child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(maxWidth: AppDimensions.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppDimensions.maxContentWidth,
+            ),
             child: ListView(
               padding: const EdgeInsets.all(AppDimensions.pageMargin),
               children: const [
@@ -32,8 +33,7 @@ class StudentActivationScreen extends StatelessWidget {
                   icon: Icons.workspace_premium_outlined,
                   badgeIcon: Icons.verified,
                   title: 'Activate Student Account',
-                  description:
-                      'Verify your institutional credentials to configure your academic portal and smart attendance pass.',
+                  description: 'Verify your institutional credentials to configure your academic portal and smart attendance pass.',
                   step: StepInfo(
                     overline: 'Identity Verification',
                     title: 'Step 2 of 2 · Campus Pass Setup',
@@ -46,14 +46,12 @@ class StudentActivationScreen extends StatelessWidget {
                   role: UserRole.student,
                   idLabel: 'Student Matricule',
                   idHint: 'e.g. MAT-2024-9148',
-                  idHelper:
-                      'Found on your student smartcard or formal admission letter',
+                  idHelper: 'Found on your student smartcard or formal admission letter',
                   idValidator: Validators.studentId,
                   idSuffixLabel: 'SIS ID',
                   emailHint: 'name@campus.edu',
                   submitLabel: 'Activate Account',
-                  acknowledgement:
-                      'I acknowledge institutional terms of academic integrity, identity verification protocols, and automatic biometric attendance logging.',
+                  acknowledgement: 'I acknowledge institutional terms of academic integrity, identity verification protocols, and automatic biometric attendance logging.',
                 ),
                 SizedBox(height: AppDimensions.spaceMd),
                 SecurityFooter(

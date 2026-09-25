@@ -10,8 +10,9 @@ import 'package:smart_class/models/user_model.dart';
 import '../helpers/test_app.dart';
 
 void main() {
-  testWidgets('first launch walks through onboarding to the login screen',
-      (tester) async {
+  testWidgets('first launch walks through onboarding to the login screen', (
+    tester,
+  ) async {
     final deps = await pumpApp(tester);
 
     expect(find.byType(WelcomeScreen), findsOneWidget);
@@ -65,8 +66,7 @@ void main() {
     expect(find.byType(LoginScreen), findsOneWidget);
   });
 
-  testWidgets('onboarding fits a small phone without overflow',
-      (tester) async {
+  testWidgets('onboarding fits a small phone without overflow', (tester) async {
     await pumpApp(tester, size: kSmallPhoneSize);
     expect(tester.takeException(), isNull);
     await tester.tap(find.byKey(const Key('onboarding_next')));

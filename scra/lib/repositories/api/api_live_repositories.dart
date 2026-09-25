@@ -13,71 +13,87 @@ class ApiAttendanceRepository extends ApiRepositoryBase
   final WebSocketService _socket;
 
   @override
-  Future<AttendanceModel> getStudentSummary(String studentId,
-          {String? courseId}) =>
-      getOne(ApiEndpoints.studentAttendanceSummary(studentId),
-          AttendanceModel.fromJson,
-          query: {'course_id': courseId});
+  Future<AttendanceModel> getStudentSummary(
+    String studentId, {
+    String? courseId,
+  }) => getOne(
+    ApiEndpoints.studentAttendanceSummary(studentId),
+    AttendanceModel.fromJson,
+    query: {'course_id': courseId},
+  );
 
   @override
-  Future<List<AttendanceRecordModel>> getStudentRecords(String studentId,
-          {String? courseId}) =>
-      getMany(ApiEndpoints.studentAttendance(studentId),
-          AttendanceRecordModel.fromJson,
-          query: {'course_id': courseId});
+  Future<List<AttendanceRecordModel>> getStudentRecords(
+    String studentId, {
+    String? courseId,
+  }) => getMany(
+    ApiEndpoints.studentAttendance(studentId),
+    AttendanceRecordModel.fromJson,
+    query: {'course_id': courseId},
+  );
 
   @override
   Future<List<AttendanceRecordModel>> getSessionAttendance(String sessionId) =>
-      getMany(ApiEndpoints.sessionAttendance(sessionId),
-          AttendanceRecordModel.fromJson);
+      getMany(
+        ApiEndpoints.sessionAttendance(sessionId),
+        AttendanceRecordModel.fromJson,
+      );
 
   @override
   Future<List<AttendanceModel>> getCourseSummaries(String courseId) => getMany(
-      ApiEndpoints.courseAttendanceSummaries(courseId), AttendanceModel.fromJson);
+    ApiEndpoints.courseAttendanceSummaries(courseId),
+    AttendanceModel.fromJson,
+  );
 
   @override
   Future<ClassSessionModel> startAttendance(String sessionId) => postOne(
-      ApiEndpoints.sessionAttendanceStart(sessionId),
-      null,
-      ClassSessionModel.fromJson);
+    ApiEndpoints.sessionAttendanceStart(sessionId),
+    null,
+    ClassSessionModel.fromJson,
+  );
 
   @override
   Future<ClassSessionModel> endAttendance(String sessionId) => postOne(
-      ApiEndpoints.sessionAttendanceEnd(sessionId),
-      null,
-      ClassSessionModel.fromJson);
+    ApiEndpoints.sessionAttendanceEnd(sessionId),
+    null,
+    ClassSessionModel.fromJson,
+  );
 
   @override
   Future<AttendanceRecordModel> markAttendance({
     required String sessionId,
     required String studentId,
     required AttendanceStatus status,
-  }) =>
-      putOne(ApiEndpoints.sessionAttendanceStudent(sessionId, studentId),
-          {'status': status.value}, AttendanceRecordModel.fromJson);
+  }) => putOne(ApiEndpoints.sessionAttendanceStudent(sessionId, studentId), {
+    'status': status.value,
+  }, AttendanceRecordModel.fromJson);
 
   @override
   Future<AttendanceRecordModel> checkIn({
     required String sessionId,
     required String studentId,
-  }) =>
-      postOne(ApiEndpoints.sessionAttendanceCheckIn(sessionId),
-          {'student_id': studentId}, AttendanceRecordModel.fromJson);
+  }) => postOne(ApiEndpoints.sessionAttendanceCheckIn(sessionId), {
+    'student_id': studentId,
+  }, AttendanceRecordModel.fromJson);
 
   @override
   Future<void> submitAppeal({
     required String recordId,
     required String reason,
     String? documentName,
-  }) =>
-      api.post(ApiEndpoints.attendanceAppeals(recordId),
-          body: {'reason': reason, 'document_name': documentName});
+  }) => api.post(
+    ApiEndpoints.attendanceAppeals(recordId),
+    body: {'reason': reason, 'document_name': documentName},
+  );
 
   @override
   Stream<List<AttendanceRecordModel>> watchSessionAttendance(
-          String sessionId) =>
-      refetchOnEvents(
-          _socket, 'attendance.', () => getSessionAttendance(sessionId));
+    String sessionId,
+  ) => refetchOnEvents(
+    _socket,
+    'attendance.',
+    () => getSessionAttendance(sessionId),
+  );
 }
 
 class ApiClassroomRepository extends ApiRepositoryBase
@@ -88,11 +104,17 @@ class ApiClassroomRepository extends ApiRepositoryBase
 
   @override
   Future<ClassSessionModel> startClass(String sessionId) => postOne(
-      ApiEndpoints.sessionStart(sessionId), null, ClassSessionModel.fromJson);
+    ApiEndpoints.sessionStart(sessionId),
+    null,
+    ClassSessionModel.fromJson,
+  );
 
   @override
   Future<ClassSessionModel> endClass(String sessionId) => postOne(
-      ApiEndpoints.sessionEnd(sessionId), null, ClassSessionModel.fromJson);
+    ApiEndpoints.sessionEnd(sessionId),
+    null,
+    ClassSessionModel.fromJson,
+  );
 
   @override
   Future<void> joinClass(String sessionId, UserModel user) =>
@@ -104,8 +126,10 @@ class ApiClassroomRepository extends ApiRepositoryBase
 
   @override
   Future<void> setHandRaised(String sessionId, String userId, bool raised) =>
-      api.patch(ApiEndpoints.sessionParticipant(sessionId, userId),
-          body: {'is_hand_raised': raised});
+      api.patch(
+        ApiEndpoints.sessionParticipant(sessionId, userId),
+        body: {'is_hand_raised': raised},
+      );
 
   @override
   Future<void> updateMediaState(
@@ -114,15 +138,19 @@ class ApiClassroomRepository extends ApiRepositoryBase
     bool? isMuted,
     bool? isVideoOn,
     bool? isScreenSharing,
-  }) =>
-      api.patch(ApiEndpoints.sessionParticipant(sessionId, userId), body: {
-        'is_muted': ?isMuted,
-        'is_video_on': ?isVideoOn,
-        'is_screen_sharing': ?isScreenSharing,
-      });
+  }) => api.patch(
+    ApiEndpoints.sessionParticipant(sessionId, userId),
+    body: {
+      'is_muted': ?isMuted,
+      'is_video_on': ?isVideoOn,
+      'is_screen_sharing': ?isScreenSharing,
+    },
+  );
 
   Future<List<ParticipantModel>> _participants(String sessionId) => getMany(
-      ApiEndpoints.sessionParticipants(sessionId), ParticipantModel.fromJson);
+    ApiEndpoints.sessionParticipants(sessionId),
+    ParticipantModel.fromJson,
+  );
 
   @override
   Stream<List<ParticipantModel>> watchParticipants(String sessionId) =>
@@ -130,7 +158,9 @@ class ApiClassroomRepository extends ApiRepositoryBase
 
   @override
   Future<List<ChatMessageModel>> getMessages(String sessionId) => getMany(
-      ApiEndpoints.sessionMessages(sessionId), ChatMessageModel.fromJson);
+    ApiEndpoints.sessionMessages(sessionId),
+    ChatMessageModel.fromJson,
+  );
 
   @override
   Stream<ChatMessageModel> watchMessages(String sessionId) => _socket.events
@@ -140,9 +170,10 @@ class ApiClassroomRepository extends ApiRepositoryBase
 
   @override
   Future<ChatMessageModel> sendMessage(ChatMessageModel message) => postOne(
-      ApiEndpoints.sessionMessages(message.classroomId),
-      {'message': message.message, 'is_question': message.isQuestion},
-      ChatMessageModel.fromJson);
+    ApiEndpoints.sessionMessages(message.classroomId),
+    {'message': message.message, 'is_question': message.isQuestion},
+    ChatMessageModel.fromJson,
+  );
 }
 
 class ApiQuestionRepository extends ApiRepositoryBase
@@ -152,44 +183,57 @@ class ApiQuestionRepository extends ApiRepositoryBase
   final WebSocketService _socket;
 
   @override
-  Future<List<QuestionModel>> getSessionQuestions(String sessionId) => getMany(
-      ApiEndpoints.sessionQuestions(sessionId), QuestionModel.fromJson);
+  Future<List<QuestionModel>> getSessionQuestions(String sessionId) =>
+      getMany(ApiEndpoints.sessionQuestions(sessionId), QuestionModel.fromJson);
 
   @override
-  Future<QuestionModel> saveDraft(QuestionModel question) =>
-      postOne(ApiEndpoints.questions, question.toJson(), QuestionModel.fromJson);
+  Future<QuestionModel> saveDraft(QuestionModel question) => postOne(
+    ApiEndpoints.questions,
+    question.toJson(),
+    QuestionModel.fromJson,
+  );
 
   @override
   Future<QuestionModel> launchQuestion(QuestionModel question) async {
     final saved = question.id.isEmpty ? await saveDraft(question) : question;
     return postOne(
-        ApiEndpoints.questionLaunch(saved.id), null, QuestionModel.fromJson);
+      ApiEndpoints.questionLaunch(saved.id),
+      null,
+      QuestionModel.fromJson,
+    );
   }
 
   @override
   Future<QuestionModel> closeQuestion(String questionId) => postOne(
-      ApiEndpoints.questionClose(questionId), null, QuestionModel.fromJson);
+    ApiEndpoints.questionClose(questionId),
+    null,
+    QuestionModel.fromJson,
+  );
 
   @override
   Future<QuestionModel> broadcastResults(String questionId) => postOne(
-      ApiEndpoints.questionBroadcast(questionId), null, QuestionModel.fromJson);
+    ApiEndpoints.questionBroadcast(questionId),
+    null,
+    QuestionModel.fromJson,
+  );
 
   @override
   Future<QuestionResponseModel> submitResponse({
     required String questionId,
     required String studentId,
     required String optionId,
-  }) =>
-      postOne(ApiEndpoints.questionResponses(questionId),
-          {'selected_option_id': optionId}, QuestionResponseModel.fromJson);
+  }) => postOne(ApiEndpoints.questionResponses(questionId), {
+    'selected_option_id': optionId,
+  }, QuestionResponseModel.fromJson);
 
   @override
   Future<QuestionResponseModel?> getResponse({
     required String questionId,
     required String studentId,
   }) async {
-    final data =
-        await api.get(ApiEndpoints.questionResponse(questionId, studentId));
+    final data = await api.get(
+      ApiEndpoints.questionResponse(questionId, studentId),
+    );
     return data is Map ? QuestionResponseModel.fromJson(asJson(data)) : null;
   }
 
@@ -214,7 +258,9 @@ class ApiNotificationRepository extends ApiRepositoryBase
 
   @override
   Future<List<NotificationModel>> getNotifications(String userId) => getMany(
-      ApiEndpoints.userNotifications(userId), NotificationModel.fromJson);
+    ApiEndpoints.userNotifications(userId),
+    NotificationModel.fromJson,
+  );
 
   @override
   Future<void> markAsRead(String notificationId) =>
@@ -236,8 +282,10 @@ class ApiAdminRepository extends ApiRepositoryBase implements AdminRepository {
 
   @override
   Future<List<UserModel>> getUsers({UserRole? role, String? query}) => getMany(
-      ApiEndpoints.users, UserModel.fromJson,
-      query: {'role': role?.value, 'q': query});
+    ApiEndpoints.users,
+    UserModel.fromJson,
+    query: {'role': role?.value, 'q': query},
+  );
 
   @override
   Future<UserModel> getUser(String userId) =>
@@ -253,7 +301,10 @@ class ApiAdminRepository extends ApiRepositoryBase implements AdminRepository {
 
   @override
   Future<UserModel> setUserActive(String userId, bool active) => patchOne(
-      ApiEndpoints.userStatus(userId), {'is_active': active}, UserModel.fromJson);
+    ApiEndpoints.userStatus(userId),
+    {'is_active': active},
+    UserModel.fromJson,
+  );
 
   @override
   Future<void> deleteUser(String userId) =>
@@ -265,22 +316,31 @@ class ApiAdminRepository extends ApiRepositoryBase implements AdminRepository {
 
   @override
   Future<List<DepartmentModel>> getDepartments({String? facultyId}) => getMany(
-      ApiEndpoints.departments, DepartmentModel.fromJson,
-      query: {'faculty_id': facultyId});
+    ApiEndpoints.departments,
+    DepartmentModel.fromJson,
+    query: {'faculty_id': facultyId},
+  );
 
   @override
   Future<DepartmentModel> saveDepartment(DepartmentModel department) =>
       department.id.isEmpty
-          ? postOne(ApiEndpoints.departments, department.toJson(),
-              DepartmentModel.fromJson)
-          : putOne(ApiEndpoints.department(department.id), department.toJson(),
-              DepartmentModel.fromJson);
+      ? postOne(
+          ApiEndpoints.departments,
+          department.toJson(),
+          DepartmentModel.fromJson,
+        )
+      : putOne(
+          ApiEndpoints.department(department.id),
+          department.toJson(),
+          DepartmentModel.fromJson,
+        );
 
   @override
   Future<DepartmentModel> archiveDepartment(String departmentId) => postOne(
-      ApiEndpoints.departmentArchive(departmentId),
-      null,
-      DepartmentModel.fromJson);
+    ApiEndpoints.departmentArchive(departmentId),
+    null,
+    DepartmentModel.fromJson,
+  );
 
   @override
   Future<List<AcademicTermModel>> getAcademicTerms() =>
@@ -289,10 +349,16 @@ class ApiAdminRepository extends ApiRepositoryBase implements AdminRepository {
   @override
   Future<AcademicTermModel> saveAcademicTerm(AcademicTermModel term) =>
       term.id.isEmpty
-          ? postOne(ApiEndpoints.academicTerms, term.toJson(),
-              AcademicTermModel.fromJson)
-          : putOne(ApiEndpoints.academicTerm(term.id), term.toJson(),
-              AcademicTermModel.fromJson);
+      ? postOne(
+          ApiEndpoints.academicTerms,
+          term.toJson(),
+          AcademicTermModel.fromJson,
+        )
+      : putOne(
+          ApiEndpoints.academicTerm(term.id),
+          term.toJson(),
+          AcademicTermModel.fromJson,
+        );
 
   @override
   Future<SystemSettingsModel> getSystemSettings() =>
@@ -300,17 +366,23 @@ class ApiAdminRepository extends ApiRepositoryBase implements AdminRepository {
 
   @override
   Future<SystemSettingsModel> updateSystemSettings(
-          SystemSettingsModel settings) =>
-      putOne(ApiEndpoints.systemSettings, settings.toJson(),
-          SystemSettingsModel.fromJson);
+    SystemSettingsModel settings,
+  ) => putOne(
+    ApiEndpoints.systemSettings,
+    settings.toJson(),
+    SystemSettingsModel.fromJson,
+  );
 
   @override
-  Future<List<ActivityLogModel>> getRecentActivity({int limit = 20}) =>
-      getMany(ApiEndpoints.adminActivity, ActivityLogModel.fromJson,
-          query: {'limit': limit});
+  Future<List<ActivityLogModel>> getRecentActivity({int limit = 20}) => getMany(
+    ApiEndpoints.adminActivity,
+    ActivityLogModel.fromJson,
+    query: {'limit': limit},
+  );
 }
 
-class ApiReportRepository extends ApiRepositoryBase implements ReportRepository {
+class ApiReportRepository extends ApiRepositoryBase
+    implements ReportRepository {
   ApiReportRepository(super.api);
 
   @override
@@ -318,18 +390,24 @@ class ApiReportRepository extends ApiRepositoryBase implements ReportRepository 
       getOne(ApiEndpoints.adminDashboardReport, ReportModel.fromJson);
 
   @override
-  Future<ReportModel> getLecturerReport(String lecturerId,
-          {String? courseId}) =>
-      getOne(ApiEndpoints.lecturerReport(lecturerId), ReportModel.fromJson,
-          query: {'course_id': courseId});
+  Future<ReportModel> getLecturerReport(
+    String lecturerId, {
+    String? courseId,
+  }) => getOne(
+    ApiEndpoints.lecturerReport(lecturerId),
+    ReportModel.fromJson,
+    query: {'course_id': courseId},
+  );
 
   @override
   Future<ReportModel> getInstitutionReport({
     String? departmentId,
     String? termId,
-  }) =>
-      getOne(ApiEndpoints.institutionReport, ReportModel.fromJson,
-          query: {'department_id': departmentId, 'term_id': termId});
+  }) => getOne(
+    ApiEndpoints.institutionReport,
+    ReportModel.fromJson,
+    query: {'department_id': departmentId, 'term_id': termId},
+  );
 
   @override
   Future<String> exportReport(
@@ -338,11 +416,16 @@ class ApiReportRepository extends ApiRepositoryBase implements ReportRepository 
     bool includeMatricule = true,
     bool includeGeolocation = false,
   }) async {
-    final data = asJson(await api.post(ApiEndpoints.reportExport(reportId), body: {
-      'format': format.value,
-      'include_matricule': includeMatricule,
-      'include_geolocation': includeGeolocation,
-    }));
+    final data = asJson(
+      await api.post(
+        ApiEndpoints.reportExport(reportId),
+        body: {
+          'format': format.value,
+          'include_matricule': includeMatricule,
+          'include_geolocation': includeGeolocation,
+        },
+      ),
+    );
     return (data['url'] ?? data['file_name']).toString();
   }
 }
@@ -350,16 +433,16 @@ class ApiReportRepository extends ApiRepositoryBase implements ReportRepository 
 /// Convenience factory so the composition root stays short.
 class ApiRepositories {
   ApiRepositories(ApiService api, WebSocketService socket)
-      : auth = ApiAuthRepository(api),
-        users = ApiUserRepository(api),
-        courses = ApiCourseRepository(api),
-        schedule = ApiScheduleRepository(api),
-        attendance = ApiAttendanceRepository(api, socket),
-        classroom = ApiClassroomRepository(api, socket),
-        questions = ApiQuestionRepository(api, socket),
-        notifications = ApiNotificationRepository(api, socket),
-        admin = ApiAdminRepository(api),
-        reports = ApiReportRepository(api);
+    : auth = ApiAuthRepository(api),
+      users = ApiUserRepository(api),
+      courses = ApiCourseRepository(api),
+      schedule = ApiScheduleRepository(api),
+      attendance = ApiAttendanceRepository(api, socket),
+      classroom = ApiClassroomRepository(api, socket),
+      questions = ApiQuestionRepository(api, socket),
+      notifications = ApiNotificationRepository(api, socket),
+      admin = ApiAdminRepository(api),
+      reports = ApiReportRepository(api);
 
   final AuthRepository auth;
   final UserRepository users;

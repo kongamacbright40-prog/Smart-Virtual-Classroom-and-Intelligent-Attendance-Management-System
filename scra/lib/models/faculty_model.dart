@@ -30,28 +30,28 @@ class FacultyModel {
   final bool isActive;
 
   factory FacultyModel.fromJson(Json json) => FacultyModel(
-        id: json['id'].toString(),
-        name: json['name'] as String,
-        code: json['code'] as String,
-        deanName: json['dean_name'] as String?,
-        category: json['category'] as String?,
-        departmentCount: JsonX.toInt(json['department_count']),
-        courseCount: JsonX.toInt(json['course_count']),
-        studentCount: JsonX.toInt(json['student_count']),
-        staffCount: JsonX.toInt(json['staff_count']),
-        isActive: json['is_active'] as bool? ?? true,
-      );
+    id: json['id'].toString(),
+    name: json['name'] as String,
+    code: json['code'] as String,
+    deanName: json['dean_name'] as String?,
+    category: json['category'] as String?,
+    departmentCount: JsonX.toInt(json['department_count']),
+    courseCount: JsonX.toInt(json['course_count']),
+    studentCount: JsonX.toInt(json['student_count']),
+    staffCount: JsonX.toInt(json['staff_count']),
+    isActive: json['is_active'] as bool? ?? true,
+  );
 
   Json toJson() => {
-        'id': id,
-        'name': name,
-        'code': code,
-        'dean_name': deanName,
-        'category': category,
-        'department_count': departmentCount,
-        'course_count': courseCount,
-        'student_count': studentCount,
-        'staff_count': staffCount,
-        'is_active': isActive,
-      };
+    'id': id,
+    'name': name,
+    'code': code,
+    'dean_name': deanName,
+    'category': category,
+    'department_count': departmentCount,
+    'course_count': courseCount,
+    'student_count': studentCount,
+    'staff_count': staffCount,
+    'is_active': isActive,
+  };
 }

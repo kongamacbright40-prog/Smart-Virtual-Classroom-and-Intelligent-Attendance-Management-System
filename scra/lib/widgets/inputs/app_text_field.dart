@@ -82,9 +82,9 @@ class _AppTextFieldState extends State<AppTextField> {
     if (widget.obscure) {
       suffix = IconButton(
         tooltip: _hidden ? 'Show password' : 'Hide password',
-        icon: Icon(_hidden
-            ? Icons.visibility_outlined
-            : Icons.visibility_off_outlined),
+        icon: Icon(
+          _hidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+        ),
         onPressed: () => setState(() => _hidden = !_hidden),
       );
     }
@@ -141,16 +141,19 @@ class _AppTextFieldState extends State<AppTextField> {
           decoration: InputDecoration(
             hintText: widget.hint,
             fillColor: widget.fillColor,
-            prefixIcon:
-                widget.prefixIcon == null ? null : Icon(widget.prefixIcon),
+            prefixIcon: widget.prefixIcon == null
+                ? null
+                : Icon(widget.prefixIcon),
             suffixIcon: suffix == null
                 ? null
                 : Padding(
                     padding: const EdgeInsets.only(right: 4),
                     child: suffix,
                   ),
-            suffixIconConstraints:
-                const BoxConstraints(minWidth: 40, minHeight: 40),
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
             counterText: widget.maxLength == null ? null : '',
           ),
         ),
@@ -159,8 +162,11 @@ class _AppTextFieldState extends State<AppTextField> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline,
-                  size: 14, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.info_outline,
+                size: 14,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: AppDimensions.spaceXs),
               Expanded(
                 child: Text(widget.helper!, style: theme.textTheme.bodySmall),

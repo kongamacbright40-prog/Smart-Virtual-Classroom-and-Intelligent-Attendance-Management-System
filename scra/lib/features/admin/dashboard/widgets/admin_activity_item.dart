@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:smart_class/core/constants/app_colors.dart';
@@ -42,9 +41,21 @@ class AdminActivityItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(activity.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleSmall),
-                Text(activity.description, maxLines: 2, overflow: TextOverflow.ellipsis),
-                Text('${activity.actorName ?? 'System'} ? ${Formatters.timeAgo(activity.timestamp)}', style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  activity.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                Text(
+                  activity.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  '${activity.actorName ?? 'System'} ? ${Formatters.timeAgo(activity.timestamp)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),

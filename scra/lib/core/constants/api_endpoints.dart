@@ -26,7 +26,8 @@ abstract final class ApiEndpoints {
   static const String courses = '/courses';
   static String course(String id) => '/courses/$id';
   static String courseRoster(String id) => '/courses/$id/roster';
-  static String courseAssignLecturer(String id) => '/courses/$id/assign-lecturer';
+  static String courseAssignLecturer(String id) =>
+      '/courses/$id/assign-lecturer';
   static String courseArchive(String id) => '/courses/$id/archive';
   static String courseSessions(String id) => '/courses/$id/sessions';
   static String courseAttendanceSummaries(String id) =>

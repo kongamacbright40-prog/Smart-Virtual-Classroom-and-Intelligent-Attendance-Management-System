@@ -8,11 +8,11 @@ import '../common/status_chip.dart';
 
 /// Maps an attendance status to a chip tone (shared by all roles).
 StatusTone attendanceTone(AttendanceStatus status) => switch (status) {
-      AttendanceStatus.present => StatusTone.success,
-      AttendanceStatus.late => StatusTone.warning,
-      AttendanceStatus.absent => StatusTone.error,
-      AttendanceStatus.excused => StatusTone.info,
-    };
+  AttendanceStatus.present => StatusTone.success,
+  AttendanceStatus.late => StatusTone.warning,
+  AttendanceStatus.absent => StatusTone.error,
+  AttendanceStatus.excused => StatusTone.info,
+};
 
 /// Attendance log entry: date block, course, time, status chip and details.
 class AttendanceCard extends StatelessWidget {
@@ -51,8 +51,10 @@ class AttendanceCard extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    Text(AppDateUtils.monthsShort[d.month - 1].toUpperCase(),
-                        style: theme.textTheme.labelSmall),
+                    Text(
+                      AppDateUtils.monthsShort[d.month - 1].toUpperCase(),
+                      style: theme.textTheme.labelSmall,
+                    ),
                     Text('${d.day}', style: theme.textTheme.titleLarge),
                   ],
                 ),
@@ -83,9 +85,11 @@ class AttendanceCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.schedule,
-                            size: 14,
-                            color: theme.colorScheme.onSurfaceVariant),
+                        Icon(
+                          Icons.schedule,
+                          size: 14,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -101,9 +105,9 @@ class AttendanceCard extends StatelessWidget {
                       Text(
                         record.status == AttendanceStatus.late
                             ? 'Entered: ${Formatters.time(record.checkedInAt!)} '
-                                '(${record.minutesLate} min delay)'
+                                  '(${record.minutesLate} min delay)'
                             : '${record.minutesLogged} / ${record.sessionMinutes} '
-                                'mins logged (${record.durationPercent.round()}%)',
+                                  'mins logged (${record.durationPercent.round()}%)',
                         style: theme.textTheme.bodySmall,
                       ),
                     ],

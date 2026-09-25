@@ -44,15 +44,14 @@ class MediaState {
     bool? screenSharing,
     List<String>? remotePeerIds,
     String? errorMessage,
-  }) =>
-      MediaState(
-        connection: connection ?? this.connection,
-        microphoneEnabled: microphoneEnabled ?? this.microphoneEnabled,
-        cameraEnabled: cameraEnabled ?? this.cameraEnabled,
-        screenSharing: screenSharing ?? this.screenSharing,
-        remotePeerIds: remotePeerIds ?? this.remotePeerIds,
-        errorMessage: errorMessage,
-      );
+  }) => MediaState(
+    connection: connection ?? this.connection,
+    microphoneEnabled: microphoneEnabled ?? this.microphoneEnabled,
+    cameraEnabled: cameraEnabled ?? this.cameraEnabled,
+    screenSharing: screenSharing ?? this.screenSharing,
+    remotePeerIds: remotePeerIds ?? this.remotePeerIds,
+    errorMessage: errorMessage,
+  );
 }
 
 /// Audio/video layer of the live classroom.
@@ -99,11 +98,13 @@ class MockWebRTCService implements WebRTCService {
     bool video = true,
   }) async {
     _set(_state.copyWith(connection: MediaConnectionState.connecting));
-    _set(MediaState(
-      connection: MediaConnectionState.connected,
-      microphoneEnabled: audio,
-      cameraEnabled: video,
-    ));
+    _set(
+      MediaState(
+        connection: MediaConnectionState.connected,
+        microphoneEnabled: audio,
+        cameraEnabled: video,
+      ),
+    );
   }
 
   @override
@@ -139,7 +140,7 @@ class MockWebRTCService implements WebRTCService {
 /// connection per remote participant.
 class FlutterWebRTCService implements WebRTCService {
   FlutterWebRTCService({String? serverUrl})
-      : _serverUrl = serverUrl ?? AppConfig.wsBaseUrl;
+    : _serverUrl = serverUrl ?? AppConfig.wsBaseUrl;
 
   final String _serverUrl;
   final _controller = StreamController<MediaState>.broadcast();
@@ -201,33 +202,43 @@ class FlutterWebRTCService implements WebRTCService {
         final peerId = data['from'] as String;
         final manager = _peers[peerId] ?? await _createPeer(peerId);
         await manager.handleOffer(
-            Map<String, dynamic>.from(data['payload'] as Map));
+          Map<String, dynamic>.from(data['payload'] as Map),
+        );
       };
       signaling.onAnswer = (data) async {
         await _peers[data['from'] as String]?.handleAnswer(
-            Map<String, dynamic>.from(data['payload'] as Map));
+          Map<String, dynamic>.from(data['payload'] as Map),
+        );
       };
       signaling.onCandidate = (data) async {
         await _peers[data['from'] as String]?.handleCandidate(
-            Map<String, dynamic>.from(data['payload'] as Map));
+          Map<String, dynamic>.from(data['payload'] as Map),
+        );
       };
       signaling.onUserLeft = (data) => _removePeer(data['from'] as String);
-      signaling.onDisconnected = () =>
-          _set(_state.copyWith(connection: MediaConnectionState.failed,
-              errorMessage: 'Disconnected from the media server.'));
+      signaling.onDisconnected = () => _set(
+        _state.copyWith(
+          connection: MediaConnectionState.failed,
+          errorMessage: 'Disconnected from the media server.',
+        ),
+      );
 
       await signaling.connect();
-      _set(_state.copyWith(
-        connection: MediaConnectionState.connected,
-        microphoneEnabled: audio,
-        cameraEnabled: video,
-      ));
+      _set(
+        _state.copyWith(
+          connection: MediaConnectionState.connected,
+          microphoneEnabled: audio,
+          cameraEnabled: video,
+        ),
+      );
     } on Object catch (e) {
       ErrorHandler.log(e);
-      _set(_state.copyWith(
-        connection: MediaConnectionState.failed,
-        errorMessage: 'Could not start camera or microphone.',
-      ));
+      _set(
+        _state.copyWith(
+          connection: MediaConnectionState.failed,
+          errorMessage: 'Could not start camera or microphone.',
+        ),
+      );
     }
   }
 
@@ -292,8 +303,9 @@ class FlutterWebRTCService implements WebRTCService {
   @override
   Future<void> startScreenShare() async {
     try {
-      _screenStream =
-          await navigator.mediaDevices.getDisplayMedia({'video': true});
+      _screenStream = await navigator.mediaDevices.getDisplayMedia({
+        'video': true,
+      });
       _set(_state.copyWith(screenSharing: true));
     } on Object catch (e) {
       ErrorHandler.log(e);

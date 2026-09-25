@@ -89,22 +89,54 @@ class AdminDrawer extends StatelessWidget {
           child: BrandHeader(subtitle: user?.fullName ?? 'Administration'),
         ),
         const Divider(),
-        _item(context, Icons.dashboard_outlined, 'Dashboard',
-            () => tab(AdminTabs.dashboard)),
-        _item(context, Icons.group_outlined, 'User Management',
-            () => tab(AdminTabs.users)),
-        _item(context, Icons.domain_outlined, 'Departments & Faculties',
-            () => push(RouteNames.departments)),
-        _item(context, Icons.calendar_month_outlined, 'Academic Terms',
-            () => push(RouteNames.academicTerms)),
-        _item(context, Icons.menu_book_outlined, 'Course Management',
-            () => tab(AdminTabs.courses)),
-        _item(context, Icons.analytics_outlined, 'Reports & Analytics',
-            () => push(RouteNames.adminReports)),
-        _item(context, Icons.settings_outlined, 'System Settings',
-            () => tab(AdminTabs.settings)),
-        _item(context, Icons.admin_panel_settings_outlined, 'Admin Profile',
-            () => push(RouteNames.adminProfile)),
+        _item(
+          context,
+          Icons.dashboard_outlined,
+          'Dashboard',
+          () => tab(AdminTabs.dashboard),
+        ),
+        _item(
+          context,
+          Icons.group_outlined,
+          'User Management',
+          () => tab(AdminTabs.users),
+        ),
+        _item(
+          context,
+          Icons.domain_outlined,
+          'Departments & Faculties',
+          () => push(RouteNames.departments),
+        ),
+        _item(
+          context,
+          Icons.calendar_month_outlined,
+          'Academic Terms',
+          () => push(RouteNames.academicTerms),
+        ),
+        _item(
+          context,
+          Icons.menu_book_outlined,
+          'Course Management',
+          () => tab(AdminTabs.courses),
+        ),
+        _item(
+          context,
+          Icons.analytics_outlined,
+          'Reports & Analytics',
+          () => push(RouteNames.adminReports),
+        ),
+        _item(
+          context,
+          Icons.settings_outlined,
+          'System Settings',
+          () => tab(AdminTabs.settings),
+        ),
+        _item(
+          context,
+          Icons.admin_panel_settings_outlined,
+          'Admin Profile',
+          () => push(RouteNames.adminProfile),
+        ),
         const Divider(),
         _item(context, Icons.logout, AppStrings.logout, () {
           final navigatorContext = Navigator.of(context).context;
@@ -125,8 +157,9 @@ class AdminDrawer extends StatelessWidget {
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(label, style: color == null ? null : TextStyle(color: color)),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: AppDimensions.spaceLg),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.spaceLg,
+      ),
       onTap: onTap,
     );
   }

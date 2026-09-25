@@ -47,38 +47,38 @@ class NotificationModel {
   final String? actionLabel;
 
   factory NotificationModel.fromJson(Json json) => NotificationModel(
-        id: json['id'].toString(),
-        userId: json['user_id'].toString(),
-        title: json['title'] as String,
-        body: json['body'] as String,
-        type: NotificationType.fromJson(json['type']),
-        createdAt: JsonX.date(json['created_at']),
-        isRead: json['is_read'] as bool? ?? false,
-        referenceId: json['reference_id'] as String?,
-        actionLabel: json['action_label'] as String?,
-      );
+    id: json['id'].toString(),
+    userId: json['user_id'].toString(),
+    title: json['title'] as String,
+    body: json['body'] as String,
+    type: NotificationType.fromJson(json['type']),
+    createdAt: JsonX.date(json['created_at']),
+    isRead: json['is_read'] as bool? ?? false,
+    referenceId: json['reference_id'] as String?,
+    actionLabel: json['action_label'] as String?,
+  );
 
   Json toJson() => {
-        'id': id,
-        'user_id': userId,
-        'title': title,
-        'body': body,
-        'type': type.value,
-        'created_at': createdAt.toIso8601String(),
-        'is_read': isRead,
-        'reference_id': referenceId,
-        'action_label': actionLabel,
-      };
+    'id': id,
+    'user_id': userId,
+    'title': title,
+    'body': body,
+    'type': type.value,
+    'created_at': createdAt.toIso8601String(),
+    'is_read': isRead,
+    'reference_id': referenceId,
+    'action_label': actionLabel,
+  };
 
   NotificationModel copyWith({bool? isRead}) => NotificationModel(
-        id: id,
-        userId: userId,
-        title: title,
-        body: body,
-        type: type,
-        createdAt: createdAt,
-        isRead: isRead ?? this.isRead,
-        referenceId: referenceId,
-        actionLabel: actionLabel,
-      );
+    id: id,
+    userId: userId,
+    title: title,
+    body: body,
+    type: type,
+    createdAt: createdAt,
+    isRead: isRead ?? this.isRead,
+    referenceId: referenceId,
+    actionLabel: actionLabel,
+  );
 }

@@ -23,9 +23,9 @@ class ApiService {
     String? baseUrl,
     Duration? timeout,
     this.onUnauthorized,
-  })  : _client = client ?? http.Client(),
-        _baseUrl = baseUrl ?? '${AppConfig.apiBaseUrl}${AppConfig.apiPrefix}',
-        _timeout = timeout ?? AppConfig.requestTimeout;
+  }) : _client = client ?? http.Client(),
+       _baseUrl = baseUrl ?? '${AppConfig.apiBaseUrl}${AppConfig.apiPrefix}',
+       _timeout = timeout ?? AppConfig.requestTimeout;
 
   final http.Client _client;
   final TokenProvider? tokenProvider;
@@ -65,39 +65,48 @@ class ApiService {
     String path, {
     Map<String, Object?>? query,
     bool authenticated = true,
-  }) =>
-      _send('GET', path, query: query, authenticated: authenticated);
+  }) => _send('GET', path, query: query, authenticated: authenticated);
 
   Future<Object?> post(
     String path, {
     Object? body,
     Map<String, Object?>? query,
     bool authenticated = true,
-  }) =>
-      _send('POST', path,
-          body: body, query: query, authenticated: authenticated);
+  }) => _send(
+    'POST',
+    path,
+    body: body,
+    query: query,
+    authenticated: authenticated,
+  );
 
   Future<Object?> put(String path, {Object? body, bool authenticated = true}) =>
       _send('PUT', path, body: body, authenticated: authenticated);
 
-  Future<Object?> patch(String path,
-          {Object? body, bool authenticated = true}) =>
-      _send('PATCH', path, body: body, authenticated: authenticated);
+  Future<Object?> patch(
+    String path, {
+    Object? body,
+    bool authenticated = true,
+  }) => _send('PATCH', path, body: body, authenticated: authenticated);
 
   Future<Object?> delete(String path, {bool authenticated = true}) =>
       _send('DELETE', path, authenticated: authenticated);
 
   /// Convenience: GET and expect a JSON object.
-  Future<Map<String, dynamic>> getJson(String path,
-      {Map<String, Object?>? query}) async {
+  Future<Map<String, dynamic>> getJson(
+    String path, {
+    Map<String, Object?>? query,
+  }) async {
     final data = await get(path, query: query);
     if (data is Map<String, dynamic>) return data;
     throw const ParsingException();
   }
 
   /// Convenience: GET and expect a JSON array of objects.
-  Future<List<Map<String, dynamic>>> getList(String path,
-      {Map<String, Object?>? query}) async {
+  Future<List<Map<String, dynamic>>> getList(
+    String path, {
+    Map<String, Object?>? query,
+  }) async {
     final data = await get(path, query: query);
     final list = data is Map<String, dynamic> ? data['items'] : data;
     if (list is List) {
@@ -151,13 +160,16 @@ class ApiService {
         throw AuthException(message ?? 'Your session has expired.');
       case 403:
         throw ForbiddenException(
-            message ?? 'You do not have permission to do this.');
+          message ?? 'You do not have permission to do this.',
+        );
       case 404:
         throw NotFoundException(message ?? 'Not found.');
       default:
         if (status >= 500) {
           throw ServerException(
-              message ?? 'The server encountered an error.', status);
+            message ?? 'The server encountered an error.',
+            status,
+          );
         }
         throw UnknownException(message ?? 'Unexpected response ($status).');
     }
@@ -191,7 +203,9 @@ class ApiService {
     if (decoded is! Map || decoded['detail'] is! List) return const {};
     final result = <String, String>{};
     for (final item in decoded['detail'] as List) {
-      if (item is Map && item['loc'] is List && (item['loc'] as List).isNotEmpty) {
+      if (item is Map &&
+          item['loc'] is List &&
+          (item['loc'] as List).isNotEmpty) {
         result[(item['loc'] as List).last.toString()] =
             item['msg']?.toString() ?? 'Invalid value';
       }

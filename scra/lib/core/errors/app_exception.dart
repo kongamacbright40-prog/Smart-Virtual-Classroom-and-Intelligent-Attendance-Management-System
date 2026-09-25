@@ -16,8 +16,7 @@ sealed class AppException implements Exception {
 /// No connectivity / host unreachable.
 final class NetworkException extends AppException {
   const NetworkException([
-    super.message =
-        'Unable to reach the campus server. Check your connection and try again.',
+    super.message = 'Unable to reach the campus server. Check your connection and try again.',
     Object? cause,
   ]) : super(cause: cause);
 }
@@ -45,7 +44,9 @@ final class ForbiddenException extends AppException {
 
 /// Resource not found (HTTP 404).
 final class NotFoundException extends AppException {
-  const NotFoundException([super.message = 'The requested item was not found.']);
+  const NotFoundException([
+    super.message = 'The requested item was not found.',
+  ]);
 }
 
 /// Server-side validation failure (HTTP 400/409/422).

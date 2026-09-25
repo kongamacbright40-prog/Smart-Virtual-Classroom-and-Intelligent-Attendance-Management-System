@@ -138,10 +138,8 @@ class StorageService {
     }
   }
 
-  Future<void> updateUser(UserModel user) => _store.setString(
-        StorageKeys.currentUser,
-        jsonEncode(user.toJson()),
-      );
+  Future<void> updateUser(UserModel user) =>
+      _store.setString(StorageKeys.currentUser, jsonEncode(user.toJson()));
 
   Future<String?> getAccessToken() => _store.getString(StorageKeys.authToken);
 
@@ -157,16 +155,12 @@ class StorageService {
     final raw = await _store.getString(StorageKeys.appSettings);
     if (raw == null) return const AppSettingsModel();
     try {
-      return AppSettingsModel.fromJson(
-        jsonDecode(raw) as Map<String, dynamic>,
-      );
+      return AppSettingsModel.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     } on Object {
       return const AppSettingsModel();
     }
   }
 
-  Future<void> saveSettings(AppSettingsModel settings) => _store.setString(
-        StorageKeys.appSettings,
-        jsonEncode(settings.toJson()),
-      );
+  Future<void> saveSettings(AppSettingsModel settings) =>
+      _store.setString(StorageKeys.appSettings, jsonEncode(settings.toJson()));
 }

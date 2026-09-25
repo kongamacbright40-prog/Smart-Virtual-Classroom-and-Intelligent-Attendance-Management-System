@@ -12,11 +12,8 @@ enum MessageStatus {
 
   final String value;
 
-  static MessageStatus fromJson(Object? value) =>
-      MessageStatus.values.firstWhere(
-        (e) => e.value == value,
-        orElse: () => MessageStatus.sent,
-      );
+  static MessageStatus fromJson(Object? value) => MessageStatus.values
+      .firstWhere((e) => e.value == value, orElse: () => MessageStatus.sent);
 }
 
 class ChatMessageModel {
@@ -47,42 +44,45 @@ class ChatMessageModel {
   final bool isPinned;
 
   factory ChatMessageModel.fromJson(Json json) => ChatMessageModel(
-        id: json['id'].toString(),
-        classroomId: json['classroom_id'].toString(),
-        senderId: json['sender_id'].toString(),
-        senderName: json['sender_name'] as String,
-        senderRole: UserRole.fromJson(json['sender_role']),
-        message: json['message'] as String,
-        timestamp: JsonX.date(json['timestamp']),
-        status: MessageStatus.fromJson(json['status']),
-        isQuestion: json['is_question'] as bool? ?? false,
-        isPinned: json['is_pinned'] as bool? ?? false,
-      );
+    id: json['id'].toString(),
+    classroomId: json['classroom_id'].toString(),
+    senderId: json['sender_id'].toString(),
+    senderName: json['sender_name'] as String,
+    senderRole: UserRole.fromJson(json['sender_role']),
+    message: json['message'] as String,
+    timestamp: JsonX.date(json['timestamp']),
+    status: MessageStatus.fromJson(json['status']),
+    isQuestion: json['is_question'] as bool? ?? false,
+    isPinned: json['is_pinned'] as bool? ?? false,
+  );
 
   Json toJson() => {
-        'id': id,
-        'classroom_id': classroomId,
-        'sender_id': senderId,
-        'sender_name': senderName,
-        'sender_role': senderRole.value,
-        'message': message,
-        'timestamp': timestamp.toIso8601String(),
-        'status': status.value,
-        'is_question': isQuestion,
-        'is_pinned': isPinned,
-      };
+    'id': id,
+    'classroom_id': classroomId,
+    'sender_id': senderId,
+    'sender_name': senderName,
+    'sender_role': senderRole.value,
+    'message': message,
+    'timestamp': timestamp.toIso8601String(),
+    'status': status.value,
+    'is_question': isQuestion,
+    'is_pinned': isPinned,
+  };
 
-  ChatMessageModel copyWith({String? id, MessageStatus? status, bool? isPinned}) =>
-      ChatMessageModel(
-        id: id ?? this.id,
-        classroomId: classroomId,
-        senderId: senderId,
-        senderName: senderName,
-        senderRole: senderRole,
-        message: message,
-        timestamp: timestamp,
-        status: status ?? this.status,
-        isQuestion: isQuestion,
-        isPinned: isPinned ?? this.isPinned,
-      );
+  ChatMessageModel copyWith({
+    String? id,
+    MessageStatus? status,
+    bool? isPinned,
+  }) => ChatMessageModel(
+    id: id ?? this.id,
+    classroomId: classroomId,
+    senderId: senderId,
+    senderName: senderName,
+    senderRole: senderRole,
+    message: message,
+    timestamp: timestamp,
+    status: status ?? this.status,
+    isQuestion: isQuestion,
+    isPinned: isPinned ?? this.isPinned,
+  );
 }

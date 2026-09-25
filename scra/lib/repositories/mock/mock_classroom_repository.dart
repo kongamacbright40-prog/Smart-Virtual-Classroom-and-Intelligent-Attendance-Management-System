@@ -23,7 +23,8 @@ class MockClassroomRepository extends MockRepositoryBase
     final updated = s.copyWith(
       status: status,
       attendanceActive: status == SessionStatus.live,
-      startTime: status == SessionStatus.live && s.startTime.isAfter(DateTime.now())
+      startTime:
+          status == SessionStatus.live && s.startTime.isAfter(DateTime.now())
           ? DateTime.now()
           : null,
       endTime: status == SessionStatus.completed ? DateTime.now() : null,
@@ -38,45 +39,51 @@ class MockClassroomRepository extends MockRepositoryBase
 
   @override
   Future<ClassSessionModel> endClass(String sessionId) => delay(() {
-        final updated = _setStatus(sessionId, SessionStatus.completed);
-        _store.participants[sessionId] = [];
-        _emit(sessionId);
-        return updated;
-      });
+    final updated = _setStatus(sessionId, SessionStatus.completed);
+    _store.participants[sessionId] = [];
+    _emit(sessionId);
+    return updated;
+  });
 
   @override
   Future<void> joinClass(String sessionId, UserModel user) => delay(() {
-        final session = _store.sessions[sessionId];
-        if (session == null) {
-          throw const NotFoundException('Class session not found.');
-        }
-        if (session.status != SessionStatus.live &&
-            user.role != UserRole.lecturer) {
-          throw const ValidationException('This class is not live yet.');
-        }
-        final list = _list(sessionId);
-        list.removeWhere((p) => p.userId == user.id);
-        list.add(ParticipantModel(
-          userId: user.id,
-          name: user.fullName,
-          role: user.role,
-          joinedAt: DateTime.now(),
-          isMuted: true,
-          isVideoOn: user.role == UserRole.lecturer,
-        ));
-        _store.sessions[sessionId] =
-            session.copyWith(participantCount: list.length);
-        _emit(sessionId);
-      });
+    final session = _store.sessions[sessionId];
+    if (session == null) {
+      throw const NotFoundException('Class session not found.');
+    }
+    if (session.status != SessionStatus.live &&
+        user.role != UserRole.lecturer) {
+      throw const ValidationException('This class is not live yet.');
+    }
+    final list = _list(sessionId);
+    list.removeWhere((p) => p.userId == user.id);
+    list.add(
+      ParticipantModel(
+        userId: user.id,
+        name: user.fullName,
+        role: user.role,
+        joinedAt: DateTime.now(),
+        isMuted: true,
+        isVideoOn: user.role == UserRole.lecturer,
+      ),
+    );
+    _store.sessions[sessionId] = session.copyWith(
+      participantCount: list.length,
+    );
+    _emit(sessionId);
+  });
 
   @override
   Future<void> leaveClass(String sessionId, String userId) => delay(() {
-        _list(sessionId).removeWhere((p) => p.userId == userId);
-        _emit(sessionId);
-      });
+    _list(sessionId).removeWhere((p) => p.userId == userId);
+    _emit(sessionId);
+  });
 
-  void _update(String sessionId, String userId,
-      ParticipantModel Function(ParticipantModel) change) {
+  void _update(
+    String sessionId,
+    String userId,
+    ParticipantModel Function(ParticipantModel) change,
+  ) {
     final list = _list(sessionId);
     final i = list.indexWhere((p) => p.userId == userId);
     if (i == -1) return;
@@ -86,8 +93,10 @@ class MockClassroomRepository extends MockRepositoryBase
 
   @override
   Future<void> setHandRaised(String sessionId, String userId, bool raised) =>
-      delay(() => _update(
-          sessionId, userId, (p) => p.copyWith(isHandRaised: raised)));
+      delay(
+        () =>
+            _update(sessionId, userId, (p) => p.copyWith(isHandRaised: raised)),
+      );
 
   @override
   Future<void> updateMediaState(
@@ -96,16 +105,17 @@ class MockClassroomRepository extends MockRepositoryBase
     bool? isMuted,
     bool? isVideoOn,
     bool? isScreenSharing,
-  }) =>
-      delay(() => _update(
-            sessionId,
-            userId,
-            (p) => p.copyWith(
-              isMuted: isMuted,
-              isVideoOn: isVideoOn,
-              isScreenSharing: isScreenSharing,
-            ),
-          ));
+  }) => delay(
+    () => _update(
+      sessionId,
+      userId,
+      (p) => p.copyWith(
+        isMuted: isMuted,
+        isVideoOn: isVideoOn,
+        isScreenSharing: isScreenSharing,
+      ),
+    ),
+  );
 
   @override
   Stream<List<ParticipantModel>> watchParticipants(String sessionId) async* {
@@ -123,17 +133,15 @@ class MockClassroomRepository extends MockRepositoryBase
 
   @override
   Future<ChatMessageModel> sendMessage(ChatMessageModel message) => delay(() {
-        if (message.message.trim().isEmpty) {
-          throw const ValidationException('Message cannot be empty.');
-        }
-        final sent = message.copyWith(
-          id: message.id.startsWith('local-')
-              ? _store.nextId('msg')
-              : message.id,
-          status: MessageStatus.sent,
-        );
-        _store.messages.putIfAbsent(message.classroomId, () => []).add(sent);
-        _store.chatChannel(message.classroomId).add(sent);
-        return sent;
-      });
+    if (message.message.trim().isEmpty) {
+      throw const ValidationException('Message cannot be empty.');
+    }
+    final sent = message.copyWith(
+      id: message.id.startsWith('local-') ? _store.nextId('msg') : message.id,
+      status: MessageStatus.sent,
+    );
+    _store.messages.putIfAbsent(message.classroomId, () => []).add(sent);
+    _store.chatChannel(message.classroomId).add(sent);
+    return sent;
+  });
 }

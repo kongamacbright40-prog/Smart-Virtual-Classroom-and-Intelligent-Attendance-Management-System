@@ -51,18 +51,24 @@ class PasswordStrengthCard extends StatelessWidget {
           Row(
             children: [
               Flexible(
-                child: Text('Security Strength: ',
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge),
+                child: Text(
+                  'Security Strength: ',
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge,
+                ),
               ),
               Flexible(
-                child: Text(password.isEmpty ? '—' : strength.label,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(color: color)),
+                child: Text(
+                  password.isEmpty ? '—' : strength.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(color: color),
+                ),
               ),
               const Spacer(),
-              Text('$met / ${chips.length}',
-                  style: theme.textTheme.labelLarge?.copyWith(color: color)),
+              Text(
+                '$met / ${chips.length}',
+                style: theme.textTheme.labelLarge?.copyWith(color: color),
+              ),
             ],
           ),
           const SizedBox(height: AppDimensions.spaceSm),
@@ -74,23 +80,28 @@ class PasswordStrengthCard extends StatelessWidget {
             children: [
               for (final c in chips)
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: c.$2
                         ? AppColors.secondaryFixed
                         : theme.colorScheme.surfaceContainerHigh,
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.radiusFull),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusFull,
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(c.$2 ? Icons.check : Icons.remove,
-                          size: 14,
-                          color: c.$2
-                              ? AppColors.onSecondaryFixedVariant
-                              : theme.colorScheme.onSurfaceVariant),
+                      Icon(
+                        c.$2 ? Icons.check : Icons.remove,
+                        size: 14,
+                        color: c.$2
+                            ? AppColors.onSecondaryFixedVariant
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
                       Text(c.$1, style: theme.textTheme.labelMedium),
                     ],
@@ -108,7 +119,8 @@ class PasswordStrengthCard extends StatelessWidget {
         color: theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         border: Border.all(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45)),
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -116,8 +128,10 @@ class PasswordStrengthCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text('Security Strength',
-                    style: theme.textTheme.titleMedium),
+                child: Text(
+                  'Security Strength',
+                  style: theme.textTheme.titleMedium,
+                ),
               ),
               Flexible(
                 child: Text(
@@ -170,8 +184,11 @@ class PasswordStrengthCard extends StatelessWidget {
           if (extraNote != null)
             Row(
               children: [
-                Icon(Icons.verified_user_outlined,
-                    size: 18, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.verified_user_outlined,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: AppDimensions.spaceSm),
                 Expanded(
                   child: Text(extraNote!, style: theme.textTheme.bodySmall),
