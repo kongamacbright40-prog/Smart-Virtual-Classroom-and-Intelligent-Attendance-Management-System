@@ -23,7 +23,7 @@ class LoginForm extends StatefulWidget {
     super.key,
     required this.onSubmit,
     this.identifierLabel = 'Institutional ID / Email',
-    this.identifierHint = 'e.g. s1234567@university.edu or 2024-STD-001',
+    this.identifierHint = 'Institutional ID or email',
     this.identifierValidator = Validators.identifier,
     this.identifierBadge,
     this.identifierSuffix,
@@ -143,12 +143,18 @@ class _LoginFormState extends State<LoginForm> {
                   ),
                 ),
                 if (widget.onLink != null)
-                  TextButton.icon(
-                    onPressed: widget.onLink,
-                    icon: widget.linkIcon == null
-                        ? const SizedBox.shrink()
-                        : Icon(widget.linkIcon, size: 18),
-                    label: Text(widget.linkLabel),
+                  Flexible(
+                    child: TextButton.icon(
+                      onPressed: widget.onLink,
+                      icon: widget.linkIcon == null
+                          ? const SizedBox.shrink()
+                          : Icon(widget.linkIcon, size: 18),
+                      label: Text(
+                        widget.linkLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
               ],
             ),

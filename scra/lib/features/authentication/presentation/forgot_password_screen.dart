@@ -222,12 +222,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppDimensions.spaceSm),
-                Text(
-                  'University Network Security Policy • 2FA Enabled',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.labelSmall,
-                ),
               ],
             ),
           ),

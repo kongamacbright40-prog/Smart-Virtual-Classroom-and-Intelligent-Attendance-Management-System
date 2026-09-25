@@ -21,8 +21,8 @@ class OnboardingLayout extends StatelessWidget {
     required this.hero,
     required this.title,
     required this.body,
-    required this.footerIcon,
-    required this.footerText,
+    this.footerIcon,
+    this.footerText,
     required this.onNext,
     this.badge,
     this.headerBadge,
@@ -36,8 +36,8 @@ class OnboardingLayout extends StatelessWidget {
   final Widget? badge;
   final String title;
   final String body;
-  final IconData footerIcon;
-  final String footerText;
+  final IconData? footerIcon;
+  final String? footerText;
   final VoidCallback onNext;
   final VoidCallback? onBack;
   final String nextLabel;
@@ -155,25 +155,27 @@ class OnboardingLayout extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppDimensions.spaceMd),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            footerIcon,
-                            size: 16,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: AppDimensions.spaceSm),
-                          Flexible(
-                            child: Text(
-                              footerText,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.labelMedium,
+                      if (footerText != null) ...[
+                        const SizedBox(height: AppDimensions.spaceMd),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              footerIcon ?? Icons.info_outline,
+                              size: 16,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(width: AppDimensions.spaceSm),
+                            Flexible(
+                              child: Text(
+                                footerText!,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.labelMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

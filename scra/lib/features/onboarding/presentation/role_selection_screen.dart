@@ -29,26 +29,24 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       title: 'Student Portal',
       tag: 'Learner',
       description:
-          'Join live lectures, submit coursework & track daily attendance.',
-      features: ['Live Polling', 'Auto-Attendance', 'Class Timetable'],
+          'Join live lectures, answer live questions & track your attendance.',
+      features: ['Live Classes', 'Live Questions', 'Attendance'],
     ),
     _Portal(
       role: UserRole.lecturer,
       icon: Icons.cast_for_education_outlined,
       title: 'Lecturer Portal',
       tag: 'Faculty',
-      description:
-          'Stream interactive classes, moderate Q&A, and assess participation.',
-      features: ['Session Broadcast', 'Live Telemetry', 'Grading Hub'],
+      description: 'Run live classes, launch questions and manage attendance.',
+      features: ['Live Classroom', 'Scheduling', 'Reports'],
     ),
     _Portal(
       role: UserRole.admin,
       icon: Icons.shield_outlined,
       title: 'Admin Portal',
       tag: 'Staff',
-      description:
-          'Manage user roster, audit logs, and institutional infrastructure.',
-      features: ['Campus Directory', 'Audit Logs', 'SIS Sync'],
+      description: 'Manage users, academic structure, courses and policies.',
+      features: ['Users', 'Academic Terms', 'Analytics'],
     ),
   ];
 
@@ -191,25 +189,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                         label: 'Continue to Setup',
                         trailingIcon: Icons.arrow_forward,
                         onPressed: _continue,
-                      ),
-                      const SizedBox(height: AppDimensions.spaceMd),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.lock_outline,
-                            size: 16,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: AppDimensions.spaceSm),
-                          Flexible(
-                            child: Text(
-                              'Protected via SAML 2.0 & Institutional Credentials',
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.labelMedium,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),

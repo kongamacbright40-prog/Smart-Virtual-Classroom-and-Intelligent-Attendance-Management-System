@@ -136,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen> {
                               const SizedBox(width: AppDimensions.spaceSm),
                               Flexible(
                                 child: Text(
-                                  'Connecting to campus node...',
+                                  'Loading...',
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.labelMedium?.copyWith(
                                     color: const Color(0xCC7DD3FC),
@@ -159,43 +159,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   child: Column(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.splashBackground.withValues(
-                            alpha: 0.8,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            AppDimensions.radiusFull,
-                          ),
-                          border: Border.all(color: AppColors.slate700),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.verified_user,
-                              size: 16,
-                              color: AppColors.sky400,
-                            ),
-                            const SizedBox(width: AppDimensions.spaceSm),
-                            Flexible(
-                              child: Text(
-                                'Powered by Academic Identity System',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: AppColors.slate300,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppDimensions.spaceSm),
                       Text(
-                        'v${AppConstants.appVersion} • Enterprise Academic Edition',
+                        'v${AppConstants.appVersion}',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: AppColors.slate400,
                           fontFamily: 'monospace',

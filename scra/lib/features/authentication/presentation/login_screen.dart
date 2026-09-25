@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/routing/route_names.dart';
-import '../../../core/utils/helpers.dart';
 import '../../../models/user_model.dart';
-import '../../../widgets/buttons/secondary_button.dart';
 import '../../../widgets/common/app_logo.dart';
-import '../../../widgets/common/status_chip.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/login_form.dart';
 
@@ -58,12 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
     auth.selectRole(role);
   }
 
-  void _notAvailable(String feature) => Helpers.showSnackBar(
-    context,
-    '$feature will be available once Smart Class is connected to your '
-    'campus identity provider.',
-  );
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -91,14 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           icon: const Icon(Icons.arrow_back),
                           onPressed: () => Navigator.of(context).maybePop(),
                         ),
-                      const Spacer(),
-                      const Flexible(
-                        child: StatusChip(
-                          label: 'Campus SSO Ready',
-                          icon: Icons.verified_user_outlined,
-                          tone: StatusTone.info,
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: AppDimensions.spaceMd),
@@ -151,43 +133,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     key: ValueKey(_role),
                     onSubmit: _login,
                     identifierHint: _role == UserRole.student
-                        ? 'e.g. ICT20251181 or name@student.univ.edu'
-                        : 'e.g. FAC-2024-8192 or name@smartclass.edu.ac',
+                        ? 'Student matricule or institutional email'
+                        : 'Staff ID or institutional email',
                     onLink: () =>
                         Navigator.of(context)
                             .pushNamed(RouteNames.forgotPassword),
-                  ),
-                  const SizedBox(height: AppDimensions.spaceLg),
-                  Row(
-                    children: [
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.spaceMd,
-                        ),
-                        child: Text(
-                          'OR CONTINUE WITH',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ),
-                      const Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: AppDimensions.spaceMd),
-                  SecondaryButton(
-                    label: 'University Single Sign-On (SSO)',
-                    icon: Icons.account_balance_outlined,
-                    style: SecondaryButtonStyle.outlined,
-                    onPressed: () => _notAvailable('Single Sign-On'),
-                  ),
-                  const SizedBox(height: AppDimensions.spaceSm),
-                  SecondaryButton(
-                    label: 'Quick Access via Biometrics',
-                    icon: Icons.fingerprint,
-                    backgroundColor: AppColors.tertiaryFixed,
-                    onPressed: () => _notAvailable('Biometric sign-in'),
                   ),
                   const SizedBox(height: AppDimensions.spaceLg),
                   _FirstTimeLink(role: _role),
@@ -203,25 +153,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: theme.colorScheme.primary,
                           decoration: TextDecoration.underline,
                           decorationColor: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppDimensions.spaceMd),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.lock_outline,
-                        size: 14,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          '256-bit SSL Encrypted • EduVerse Security',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.labelSmall,
                         ),
                       ),
                     ],

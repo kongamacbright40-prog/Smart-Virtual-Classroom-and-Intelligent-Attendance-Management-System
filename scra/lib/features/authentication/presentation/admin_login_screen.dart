@@ -5,12 +5,9 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/routing/route_names.dart';
-import '../../../core/utils/helpers.dart';
 import '../../../core/utils/validators.dart';
 import '../../../models/user_model.dart';
-import '../../../widgets/buttons/secondary_button.dart';
 import '../../../widgets/common/app_logo.dart';
-import '../../../widgets/common/status_chip.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/login_form.dart';
 
@@ -92,50 +89,19 @@ class AdminLoginScreen extends StatelessWidget {
                           LoginForm(
                             showRequired: true,
                             identifierLabel: 'Administrator ID',
-                            identifierHint: 'e.g. ADM-9021-SYS',
+                            identifierHint: 'Your administrator ID',
                             identifierValidator: (v) => (v ?? '').contains('@')
                                 ? Validators.email(v)
                                 : Validators.adminId(v),
-                            identifierBadge: const StatusChip(
-                              label: 'SIS Admin',
-                              tone: StatusTone.info,
-                              dense: true,
-                            ),
-                            identifierSuffix: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Icon(
-                                Icons.verified_outlined,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                            passwordBadge: Text(
-                              'FIPS 140-3',
-                              style: theme.textTheme.labelMedium,
-                            ),
                             fieldFill: theme.colorScheme.surfaceContainerLow,
                             rememberLabel: 'Remember credentials',
-                            linkLabel: 'Token Help',
-                            linkIcon: Icons.key_outlined,
-                            onLink: () => Helpers.showSnackBar(
-                              context,
-                              'Hardware tokens are issued by the campus IT '
-                              'security office.',
-                            ),
+                            onLink: () =>
+                                Navigator.of(context)
+                                    .pushNamed(RouteNames.forgotPassword),
                             submitLabel: 'Secure Login',
                             submitIcon: Icons.vpn_key_outlined,
                             onSubmit: (id, pw, remember) =>
                                 _login(context, id, pw, remember),
-                          ),
-                          const SizedBox(height: AppDimensions.spaceSm),
-                          SecondaryButton(
-                            label: 'Sign in with Institutional YubiKey / Hardware Token',
-                            icon: Icons.security_update_good_outlined,
-                            height: 60,
-                            onPressed: () => Helpers.showSnackBar(
-                              context,
-                              'Hardware token sign-in requires the campus '
-                              'identity provider.',
-                            ),
                           ),
                         ],
                       ),
@@ -209,23 +175,6 @@ class AdminLoginScreen extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.live,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: AppDimensions.spaceSm),
-                              Expanded(
-                                child: Text(
-                                  '#ADM-LOG-8842',
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    fontFamily: 'monospace',
-                                  ),
-                                ),
-                              ),
                               Text(
                                 'AES-256 Encrypted',
                                 style: theme.textTheme.labelMedium,
@@ -321,15 +270,6 @@ class _AdminHero extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          'Tier 3 Access • SAML 2.0 / FIPS',
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: AppColors.slate300,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),

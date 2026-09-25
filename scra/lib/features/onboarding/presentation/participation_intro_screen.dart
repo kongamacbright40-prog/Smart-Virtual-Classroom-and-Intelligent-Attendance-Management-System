@@ -41,8 +41,6 @@ class ParticipationIntroScreen extends StatelessWidget {
       ),
       title: 'Interactive Participation',
       body: 'Answer live questions and participate in classroom activities while your engagement is tracked separately from technical attendance.',
-      footerIcon: Icons.verified_outlined,
-      footerText: 'Attendance & Participation sync with Campus LMS',
       nextLabel: 'Get Started',
       onBack: () => Navigator.of(context).maybePop(),
       onNext: () => OnboardingLayout.skip(context),

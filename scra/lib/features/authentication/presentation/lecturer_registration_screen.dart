@@ -43,7 +43,7 @@ class LecturerRegistrationScreen extends StatelessWidget {
                 AccountSetupForm(
                   role: UserRole.lecturer,
                   idLabel: 'Staff / Lecturer ID',
-                  idHint: 'e.g. FAC-2024-8192',
+                  idHint: 'Your staff / lecturer ID',
                   idHelper: 'Found on your academic employment smartcard or faculty portal.',
                   idValidator: Validators.staffId,
                   idBadge: StatusChip(
@@ -53,14 +53,6 @@ class LecturerRegistrationScreen extends StatelessWidget {
                   ),
                   emailHint: 'name@faculty.edu',
                   submitLabel: 'Complete Lecturer Setup',
-                  strengthNote:
-                      'Institutional 2FA will be prompted on first login',
-                ),
-                SizedBox(height: AppDimensions.spaceLg),
-                SecurityFooter(
-                  text: 'SAML 2.0 Academic Identity • Protected by EduVerse Security',
-                  icon: Icons.shield_outlined,
-                  pill: true,
                 ),
                 SizedBox(height: AppDimensions.spaceMd),
               ],

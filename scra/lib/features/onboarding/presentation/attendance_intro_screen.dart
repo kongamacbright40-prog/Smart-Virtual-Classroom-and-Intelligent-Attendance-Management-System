@@ -33,8 +33,6 @@ class AttendanceIntroScreen extends StatelessWidget {
       badge: const OnboardingBadge(label: 'Smart Presence'),
       title: 'Automatic Attendance',
       body: 'Your join time, leave time and active session duration are recorded automatically.',
-      footerIcon: Icons.pin_drop_outlined,
-      footerText: 'Biometric & Geo-timestamped • Zero manual roll call',
       onBack: () => Navigator.of(context).maybePop(),
       onNext: () =>
           Navigator.of(context).pushNamed(RouteNames.participationIntro),

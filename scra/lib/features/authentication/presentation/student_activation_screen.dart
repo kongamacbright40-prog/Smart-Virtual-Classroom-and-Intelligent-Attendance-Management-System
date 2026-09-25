@@ -45,17 +45,13 @@ class StudentActivationScreen extends StatelessWidget {
                 AccountSetupForm(
                   role: UserRole.student,
                   idLabel: 'Student Matricule',
-                  idHint: 'e.g. MAT-2024-9148',
+                  idHint: 'Your student matricule',
                   idHelper: 'Found on your student smartcard or formal admission letter',
                   idValidator: Validators.studentId,
                   idSuffixLabel: 'SIS ID',
                   emailHint: 'name@campus.edu',
                   submitLabel: 'Activate Account',
                   acknowledgement: 'I acknowledge institutional terms of academic integrity, identity verification protocols, and automatic biometric attendance logging.',
-                ),
-                SizedBox(height: AppDimensions.spaceMd),
-                SecurityFooter(
-                  text: '256-Bit TLS · University Registrar SIS Certified',
                 ),
                 SizedBox(height: AppDimensions.spaceMd),
               ],

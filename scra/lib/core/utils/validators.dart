@@ -85,7 +85,7 @@ abstract final class Validators {
     final v = value?.trim().toUpperCase() ?? '';
     if (v.isEmpty) return 'Student matricule is required';
     if (!_studentId.hasMatch(v)) {
-      return 'Use your matricule, e.g. ICT20251181 or MAT-2024-9148';
+      return 'Enter a valid student matricule';
     }
     return null;
   }
@@ -93,21 +93,21 @@ abstract final class Validators {
   static String? staffId(String? value) {
     final v = value?.trim().toUpperCase() ?? '';
     if (v.isEmpty) return 'Staff ID is required';
-    if (!_staffId.hasMatch(v)) return 'Use the format FAC-2024-8192';
+    if (!_staffId.hasMatch(v)) return 'Enter a valid staff ID';
     return null;
   }
 
   static String? adminId(String? value) {
     final v = value?.trim().toUpperCase() ?? '';
     if (v.isEmpty) return 'Administrator ID is required';
-    if (!_adminId.hasMatch(v)) return 'Use the format ADM-9021-SYS';
+    if (!_adminId.hasMatch(v)) return 'Enter a valid administrator ID';
     return null;
   }
 
   static String? courseCode(String? value) {
     final v = value?.trim().toUpperCase() ?? '';
     if (v.isEmpty) return 'Course code is required';
-    if (!_courseCode.hasMatch(v)) return 'Use a code like CS-301 or MTH1221';
+    if (!_courseCode.hasMatch(v)) return 'Use a course code such as ABC-101';
     return null;
   }
 

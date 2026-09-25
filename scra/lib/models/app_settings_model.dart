@@ -113,7 +113,7 @@ class SystemSettingsModel {
     this.sessionTimeoutMinutes = 30,
     this.enforceSso = true,
     this.minimumAttendance = 75,
-    this.clusterVersion = 'v2.4.1',
+    this.clusterVersion = '',
     this.lastSyncedAt,
   });
 
@@ -137,7 +137,7 @@ class SystemSettingsModel {
     sessionTimeoutMinutes: JsonX.toInt(json['session_timeout_minutes'], 30),
     enforceSso: json['enforce_sso'] as bool? ?? true,
     minimumAttendance: JsonX.toDouble(json['minimum_attendance'], 75),
-    clusterVersion: json['cluster_version'] as String? ?? 'v2.4.1',
+    clusterVersion: json['cluster_version'] as String? ?? '',
     lastSyncedAt: JsonX.dateOrNull(json['last_synced_at']),
   );
 
