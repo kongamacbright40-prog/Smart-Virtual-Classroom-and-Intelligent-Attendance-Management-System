@@ -46,7 +46,7 @@ class _CreateQuestionBody extends StatelessWidget {
             children: [
               if (controller.session != null)
                 CodeTag(controller.session!.courseCode),
-              const Text('• Live Participation Check'),
+              const Text('• Question'),
             ],
           ),
           const SizedBox(height: AppDimensions.spaceMd),

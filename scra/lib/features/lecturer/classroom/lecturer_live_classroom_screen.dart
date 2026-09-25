@@ -108,9 +108,11 @@ class _LecturerLiveClassroomBodyState
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           CodeTag(session.courseCode, onDark: true),
-                          const StatusChip(
-                            label: 'REC',
-                            tone: StatusTone.error,
+                          StatusChip(
+                            label: session.status.label,
+                            tone: session.status == SessionStatus.live
+                                ? StatusTone.live
+                                : StatusTone.neutral,
                             showDot: true,
                           ),
                           StatusChip(
@@ -148,16 +150,6 @@ class _LecturerLiveClassroomBodyState
                   tone: StatusTone.live,
                   showDot: true,
                 ),
-                const StatusChip(
-                  label: 'BLE Active',
-                  icon: Icons.sensors,
-                  tone: StatusTone.info,
-                ),
-                const StatusChip(
-                  label: '1080p HD',
-                  icon: Icons.wifi_tethering,
-                  tone: StatusTone.neutral,
-                ),
               ],
             ),
             const SizedBox(height: AppDimensions.spaceLg),
@@ -169,8 +161,6 @@ class _LecturerLiveClassroomBodyState
                       .pushNamed(RouteNames.whiteboard, arguments: session.id),
               onAttendance: () => Navigator.of(context)
                   .pushNamed(RouteNames.liveAttendance, arguments: session.id),
-              onBroadcastNote: () =>
-                  Helpers.showSnackBar(context, 'Broadcast sent to the class.'),
             ),
             const SizedBox(height: AppDimensions.spaceLg),
             if (controller.lastQuestion != null)
@@ -249,7 +239,7 @@ class _Stage extends StatelessWidget {
               Text(
                 controller.screenSharing
                     ? 'SCREEN SHARE'
-                    : 'ALGORITHM VISUALIZATION',
+                    : session.mode.label.toUpperCase(),
                 style: const TextStyle(
                   color: AppColors.sky400,
                   fontWeight: FontWeight.w800,
@@ -264,10 +254,13 @@ class _Stage extends StatelessWidget {
                     ?.copyWith(color: Colors.white),
               ),
               const Spacer(),
-              const Text(
-                'AVL_Rotations_Deck.pdf (14/28)',
-                style: TextStyle(color: Colors.white70),
-              ),
+              if (session.materials.isNotEmpty)
+                Text(
+                  session.materials.first,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70),
+                ),
             ],
           ),
           Align(

@@ -15,7 +15,6 @@ class StudentRosterItem extends StatelessWidget {
     this.latestRecord,
     required this.onAdjust,
     required this.onHistory,
-    required this.onNotice,
   });
 
   final StudentModel student;
@@ -23,7 +22,6 @@ class StudentRosterItem extends StatelessWidget {
   final AttendanceRecordModel? latestRecord;
   final VoidCallback onAdjust;
   final VoidCallback onHistory;
-  final VoidCallback onNotice;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +68,7 @@ class StudentRosterItem extends StatelessWidget {
                       ),
                       const SizedBox(height: AppDimensions.spaceXs),
                       Text(
-                        '${student.matricule} ? ${student.programme} ? Year ${student.level ~/ 100}',
+                        '${student.matricule} • ${student.programme} • Year ${student.level ~/ 100}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -96,7 +94,6 @@ class StudentRosterItem extends StatelessWidget {
                   onSelected: (value) {
                     if (value == 'adjust') onAdjust();
                     if (value == 'history') onHistory();
-                    if (value == 'notice') onNotice();
                   },
                   itemBuilder: (context) => const [
                     PopupMenuItem(
@@ -106,10 +103,6 @@ class StudentRosterItem extends StatelessWidget {
                     PopupMenuItem(
                       value: 'history',
                       child: Text('View History'),
-                    ),
-                    PopupMenuItem(
-                      value: 'notice',
-                      child: Text('Send Direct Notice'),
                     ),
                   ],
                 ),
@@ -136,7 +129,9 @@ class StudentRosterItem extends StatelessWidget {
             child: Text(
               latestRecord == null
                   ? 'No recent attendance record'
-                  : '${latestRecord!.status.label.toUpperCase()} ? ${latestRecord!.verificationMethod ?? 'Validated'}',
+                  : latestRecord!.verificationMethod == null
+                  ? latestRecord!.status.label.toUpperCase()
+                  : '${latestRecord!.status.label.toUpperCase()} • ${latestRecord!.verificationMethod}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.labelMedium,

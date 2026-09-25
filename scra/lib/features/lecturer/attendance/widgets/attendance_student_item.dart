@@ -13,12 +13,10 @@ class AttendanceStudentItem extends StatelessWidget {
     super.key,
     required this.record,
     required this.onStatus,
-    required this.onNudge,
   });
 
   final AttendanceRecordModel record;
   final ValueChanged<AttendanceStatus> onStatus;
-  final VoidCallback onNudge;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +46,7 @@ class AttendanceStudentItem extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(
-                      '${record.matricule ?? record.studentId} ? ${record.courseCode}',
+                      '${record.matricule ?? record.studentId} • ${record.courseCode}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -66,8 +64,6 @@ class AttendanceStudentItem extends StatelessWidget {
                       onStatus(AttendanceStatus.absent);
                     case 'excused':
                       onStatus(AttendanceStatus.excused);
-                    case 'nudge':
-                      onNudge();
                   }
                 },
                 itemBuilder: (context) => const [
@@ -78,7 +74,6 @@ class AttendanceStudentItem extends StatelessWidget {
                   PopupMenuItem(value: 'late', child: Text('Waive as On-Time')),
                   PopupMenuItem(value: 'absent', child: Text('Mark Absent')),
                   PopupMenuItem(value: 'excused', child: Text('Excused')),
-                  PopupMenuItem(value: 'nudge', child: Text('Nudge Absent')),
                 ],
               ),
             ],
@@ -98,10 +93,11 @@ class AttendanceStudentItem extends StatelessWidget {
                   label: 'Joined ${Formatters.time(record.checkedInAt!)}',
                   icon: Icons.login,
                 ),
-              StatusChip(
-                label: record.verificationMethod ?? 'Manual review',
-                icon: Icons.verified_outlined,
-              ),
+              if (record.verificationMethod != null)
+                StatusChip(
+                  label: record.verificationMethod!,
+                  icon: Icons.verified_outlined,
+                ),
             ],
           ),
         ],

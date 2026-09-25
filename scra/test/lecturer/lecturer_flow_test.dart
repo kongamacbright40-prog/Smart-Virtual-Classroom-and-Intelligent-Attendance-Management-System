@@ -60,6 +60,28 @@ void main() {
       arguments: MockDataStore.liveSessionId,
     );
     await pumpFrames(tester, 10);
+    await tester.enterText(
+      find.byKey(const Key('question_prompt')),
+      'Which traversal visits the root node first?',
+    );
+    await tester.enterText(
+      find.byKey(const Key('question_option_0')),
+      'Preorder',
+    );
+    await tester.enterText(
+      find.byKey(const Key('question_option_1')),
+      'Inorder',
+    );
+    await tester.enterText(
+      find.byKey(const Key('question_option_2')),
+      'Postorder',
+    );
+    await tester.enterText(
+      find.byKey(const Key('question_option_3')),
+      'Level order',
+    );
+    await tester.tap(find.byIcon(Icons.radio_button_unchecked).first);
+    await pumpFrames(tester, 2);
     await tapVisible(tester, find.byKey(const Key('launch_question')));
     await pumpFrames(tester, 8);
     await tester.drag(find.byType(ListView).last, const Offset(0, -700));

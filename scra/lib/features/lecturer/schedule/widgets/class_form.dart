@@ -141,7 +141,7 @@ class _ClassFormState extends State<ClassForm> {
             isRequired: true,
             items: widget.courses,
             value: _course,
-            itemLabel: (course) => '${course.code} ? ${course.title}',
+            itemLabel: (course) => '${course.code} • ${course.title}',
             prefixIcon: Icons.school_outlined,
             validator: (value) => value == null ? 'Course is required' : null,
             onChanged: (value) {
@@ -157,7 +157,7 @@ class _ClassFormState extends State<ClassForm> {
             controller: _topic,
             label: 'Session Topic / Title',
             isRequired: true,
-            hint: 'Binary Search Trees & Balancing (AVL)',
+            hint: 'e.g. Review session',
             prefixIcon: Icons.edit_note,
             maxLength: 60,
             helper: 'Visible to students on schedule and notification alerts',
@@ -241,7 +241,7 @@ class _ClassFormState extends State<ClassForm> {
             controller: _room,
             label: 'Room',
             prefixIcon: Icons.meeting_room_outlined,
-            hint: 'Hall B • Turing Wing',
+            hint: 'e.g. Room 204',
           ),
           const SizedBox(height: AppDimensions.spaceLg),
           PrimaryButton(

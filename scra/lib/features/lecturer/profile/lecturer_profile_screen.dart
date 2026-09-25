@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/utils/helpers.dart';
@@ -57,7 +58,7 @@ class LecturerProfileScreen extends StatelessWidget {
               _SecurityCard(onLogout: () => _logout(context)),
               const SizedBox(height: AppDimensions.spaceMd),
               Text(
-                'Compliance & Governance Verified\nSmart Class v2.4.1',
+                'Smart Class v${AppConstants.appVersion}',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -157,6 +158,10 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lecturer = data.profile;
+    final subtitle = [
+      if (lecturer.title.isNotEmpty) lecturer.title,
+      if (lecturer.specialization != null) lecturer.specialization!,
+    ].join(' • ');
     return Column(
       children: [
         UserAvatar(
@@ -171,25 +176,26 @@ class _Header extends StatelessWidget {
           style: Theme.of(context).textTheme.headlineSmall,
           textAlign: TextAlign.center,
         ),
-        Text(
-          '${lecturer.title} ? ${lecturer.specialization ?? 'Faculty'}',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Theme.of(context).colorScheme.primary),
-        ),
-        Text(
-          lecturer.user.departmentName ?? 'Department of Computer Science',
-          textAlign: TextAlign.center,
-        ),
+        if (subtitle.isNotEmpty)
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Theme.of(context).colorScheme.primary),
+          ),
+        if (lecturer.user.departmentName != null)
+          Text(lecturer.user.departmentName!, textAlign: TextAlign.center),
         const SizedBox(height: AppDimensions.spaceSm),
         Wrap(
           spacing: AppDimensions.spaceSm,
           alignment: WrapAlignment.center,
           children: [
             StatusChip(label: 'Staff ID: ${lecturer.staffId}'),
-            const StatusChip(
-              label: 'Active Faculty • On Campus',
+            StatusChip(
+              label: lecturer.user.isActive ? 'Active Faculty' : 'Inactive',
               showDot: true,
-              tone: StatusTone.success,
+              tone: lecturer.user.isActive
+                  ? StatusTone.success
+                  : StatusTone.error,
             ),
           ],
         ),
@@ -262,8 +268,8 @@ class _InfoCard extends StatelessWidget {
           const SizedBox(height: AppDimensions.spaceSm),
           LecturerInfoRow(
             icon: Icons.science_outlined,
-            label: 'Research Facility',
-            value: profile.specialization ?? 'Academic research',
+            label: 'Specialization',
+            value: profile.specialization ?? 'Not provided',
           ),
           const SizedBox(height: AppDimensions.spaceSm),
           LecturerInfoRow(
@@ -308,7 +314,7 @@ class _CoursesCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: Text(
-                '${course.code} ? ${course.scheduleSummary ?? course.room ?? 'Schedule pending'}',
+                '${course.code} • ${course.scheduleSummary ?? course.room ?? 'Schedule pending'}',
               ),
               trailing: Text('${course.enrolledCount} Students'),
               onTap: () =>
@@ -354,7 +360,7 @@ class _PreferencesCard extends StatelessWidget {
           ),
           SwitchListTile.adaptive(
             title: const Text('Automated Weekly Digest Reports'),
-            subtitle: const Text('Attendance summaries every Friday'),
+            subtitle: const Text('Attendance summaries by email'),
             value: settings.emailClassAlerts,
             onChanged: (v) =>
                 provider.update((s) => s.copyWith(emailClassAlerts: v)),
@@ -382,22 +388,7 @@ class _SecurityCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Account Security & Auth',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: AppDimensions.spaceSm),
-          const LecturerInfoRow(
-            icon: Icons.vpn_key_outlined,
-            label: 'SSO Identity',
-            value: 'Academic SSO (SAML 2.0 Connected)',
-          ),
-          const SizedBox(height: AppDimensions.spaceSm),
-          const LecturerInfoRow(
-            icon: Icons.verified_user_outlined,
-            label: 'Two-Factor Authentication',
-            value: '2FA Enabled',
-          ),
+          Text('Account', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppDimensions.spaceMd),
           SecondaryButton(
             label: 'Sign Out of Lecturer Portal',

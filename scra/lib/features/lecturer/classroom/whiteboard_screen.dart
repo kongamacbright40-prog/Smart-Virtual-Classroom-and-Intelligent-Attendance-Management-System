@@ -52,7 +52,7 @@ class _WhiteboardBodyState extends State<_WhiteboardBody> {
                   child: Text(
                     session == null
                         ? 'Whiteboard'
-                        : '${session.courseCode} ? ${session.courseTitle}',
+                        : '${session.courseCode} • ${session.courseTitle}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleLarge

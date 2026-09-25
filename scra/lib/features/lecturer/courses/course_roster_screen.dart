@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../models/models.dart';
 import '../../../repositories/repositories.dart';
-import '../../../widgets/buttons/primary_button.dart';
 import '../../../widgets/buttons/secondary_button.dart';
 import '../../../widgets/cards/statistic_card.dart';
 import '../../../widgets/common/app_bar.dart';
@@ -80,11 +80,7 @@ class _CourseRosterScreenState extends State<CourseRosterScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SmartAppBar(
-        overline: 'Academic Nexus',
-        title: 'Course Management',
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.tune))],
-      ),
+      appBar: SmartAppBar(title: 'Course Management'),
       body: AsyncView<_RosterData>(
         load: () => _load(context),
         builder: (context, data, reload) {
@@ -149,7 +145,8 @@ class _CourseHeader extends StatelessWidget {
             children: [
               CodeTag(data.course.code),
               StatusChip(label: '${data.course.credits} Credits'),
-              const StatusChip(label: 'Term 2024/2025', showDot: true),
+              if (data.course.termId != null)
+                StatusChip(label: data.course.termId!, showDot: true),
             ],
           ),
           const SizedBox(height: AppDimensions.spaceMd),
@@ -159,7 +156,7 @@ class _CourseHeader extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          Text(data.course.lecturerName ?? 'Lead Faculty'),
+          if (data.course.lecturerName != null) Text(data.course.lecturerName!),
           const SizedBox(height: AppDimensions.spaceMd),
           GridView.count(
             crossAxisCount: 2,
@@ -190,9 +187,9 @@ class _CourseHeader extends StatelessWidget {
                 alignment: CrossAxisAlignment.start,
               ),
               StatisticCard(
-                value: data.course.room ?? 'BLE Active',
-                label: 'Hall • Geofenced',
-                icon: Icons.sensors,
+                value: data.course.room ?? 'Not assigned',
+                label: 'Room',
+                icon: Icons.meeting_room_outlined,
                 alignment: CrossAxisAlignment.start,
               ),
             ],
@@ -245,7 +242,8 @@ class _RosterTab extends StatelessWidget {
       final matchesFilter = switch (filter) {
         'Present' => record?.status.countsAsAttended ?? false,
         'Absent' => record?.status == AttendanceStatus.absent,
-        'At Risk' => summary.percentage < 75,
+        'At Risk' =>
+          summary.percentage < AppConstants.attendanceWarningThreshold,
         _ => true,
       };
       return matchesQuery && matchesFilter;
@@ -266,7 +264,11 @@ class _RosterTab extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(right: AppDimensions.spaceSm),
                   child: ChoiceChip(
-                    label: Text(f == 'At Risk' ? '<75% At Risk' : f),
+                    label: Text(
+                      f == 'At Risk'
+                          ? '<${AppConstants.attendanceWarningThreshold.round()}% At Risk'
+                          : f,
+                    ),
                     selected: filter == f,
                     onSelected: (_) => onFilter(f),
                   ),
@@ -282,11 +284,6 @@ class _RosterTab extends StatelessWidget {
                 'Enrolled Cohort (${students.length} Students)',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-            ),
-            TextButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.swap_vert),
-              label: const Text('Sort by Name'),
             ),
           ],
         ),
@@ -306,34 +303,13 @@ class _RosterTab extends StatelessWidget {
             onAdjust: () =>
                 _adjust(context, student, data.latestSession, onReload),
             onHistory: () => _history(context, student),
-            onNotice: () => Helpers.showSnackBar(
-              context,
-              'Notice queued for ${student.user.fullName}.',
-            ),
           ),
         const SizedBox(height: AppDimensions.spaceMd),
-        Row(
-          children: [
-            Expanded(
-              child: SecondaryButton(
-                label: 'Export CSV',
-                icon: Icons.download,
-                onPressed: () =>
-                    exportAndNotify(context, reportIdForCourse(data.course)),
-              ),
-            ),
-            const SizedBox(width: AppDimensions.spaceSm),
-            Expanded(
-              child: PrimaryButton(
-                label: 'Add Student',
-                icon: Icons.person_add_outlined,
-                onPressed: () => Helpers.showSnackBar(
-                  context,
-                  'Student invitations are managed by the registrar.',
-                ),
-              ),
-            ),
-          ],
+        SecondaryButton(
+          label: 'Export CSV',
+          icon: Icons.download,
+          onPressed: () =>
+              exportAndNotify(context, reportIdForCourse(data.course)),
         ),
       ],
     );

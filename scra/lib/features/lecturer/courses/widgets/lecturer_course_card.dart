@@ -75,7 +75,7 @@ class LecturerCourseCard extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.spaceXs),
           Text(
-            '${course.enrolledCount} Students enrolled ? ${course.room ?? 'Room pending'}',
+            '${course.enrolledCount} Students enrolled • ${course.room ?? 'Room pending'}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

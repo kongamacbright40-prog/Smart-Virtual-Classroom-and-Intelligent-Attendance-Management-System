@@ -30,7 +30,6 @@ class LecturerSummary extends StatelessWidget {
         StatisticCard(
           value: Formatters.percent(averageAttendance),
           label: 'Avg Attend',
-          caption: '+3.2%',
           icon: Icons.trending_up,
           valueColor: colorForAttendance(context, averageAttendance),
           alignment: CrossAxisAlignment.start,

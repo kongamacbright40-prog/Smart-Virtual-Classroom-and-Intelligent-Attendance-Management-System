@@ -41,11 +41,6 @@ class UpcomingClassCard extends StatelessWidget {
                   showDot: true,
                   uppercase: true,
                 ),
-                const StatusChip(
-                  label: 'BLE Active',
-                  icon: Icons.sensors,
-                  tone: StatusTone.info,
-                ),
               ],
             ),
             const SizedBox(height: AppDimensions.spaceLg),
@@ -91,28 +86,16 @@ class UpcomingClassCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppDimensions.spaceLg),
-            Row(
-              children: [
-                Expanded(
-                  child: PrimaryButton(
-                    key: Key(isLive ? 'open_live_class' : 'start_class'),
-                    label: isLive ? 'Open Live Class' : 'Start Class',
-                    icon: isLive ? Icons.open_in_new : Icons.play_arrow,
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.primary,
-                    onPressed: () => Navigator.of(context).pushNamed(
-                      RouteNames.lecturerLiveClassroom,
-                      arguments: session.id,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppDimensions.spaceSm),
-                IconButton.filledTonal(
-                  onPressed: () {},
-                  icon: const Icon(Icons.qr_code_scanner),
-                  color: Colors.white,
-                ),
-              ],
+            PrimaryButton(
+              key: Key(isLive ? 'open_live_class' : 'start_class'),
+              label: isLive ? 'Open Live Class' : 'Start Class',
+              icon: isLive ? Icons.open_in_new : Icons.play_arrow,
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.primary,
+              onPressed: () => Navigator.of(context).pushNamed(
+                RouteNames.lecturerLiveClassroom,
+                arguments: session.id,
+              ),
             ),
           ],
         ),

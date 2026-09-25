@@ -34,20 +34,10 @@ class _QuestionFormState extends State<QuestionForm> {
     TextEditingController(),
     TextEditingController(),
   ];
-  int? _correct = 1;
+  int? _correct;
   int? _duration = 45;
   bool _busy = false;
   String? _optionsError;
-
-  @override
-  void initState() {
-    super.initState();
-    _prompt.text = 'What is the time complexity of searching in an AVL tree with n nodes in the worst case?';
-    _options[0].text = 'O(1) - Constant time';
-    _options[1].text = 'O(log n) - Logarithmic time';
-    _options[2].text = 'O(n) - Linear time';
-    _options[3].text = 'O(n log n) - Linearithmic time';
-  }
 
   @override
   void dispose() {
@@ -74,7 +64,6 @@ class _QuestionFormState extends State<QuestionForm> {
       ],
       correctOptionId: _correct == null ? null : labels[_correct!],
       durationSeconds: _duration,
-      topic: 'Live Participation Check',
     );
   }
 
@@ -111,6 +100,7 @@ class _QuestionFormState extends State<QuestionForm> {
             isRequired: true,
             maxLength: 150,
             maxLines: 4,
+            hint: 'Enter a question for this class',
             validator: (value) {
               final base = Validators.questionText(value);
               if (base != null) return base;
@@ -144,6 +134,7 @@ class _QuestionFormState extends State<QuestionForm> {
                         controller: _options[i],
                         decoration: const InputDecoration(
                           border: InputBorder.none,
+                          hintText: 'Enter option text',
                         ),
                       ),
                     ),

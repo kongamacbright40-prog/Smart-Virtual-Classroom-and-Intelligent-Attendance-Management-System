@@ -8,7 +8,6 @@ import '../../../models/models.dart';
 import '../../../providers/classroom_controller.dart';
 import '../../../providers/classroom_registry.dart';
 import '../../../repositories/repositories.dart';
-import '../../../widgets/buttons/primary_button.dart';
 import '../../../widgets/buttons/secondary_button.dart';
 import '../../../widgets/cards/statistic_card.dart';
 import '../../../widgets/common/app_bar.dart';
@@ -61,9 +60,6 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
         title: 'Live Attendance',
         subtitle: widget.sessionId == null ? null : 'Session log',
         showBack: widget.sessionId != null ? null : false,
-        actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert)),
-        ],
       ),
       body: AsyncView<ClassSessionModel?>(
         load: () => _resolveSession(context),
@@ -227,6 +223,11 @@ class _AttendanceContent extends StatelessWidget {
     final absent = records
         .where((r) => r.status == AttendanceStatus.absent)
         .length;
+    final cohort = session.expectedCount == 0
+        ? records.length
+        : session.expectedCount;
+    final attended = present + late;
+    final attendanceRate = cohort == 0 ? 0.0 : attended / cohort * 100;
     final visible = records.where((r) {
       final matchesQuery =
           q.isEmpty ||
@@ -259,7 +260,12 @@ class _AttendanceContent extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        Text('${session.room ?? 'Virtual'} ? Automated Verification Active'),
+        Text(
+          [
+            if (session.room != null) session.room!,
+            session.mode.label,
+          ].join(' • '),
+        ),
         const SizedBox(height: AppDimensions.spaceMd),
         GridView.count(
           crossAxisCount: 2,
@@ -270,8 +276,7 @@ class _AttendanceContent extends StatelessWidget {
           crossAxisSpacing: AppDimensions.spaceSm,
           children: [
             StatisticCard(
-              value:
-                  '${session.expectedCount == 0 ? records.length : session.expectedCount}',
+              value: '$cohort',
               label: 'Cohort',
               icon: Icons.groups_outlined,
               alignment: CrossAxisAlignment.start,
@@ -280,7 +285,7 @@ class _AttendanceContent extends StatelessWidget {
               value: '$present',
               label: 'Present',
               icon: Icons.how_to_reg,
-              valueColor: colorForAttendance(context, 90),
+              valueColor: colorForAttendance(context, attendanceRate),
               alignment: CrossAxisAlignment.start,
             ),
             StatisticCard(
@@ -326,31 +331,12 @@ class _AttendanceContent extends StatelessWidget {
           AttendanceStudentItem(
             record: record,
             onStatus: (status) => onStatus(record.studentId, status),
-            onNudge: () => Helpers.showSnackBar(
-              context,
-              'Nudge sent to ${record.studentName}.',
-            ),
           ),
         const SizedBox(height: AppDimensions.spaceMd),
-        Row(
-          children: [
-            Expanded(
-              child: SecondaryButton(
-                label: attendanceActive ? 'Lock Session' : 'Start Attendance',
-                icon: attendanceActive ? Icons.lock_open : Icons.play_arrow,
-                onPressed: onLock == null ? null : () => onLock!(),
-              ),
-            ),
-            const SizedBox(width: AppDimensions.spaceSm),
-            Expanded(
-              child: PrimaryButton(
-                label: 'Nudge Absent ($absent)',
-                icon: Icons.notifications_active_outlined,
-                onPressed: () =>
-                    Helpers.showSnackBar(context, 'Nudged absent students.'),
-              ),
-            ),
-          ],
+        SecondaryButton(
+          label: attendanceActive ? 'Lock Session' : 'Start Attendance',
+          icon: attendanceActive ? Icons.lock_open : Icons.play_arrow,
+          onPressed: onLock == null ? null : () => onLock!(),
         ),
         const SizedBox(height: AppDimensions.spaceSm),
         SecondaryButton(

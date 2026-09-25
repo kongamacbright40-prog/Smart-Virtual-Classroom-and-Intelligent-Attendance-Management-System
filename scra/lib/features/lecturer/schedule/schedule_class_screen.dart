@@ -96,12 +96,12 @@ class _SuccessPanel extends StatelessWidget {
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           Text(
-            'Automated Check-in Active',
+            schedule.sessionId == null ? 'Class details saved' : 'Room ready',
             style: TextStyle(color: Theme.of(context).colorScheme.primary),
           ),
           const SizedBox(height: AppDimensions.spaceMd),
           Text(
-            'Your session ?${schedule.topic}? for ${schedule.courseCode} is set for ${Formatters.shortDate(schedule.startTime)} at ${Formatters.time(schedule.startTime)}. Virtual room link and BLE beacon geofence created.',
+            'Your session "${schedule.topic}" for ${schedule.courseCode} is set for ${Formatters.shortDate(schedule.startTime)} at ${Formatters.time(schedule.startTime)}.',
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppDimensions.spaceLg),
@@ -113,23 +113,27 @@ class _SuccessPanel extends StatelessWidget {
             ),
             child: Column(
               children: [
-                LecturerInfoRow(
-                  icon: Icons.key,
-                  label: 'Room Code',
-                  value: schedule.roomCode ?? '#SC-${schedule.courseCode}',
-                ),
-                const Divider(),
+                if (schedule.roomCode != null) ...[
+                  LecturerInfoRow(
+                    icon: Icons.key,
+                    label: 'Room Code',
+                    value: schedule.roomCode!,
+                  ),
+                  const Divider(),
+                ],
                 LecturerInfoRow(
                   icon: Icons.groups,
                   label: 'Expected Students',
                   value: '${schedule.expectedStudents} Students',
                 ),
-                const Divider(),
-                const LecturerInfoRow(
-                  icon: Icons.radar,
-                  label: 'Automated Tracking',
-                  value: 'BLE Geofence Enabled',
-                ),
+                if (schedule.room != null) ...[
+                  const Divider(),
+                  LecturerInfoRow(
+                    icon: Icons.meeting_room_outlined,
+                    label: 'Room',
+                    value: schedule.room!,
+                  ),
+                ],
               ],
             ),
           ),

@@ -42,7 +42,6 @@ class _LecturerCoursesScreenState extends State<LecturerCoursesScreen> {
     return Scaffold(
       appBar: SmartAppBar(
         title: 'Assigned Courses',
-        subtitle: 'AY 2024/2025 • First Semester',
         showBack: false,
         actions: [
           IconButton(
@@ -65,8 +64,7 @@ class _LecturerCoursesScreenState extends State<LecturerCoursesScreen> {
                 (course.room ?? '').toLowerCase().contains(q);
             final matchesFilter =
                 _filter == 'All' ||
-                (_filter == 'Current Semester' &&
-                    course.status == CourseStatus.active) ||
+                (_filter == 'Active' && course.status == CourseStatus.active) ||
                 (_filter == 'Archived' &&
                     course.status == CourseStatus.archived);
             return matchesQuery && matchesFilter;
@@ -106,11 +104,7 @@ class _LecturerCoursesScreenState extends State<LecturerCoursesScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      for (final filter in [
-                        'All',
-                        'Current Semester',
-                        'Archived',
-                      ])
+                      for (final filter in ['All', 'Active', 'Archived'])
                         Padding(
                           padding: const EdgeInsets.only(
                             right: AppDimensions.spaceSm,
@@ -155,10 +149,6 @@ class _LecturerCoursesScreenState extends State<LecturerCoursesScreen> {
                               ))
                             .firstOrNull,
                   ),
-                const SizedBox(height: AppDimensions.spaceLg),
-                const Center(
-                  child: Text('All semester allocations up to date'),
-                ),
               ],
             ),
           );

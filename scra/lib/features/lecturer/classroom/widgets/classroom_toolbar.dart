@@ -62,13 +62,11 @@ class ClassroomToolbar extends StatelessWidget {
               _ToolButton(
                 icon: Icons.quiz_outlined,
                 label: 'Poll',
-                badge: '1',
                 onTap: onQuestion,
               ),
               _ToolButton(
                 icon: Icons.chat_bubble_outline,
                 label: 'Chat',
-                badge: '3',
                 onTap: onChat,
               ),
             ],
@@ -98,13 +96,11 @@ class _ToolButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
-    this.badge,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final String? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -113,21 +109,7 @@ class _ToolButton extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconButton.filledTonal(onPressed: onTap, icon: Icon(icon)),
-              if (badge != null)
-                Positioned(
-                  right: -2,
-                  top: -2,
-                  child: CircleAvatar(
-                    radius: 10,
-                    child: Text(badge!, style: const TextStyle(fontSize: 11)),
-                  ),
-                ),
-            ],
-          ),
+          IconButton.filledTonal(onPressed: onTap, icon: Icon(icon)),
           Text(
             label,
             maxLines: 1,

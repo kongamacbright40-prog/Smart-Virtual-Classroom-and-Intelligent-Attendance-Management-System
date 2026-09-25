@@ -13,7 +13,6 @@ import '../../../widgets/common/async_view.dart';
 import '../../../widgets/common/section_header.dart';
 import '../../../widgets/common/status_chip.dart';
 import '../../../widgets/common/user_avatar.dart';
-import '../../../widgets/inputs/app_text_field.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../lecturer_shared.dart';
 import 'widgets/lecturer_summary.dart';
@@ -140,7 +139,9 @@ class LecturerDashboardScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Faculty Portal ? ${user.departmentName ?? 'Dept of CS'}',
+                            user.departmentName == null
+                                ? 'Faculty Portal'
+                                : 'Faculty Portal • ${user.departmentName}',
                             style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
@@ -186,21 +187,6 @@ class LecturerDashboardScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      const SizedBox(width: AppDimensions.spaceSm),
-                      LecturerActionTile(
-                        icon: Icons.sensors,
-                        label: 'Verify BLE Beacon',
-                        onTap: () => Helpers.showSnackBar(
-                          context,
-                          'BLE beacon verified.',
-                        ),
-                      ),
-                      const SizedBox(width: AppDimensions.spaceSm),
-                      LecturerActionTile(
-                        icon: Icons.campaign_outlined,
-                        label: 'Broadcast Note',
-                        onTap: () => _showBroadcastDialog(context),
-                      ),
                     ],
                   ),
                 ),
@@ -208,9 +194,7 @@ class LecturerDashboardScreen extends StatelessWidget {
                 LecturerSummary(
                   assignedCourses: data.courses.length,
                   averageAttendance: data.report.metric('average_rate'),
-                  pendingAppeals: data.pendingAppeals == 0
-                      ? 2
-                      : data.pendingAppeals,
+                  pendingAppeals: data.pendingAppeals,
                 ),
                 const SizedBox(height: AppDimensions.spaceLg),
                 if (upcoming != null)
@@ -240,35 +224,6 @@ class LecturerDashboardScreen extends StatelessWidget {
         },
       ),
     );
-  }
-
-  Future<void> _showBroadcastDialog(BuildContext context) async {
-    final controller = TextEditingController();
-    final sent = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Broadcast Note'),
-        content: AppTextField(
-          controller: controller,
-          label: 'Message',
-          maxLines: 3,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Send'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (sent == true && context.mounted) {
-      Helpers.showSnackBar(context, 'Broadcast sent.');
-    }
   }
 }
 
@@ -308,7 +263,7 @@ class _RecentSessionCard extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.spaceXs),
           Text(
-            '${Formatters.relativeDay(session.startTime)} ? ${Formatters.duration(session.duration)}',
+            '${Formatters.relativeDay(session.startTime)} • ${Formatters.duration(session.duration)}',
           ),
           const SizedBox(height: AppDimensions.spaceMd),
           Container(
