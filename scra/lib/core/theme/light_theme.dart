@@ -1,0 +1,53 @@
+import 'package:flutter/material.dart';
+
+import '../constants/app_colors.dart';
+import 'app_theme.dart';
+
+/// Light theme — mirrors the Stitch tailwind palette one-to-one.
+final ThemeData lightTheme = AppTheme.build(
+  const ColorScheme(
+    brightness: Brightness.light,
+    primary: AppColors.primary,
+    onPrimary: AppColors.onPrimary,
+    primaryContainer: AppColors.primaryContainer,
+    onPrimaryContainer: AppColors.onPrimaryContainer,
+    primaryFixed: AppColors.primaryFixed,
+    primaryFixedDim: AppColors.primaryFixedDim,
+    onPrimaryFixed: AppColors.onPrimaryFixed,
+    onPrimaryFixedVariant: AppColors.onPrimaryFixedVariant,
+    secondary: AppColors.secondary,
+    onSecondary: AppColors.onSecondary,
+    secondaryContainer: AppColors.secondaryContainer,
+    onSecondaryContainer: AppColors.onSecondaryContainer,
+    secondaryFixed: AppColors.secondaryFixed,
+    secondaryFixedDim: AppColors.secondaryFixedDim,
+    onSecondaryFixed: AppColors.onSecondaryFixed,
+    onSecondaryFixedVariant: AppColors.onSecondaryFixedVariant,
+    tertiary: AppColors.tertiary,
+    onTertiary: AppColors.onTertiary,
+    tertiaryContainer: AppColors.tertiaryContainer,
+    onTertiaryContainer: AppColors.onTertiaryContainer,
+    tertiaryFixed: AppColors.tertiaryFixed,
+    tertiaryFixedDim: AppColors.tertiaryFixedDim,
+    error: AppColors.error,
+    onError: AppColors.onError,
+    errorContainer: AppColors.errorContainer,
+    onErrorContainer: AppColors.onErrorContainer,
+    surface: AppColors.surface,
+    onSurface: AppColors.onSurface,
+    surfaceDim: AppColors.surfaceDim,
+    surfaceBright: AppColors.surfaceBright,
+    surfaceContainerLowest: AppColors.surfaceContainerLowest,
+    surfaceContainerLow: AppColors.surfaceContainerLow,
+    surfaceContainer: AppColors.surfaceContainer,
+    surfaceContainerHigh: AppColors.surfaceContainerHigh,
+    surfaceContainerHighest: AppColors.surfaceContainerHighest,
+    onSurfaceVariant: AppColors.onSurfaceVariant,
+    outline: AppColors.outline,
+    outlineVariant: AppColors.outlineVariant,
+    inverseSurface: AppColors.inverseSurface,
+    onInverseSurface: AppColors.inverseOnSurface,
+    inversePrimary: AppColors.inversePrimary,
+    surfaceTint: AppColors.surfaceTint,
+  ),
+);
