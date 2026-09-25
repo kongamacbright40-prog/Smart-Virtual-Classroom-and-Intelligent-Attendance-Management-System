@@ -1,5 +1,7 @@
 import 'dart:convert'; //this help json and dart to communicate together
 
+import 'package:flutter/foundation.dart';
+
 import 'package:web_socket_channel/web_socket_channel.dart'; // this contains the websocket channel thatbpemits live connection on a server
 
 typedef SignalCallback = void Function(
@@ -74,7 +76,7 @@ class SignalingService {
           break;
       }
     } catch (e) {
-      print("Signaling: failed to parse message: $e");
+      debugPrint('Signaling: failed to parse message: $e');
     }
   }
 
