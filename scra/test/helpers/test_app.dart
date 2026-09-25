@@ -74,3 +74,13 @@ Future<void> signInAs(WidgetTester tester, UserRole role) async {
 /// Store preloaded as if onboarding was completed earlier.
 InMemoryStore onboardedStore() =>
     InMemoryStore({StorageKeys.onboardingCompleted: true});
+
+/// Scrolls [finder] into view, then taps it.
+Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pump(const Duration(milliseconds: 300));
+  await Scrollable.ensureVisible(tester.element(finder), alignment: 0.5);
+  await tester.pump(const Duration(milliseconds: 300));
+  await tester.tap(finder);
+  await tester.pump();
+}
