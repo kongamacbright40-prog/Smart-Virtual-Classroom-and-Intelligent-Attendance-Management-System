@@ -6,7 +6,6 @@ import '../../../core/routing/route_names.dart';
 import '../../../../core/utils/date_utils.dart' as app_dates;
 import '../../../models/models.dart';
 import '../../../repositories/repositories.dart';
-import '../../../widgets/buttons/icon_button.dart';
 import '../../../widgets/common/app_bar.dart';
 import '../../../widgets/common/app_scaffold.dart';
 import '../../../widgets/common/empty_state.dart';
@@ -63,15 +62,7 @@ class _StudentScheduleScreenState extends State<StudentScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: SmartAppBar(
-        title: 'Schedule',
-        subtitle:
-            'Academic Session ${DateTime.now().year}–${DateTime.now().year + 1}',
-        showBack: false,
-        actions: [
-          AppIconButton(icon: Icons.sync, tooltip: 'Sync', onPressed: () {}),
-        ],
-      ),
+      appBar: SmartAppBar(title: 'Schedule', showBack: false),
       scrollable: true,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,33 +71,12 @@ class _StudentScheduleScreenState extends State<StudentScheduleScreen> {
             spacing: AppDimensions.spaceSm,
             runSpacing: AppDimensions.spaceSm,
             children: [
-              const Chip(label: Text('Semester 1')),
               Chip(
                 label: Text(
-                  '${app_dates.AppDateUtils.monthsLong[DateTime.now().month - 1]} ${DateTime.now().year}',
+                  '${app_dates.AppDateUtils.monthsLong[_selected.month - 1]} ${_selected.year}',
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: AppDimensions.spaceMd),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SegmentedButton<bool>(
-              segments: const [
-                ButtonSegment(
-                  value: false,
-                  label: Text('Calendar'),
-                  icon: Icon(Icons.calendar_view_week),
-                ),
-                ButtonSegment(
-                  value: true,
-                  label: Text('List'),
-                  icon: Icon(Icons.view_agenda),
-                ),
-              ],
-              selected: const {true},
-              onSelectionChanged: (_) {},
-            ),
           ),
           const SizedBox(height: AppDimensions.spaceLg),
           _WeekSelector(selected: _selected, onSelected: _select),

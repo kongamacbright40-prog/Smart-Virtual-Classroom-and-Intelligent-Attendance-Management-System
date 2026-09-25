@@ -180,17 +180,9 @@ class _ClassroomHeader extends StatelessWidget {
               ],
             ),
           ),
-          IconButton.filledTonal(
-            onPressed: () {},
-            icon: const Icon(Icons.volume_up),
-          ),
-          const SizedBox(width: AppDimensions.spaceXs),
-          Badge(
+          Chip(
+            avatar: const Icon(Icons.group, size: 18),
             label: Text('${controller.participantCount}'),
-            child: IconButton.filledTonal(
-              onPressed: () {},
-              icon: const Icon(Icons.group),
-            ),
           ),
         ],
       ),
@@ -211,22 +203,32 @@ class _AttendanceBanner extends StatelessWidget {
         color: AppColors.successContainer.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Icon(Icons.check_circle, color: AppColors.success),
-          const SizedBox(width: AppDimensions.spaceSm),
-          Expanded(
-            child: Text(
-              'Attendance Logged • ${record.status.label} (${record.checkedInAt == null ? 'Now' : Formatters.time(record.checkedInAt!)})',
+          Row(
+            children: [
+              const Icon(Icons.check_circle, color: AppColors.success),
+              const SizedBox(width: AppDimensions.spaceSm),
+              Expanded(
+                child: Text(
+                  record.checkedInAt == null
+                      ? 'Attendance Logged • ${record.status.label}'
+                      : 'Attendance Logged • ${record.status.label} (${Formatters.time(record.checkedInAt!)})',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          if (record.verificationMethod != null) ...[
+            const SizedBox(height: AppDimensions.spaceXs),
+            Text(
+              record.verificationMethod!,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          ),
-          const StatusChip(
-            label: 'Smart ID',
-            tone: StatusTone.success,
-            uppercase: true,
-          ),
+          ],
         ],
       ),
     );
@@ -266,17 +268,11 @@ class _LecturerStage extends StatelessWidget {
           ),
           Positioned(
             top: 0,
-            left: 0,
-            child: StatusChip(
-              label: 'SPEAKING',
-              tone: StatusTone.primary,
-              icon: Icons.graphic_eq,
-            ),
-          ),
-          Positioned(
-            top: 0,
             right: 0,
-            child: StatusChip(label: '1080p HD', tone: StatusTone.neutral),
+            child: StatusChip(
+              label: session.mode.label,
+              tone: StatusTone.neutral,
+            ),
           ),
           Positioned(
             left: 0,

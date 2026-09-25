@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../core/routing/app_router.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/utils/validators.dart';
@@ -57,15 +57,20 @@ class StudentProfileScreen extends StatelessWidget {
             _ProfileHeader(
               student: data.student,
               onEdit: () => _editProfile(context, data.student, reload),
+              onShowId: () => _showId(context, data.student),
             ),
             const SizedBox(height: AppDimensions.spaceMd),
-            _AcademicInfo(student: data.student),
+            _AcademicInfo(student: data.student, activeTerm: data.activeTerm),
             const SizedBox(height: AppDimensions.spaceMd),
             _ContactInfo(student: data.student),
             const SizedBox(height: AppDimensions.spaceMd),
-            _CoursesSummary(courses: data.courses, attendance: data.attendance),
+            _CoursesSummary(
+              student: data.student,
+              courses: data.courses,
+              attendance: data.attendance,
+            ),
             const SizedBox(height: AppDimensions.spaceMd),
-            _AccountLinks(student: data.student),
+            const _AccountLinks(),
             const SizedBox(height: AppDimensions.spaceMd),
             FilledButton.icon(
               style: FilledButton.styleFrom(
@@ -78,7 +83,7 @@ class StudentProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppDimensions.spaceLg),
             Text(
-              'Smart Class Android MVP\nv2.4.1 (Build 2025) • Powered by Academic Nexus Identity System',
+              '${AppConstants.appName}\nv${AppConstants.appVersion}',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),
@@ -104,7 +109,7 @@ class StudentProfileScreen extends StatelessWidget {
             ),
             Text('${student.matricule} • ${student.programme}'),
             const SizedBox(height: AppDimensions.spaceLg),
-            const Text('SCAN AT LECTURE HALL TERMINALS'),
+            const Text('Use this ID for attendance verification.'),
             const SizedBox(height: AppDimensions.spaceLg),
             PrimaryButton(
               label: 'Done',
@@ -134,6 +139,7 @@ class StudentProfileScreen extends StatelessWidget {
 
   static Future<void> _logout(BuildContext context) async {
     final auth = context.read<AuthProvider>();
+    final navigator = Navigator.of(context);
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -152,10 +158,7 @@ class StudentProfileScreen extends StatelessWidget {
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               unawaited(auth.logout());
-              AppRouter.navigatorKey.currentState?.pushNamedAndRemoveUntil(
-                RouteNames.login,
-                (_) => false,
-              );
+              navigator.pushNamedAndRemoveUntil(RouteNames.login, (_) => false);
             },
             child: const Text(AppStrings.logout),
           ),
@@ -166,10 +169,15 @@ class StudentProfileScreen extends StatelessWidget {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.student, required this.onEdit});
+  const _ProfileHeader({
+    required this.student,
+    required this.onEdit,
+    required this.onShowId,
+  });
 
   final StudentModel student;
   final VoidCallback onEdit;
+  final VoidCallback onShowId;
 
   @override
   Widget build(BuildContext context) {
@@ -189,12 +197,15 @@ class _ProfileHeader extends StatelessWidget {
           alignment: WrapAlignment.center,
           children: [
             Chip(label: Text('Matric: ${student.matricule}')),
-            Chip(
-              label: Text(
-                '${student.user.departmentName ?? 'Computer Science'} • Level ${student.level}',
-              ),
-            ),
-            const Chip(label: Text('Status: Active / Enrolled')),
+            if (student.user.departmentName != null)
+              Chip(
+                label: Text(
+                  '${student.user.departmentName} • Level ${student.level}',
+                ),
+              )
+            else
+              Chip(label: Text('Level ${student.level}')),
+            Chip(label: Text(student.user.isActive ? 'Active' : 'Inactive')),
           ],
         ),
         const SizedBox(height: AppDimensions.spaceMd),
@@ -210,7 +221,7 @@ class _ProfileHeader extends StatelessWidget {
             const SizedBox(width: AppDimensions.spaceSm),
             Expanded(
               child: FilledButton.tonalIcon(
-                onPressed: () {},
+                onPressed: onShowId,
                 icon: const Icon(Icons.badge),
                 label: const Text('Digital Student ID'),
               ),
@@ -223,9 +234,10 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _AcademicInfo extends StatelessWidget {
-  const _AcademicInfo({required this.student});
+  const _AcademicInfo({required this.student, this.activeTerm});
 
   final StudentModel student;
+  final AcademicTermModel? activeTerm;
 
   @override
   Widget build(BuildContext context) {
@@ -233,18 +245,8 @@ class _AcademicInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionTitle(
-            icon: Icons.school,
-            title: 'Academic Information',
-            trailing: const StatusChip(
-              label: 'Honors Track',
-              tone: StatusTone.primary,
-            ),
-          ),
-          _InfoRow(
-            'Department',
-            student.user.departmentName ?? 'Department of Computer Science',
-          ),
+          _SectionTitle(icon: Icons.school, title: 'Academic Information'),
+          _InfoRow('Department', student.user.departmentName ?? 'Not set'),
           _InfoRow('Program', student.programme),
           _InfoRow(
             'Level',
@@ -252,7 +254,7 @@ class _AcademicInfo extends StatelessWidget {
           ),
           _InfoRow(
             'Current Term',
-            '${DateTime.now().year}/${DateTime.now().year + 1} Semester ${student.semester}',
+            activeTerm?.name ?? 'Semester ${student.semester}',
           ),
           _InfoRow(
             'Enrolled Courses',
@@ -281,17 +283,8 @@ class _ContactInfo extends StatelessWidget {
             icon: Icons.contact_mail_outlined,
             title: 'Contact Information',
           ),
-          _InfoRow(
-            'Institutional Email',
-            student.user.email,
-            badge: 'Verified',
-          ),
-          _InfoRow(
-            'Phone',
-            student.user.phone ?? 'Not set',
-            badge: student.user.phone == null ? null : 'Verified',
-          ),
-          const _InfoRow('Campus Residence', 'Hall 4, West Campus'),
+          _InfoRow('Institutional Email', student.user.email),
+          _InfoRow('Phone', student.user.phone ?? 'Not set'),
         ],
       ),
     );
@@ -299,8 +292,13 @@ class _ContactInfo extends StatelessWidget {
 }
 
 class _CoursesSummary extends StatelessWidget {
-  const _CoursesSummary({required this.courses, required this.attendance});
+  const _CoursesSummary({
+    required this.student,
+    required this.courses,
+    required this.attendance,
+  });
 
+  final StudentModel student;
   final List<CourseModel> courses;
   final Map<String, double> attendance;
 
@@ -313,8 +311,8 @@ class _CoursesSummary extends StatelessWidget {
           _SectionTitle(
             icon: Icons.auto_stories,
             title: 'Enrolled Courses Summary',
-            trailing: const StatusChip(
-              label: '92% Aggregate',
+            trailing: StatusChip(
+              label: '${student.overallAttendance.round()}% Aggregate',
               tone: StatusTone.info,
             ),
           ),
@@ -352,10 +350,13 @@ class _CoursesSummary extends StatelessWidget {
                         children: [
                           const Text('Att:'),
                           const Spacer(),
-                          Text(
-                            '${(attendance[course.id] ?? 0).round()}%',
-                            style: const TextStyle(color: AppColors.primary),
-                          ),
+                          if (attendance[course.id] == null)
+                            const Text('—')
+                          else
+                            Text(
+                              '${attendance[course.id]!.round()}%',
+                              style: const TextStyle(color: AppColors.primary),
+                            ),
                         ],
                       ),
                     ],
@@ -370,9 +371,7 @@ class _CoursesSummary extends StatelessWidget {
 }
 
 class _AccountLinks extends StatelessWidget {
-  const _AccountLinks({required this.student});
-
-  final StudentModel student;
+  const _AccountLinks();
 
   @override
   Widget build(BuildContext context) {
@@ -380,12 +379,6 @@ class _AccountLinks extends StatelessWidget {
       child: Column(
         children: [
           const _SectionTitle(icon: Icons.lock, title: 'Account Security'),
-          const ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text('Multi-Factor Authentication'),
-            subtitle: Text('SMS & Authenticator App'),
-            trailing: StatusChip(label: 'Active', tone: StatusTone.success),
-          ),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.vpn_key),
@@ -434,11 +427,10 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow(this.label, this.value, {this.badge, this.action});
+  const _InfoRow(this.label, this.value, {this.action});
 
   final String label;
   final String value;
-  final String? badge;
   final VoidCallback? action;
 
   @override
@@ -461,8 +453,6 @@ class _InfoRow extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (badge != null)
-                  StatusChip(label: badge!, tone: StatusTone.info, dense: true),
                 if (action != null)
                   TextButton(
                     onPressed: action,
@@ -564,11 +554,13 @@ class _ProfileData {
     required this.student,
     required this.courses,
     required this.attendance,
+    this.activeTerm,
   });
 
   final StudentModel student;
   final List<CourseModel> courses;
   final Map<String, double> attendance;
+  final AcademicTermModel? activeTerm;
 
   static Future<_ProfileData> load(
     BuildContext context,
@@ -577,8 +569,18 @@ class _ProfileData {
     final userRepo = context.read<UserRepository>();
     final courseRepo = context.read<CourseRepository>();
     final attendanceRepo = context.read<AttendanceRepository>();
+    final adminRepo = context.read<AdminRepository>();
     final student = await userRepo.getStudentProfile(studentId);
     final courses = await courseRepo.getStudentCourses(studentId);
+    // The term label is optional; students may not have access to the
+    // academic-terms endpoint.
+    final terms = await adminRepo.getAcademicTerms().catchError(
+      (Object _) => <AcademicTermModel>[],
+    );
+    final activeTerm = terms
+        .where((term) => term.status == TermStatus.active)
+        .cast<AcademicTermModel?>()
+        .firstOrNull;
     final summaries = await Future.wait(
       courses.map(
         (c) => attendanceRepo.getStudentSummary(studentId, courseId: c.id),
@@ -591,6 +593,7 @@ class _ProfileData {
         for (final s in summaries)
           if (s.courseId != null) s.courseId!: s.percentage,
       },
+      activeTerm: activeTerm,
     );
   }
 }

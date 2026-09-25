@@ -4,19 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../core/routing/app_router.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/utils/validators.dart';
 import '../../../models/models.dart';
 import '../../../providers/settings_provider.dart';
-import '../../../widgets/buttons/icon_button.dart';
 import '../../../widgets/common/app_bar.dart';
 import '../../../widgets/common/app_card.dart';
 import '../../../widgets/common/app_scaffold.dart';
-import '../../../widgets/common/status_chip.dart';
 import '../../../widgets/common/user_avatar.dart';
 import '../../../widgets/inputs/app_text_field.dart';
 import '../../authentication/providers/auth_provider.dart';
@@ -33,13 +31,6 @@ class StudentSettingsScreen extends StatelessWidget {
       appBar: SmartAppBar(
         title: 'Settings',
         subtitle: 'Manage your student preferences',
-        actions: [
-          AppIconButton(
-            icon: Icons.search,
-            tooltip: 'Search settings',
-            onPressed: () {},
-          ),
-        ],
       ),
       scrollable: true,
       body: Column(
@@ -50,7 +41,6 @@ class StudentSettingsScreen extends StatelessWidget {
           _SectionLabel(
             icon: Icons.notifications_active_outlined,
             label: 'NOTIFICATIONS',
-            trailing: 'Realtime',
           ),
           AppCard(
             padding: EdgeInsets.zero,
@@ -72,7 +62,8 @@ class StudentSettingsScreen extends StatelessWidget {
                 ),
                 _SwitchRow(
                   title: 'Attendance Warning Guard',
-                  subtitle: 'Alert when subject drops below 85%',
+                  subtitle:
+                      'Alert when subject drops below ${settings.attendanceWarningThreshold.round()}%',
                   value: settings.attendanceWarningGuard,
                   onChanged: (v) => _update(
                     context,
@@ -83,11 +74,7 @@ class StudentSettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppDimensions.spaceLg),
-          _SectionLabel(
-            icon: Icons.videocam_outlined,
-            label: 'VIDEO & AUDIO',
-            trailing: 'Live Lecture Defaults',
-          ),
+          _SectionLabel(icon: Icons.videocam_outlined, label: 'VIDEO & AUDIO'),
           AppCard(
             padding: EdgeInsets.zero,
             child: Column(
@@ -107,28 +94,19 @@ class StudentSettingsScreen extends StatelessWidget {
                   onChanged: (v) =>
                       _update(context, (s) => s.copyWith(joinWithCameraOff: v)),
                 ),
-                const ListTile(
-                  leading: Icon(Icons.noise_aware_outlined),
-                  title: Text('Audio Noise Cancellation'),
-                  subtitle: Text('AI lecture isolation enabled (High)'),
-                  trailing: Text('High ›'),
+                ListTile(
+                  leading: const Icon(Icons.noise_aware_outlined),
+                  title: const Text('Audio Noise Cancellation'),
+                  subtitle: Text(settings.noiseCancellation),
                 ),
               ],
             ),
           ),
           const SizedBox(height: AppDimensions.spaceLg),
-          _SectionLabel(
-            icon: Icons.palette_outlined,
-            label: 'APPEARANCE',
-            trailing: 'Nexus Theme',
-          ),
+          _SectionLabel(icon: Icons.palette_outlined, label: 'APPEARANCE'),
           _ThemeSelector(current: settings.themeMode),
           const SizedBox(height: AppDimensions.spaceLg),
-          _SectionLabel(
-            icon: Icons.security_outlined,
-            label: 'ACCOUNT',
-            trailing: 'SSO Secured',
-          ),
+          _SectionLabel(icon: Icons.security_outlined, label: 'ACCOUNT'),
           AppCard(
             padding: EdgeInsets.zero,
             child: Column(
@@ -136,7 +114,6 @@ class StudentSettingsScreen extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.key),
                   title: const Text('Change Password'),
-                  subtitle: const Text('Last updated 3 months ago'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _changePassword(context),
                 ),
@@ -145,10 +122,6 @@ class StudentSettingsScreen extends StatelessWidget {
                   leading: const Icon(Icons.account_balance),
                   title: const Text('Institutional SSO'),
                   subtitle: Text('Connected: ${user.email}'),
-                  trailing: const StatusChip(
-                    label: 'Synced',
-                    tone: StatusTone.info,
-                  ),
                 ),
                 const Divider(height: 1),
                 _SwitchRow(
@@ -176,7 +149,7 @@ class StudentSettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.spaceLg),
           Text(
-            'Smart Class MVP v2.4.1 (Build 2025)\nAcademic Nexus Engine • End-to-End Encrypted',
+            '${AppConstants.appName} v${AppConstants.appVersion}',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall,
           ),
@@ -200,6 +173,7 @@ class StudentSettingsScreen extends StatelessWidget {
 
   static Future<void> _signOut(BuildContext context) async {
     final auth = context.read<AuthProvider>();
+    final navigator = Navigator.of(context);
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -218,10 +192,7 @@ class StudentSettingsScreen extends StatelessWidget {
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               unawaited(auth.logout());
-              AppRouter.navigatorKey.currentState?.pushNamedAndRemoveUntil(
-                RouteNames.login,
-                (_) => false,
-              );
+              navigator.pushNamedAndRemoveUntil(RouteNames.login, (_) => false);
             },
             child: const Text(AppStrings.logout),
           ),
@@ -259,10 +230,6 @@ class _StudentTile extends StatelessWidget {
               ],
             ),
           ),
-          IconButton.filledTonal(
-            onPressed: () {},
-            icon: const Icon(Icons.qr_code_2),
-          ),
         ],
       ),
     );
@@ -270,11 +237,10 @@ class _StudentTile extends StatelessWidget {
 }
 
 class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.icon, required this.label, this.trailing});
+  const _SectionLabel({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
-  final String? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -287,14 +253,6 @@ class _SectionLabel extends StatelessWidget {
           Expanded(
             child: Text(label, style: Theme.of(context).textTheme.labelLarge),
           ),
-          if (trailing != null)
-            Flexible(
-              child: StatusChip(
-                label: trailing!,
-                tone: StatusTone.primary,
-                dense: true,
-              ),
-            ),
         ],
       ),
     );

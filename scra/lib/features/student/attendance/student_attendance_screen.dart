@@ -40,9 +40,9 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
             .where((r) => _filter == null || r.status == _filter)
             .toList();
         return AppScaffold(
-          appBar: const SmartAppBar(
+          appBar: SmartAppBar(
             title: 'My Attendance',
-            subtitle: 'Computer Science • Year 3',
+            subtitle: _studentSubtitle(data.student),
             showBack: false,
           ),
           scrollable: true,
@@ -54,35 +54,38 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
               const SizedBox(height: AppDimensions.spaceMd),
               _CountsRow(summary: data.summary),
               const SizedBox(height: AppDimensions.spaceMd),
-              AppCard(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(AppDimensions.spaceMd),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryFixed,
-                        borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusMd,
+              if (data.summary.participationRate != null) ...[
+                AppCard(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(AppDimensions.spaceMd),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryFixed,
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusMd,
+                          ),
+                        ),
+                        child: const Icon(Icons.bolt, color: AppColors.primary),
+                      ),
+                      const SizedBox(width: AppDimensions.spaceMd),
+                      Expanded(
+                        child: Text(
+                          'Live Quiz & Poll Presence',
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
-                      child: const Icon(Icons.bolt, color: AppColors.primary),
-                    ),
-                    const SizedBox(width: AppDimensions.spaceMd),
-                    Expanded(
-                      child: Text(
-                        'Live Quiz & Poll Presence',
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Text(
+                        Formatters.percent(data.summary.participationRate!),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: AppColors.primary),
                       ),
-                    ),
-                    Text(
-                      Formatters.percent(data.summary.participationRate ?? 0),
-                      style: Theme.of(context).textTheme.titleMedium
-                          ?.copyWith(color: AppColors.primary),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppDimensions.spaceLg),
+                const SizedBox(height: AppDimensions.spaceLg),
+              ] else
+                const SizedBox(height: AppDimensions.spaceLg),
               Row(
                 children: [
                   Expanded(
@@ -149,9 +152,17 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
       builder: (_) => _AppealSheet(record: record),
     );
     if (result == true && context.mounted) {
-      Helpers.showSnackBar(context, 'Review request opened');
+      Helpers.showSnackBar(context, 'Review request submitted');
       await reload();
     }
+  }
+
+  String? _studentSubtitle(StudentModel student) {
+    final parts = [
+      if (student.programme.trim().isNotEmpty) student.programme.trim(),
+      'Level ${student.level}',
+    ];
+    return parts.join(' • ');
   }
 }
 
@@ -217,13 +228,6 @@ class _SummaryCard extends StatelessWidget {
                   style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: AppDimensions.spaceSm),
-                const Row(
-                  children: [
-                    Icon(Icons.military_tech, size: 18),
-                    SizedBox(width: AppDimensions.spaceXs),
-                    Expanded(child: Text('Honor Roll Eligible')),
-                  ],
-                ),
               ],
             ),
           ),
@@ -419,8 +423,13 @@ class _AppealSheetState extends State<_AppealSheet> {
 }
 
 class _AttendanceData {
-  const _AttendanceData({required this.summary, required this.records});
+  const _AttendanceData({
+    required this.student,
+    required this.summary,
+    required this.records,
+  });
 
+  final StudentModel student;
   final AttendanceModel summary;
   final List<AttendanceRecordModel> records;
 
@@ -430,12 +439,14 @@ class _AttendanceData {
   ) async {
     final repo = context.read<AttendanceRepository>();
     final results = await Future.wait<Object>([
+      context.read<UserRepository>().getStudentProfile(studentId),
       repo.getStudentSummary(studentId),
       repo.getStudentRecords(studentId),
     ]);
     return _AttendanceData(
-      summary: results[0] as AttendanceModel,
-      records: results[1] as List<AttendanceRecordModel>,
+      student: results[0] as StudentModel,
+      summary: results[1] as AttendanceModel,
+      records: results[2] as List<AttendanceRecordModel>,
     );
   }
 }

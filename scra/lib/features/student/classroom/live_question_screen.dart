@@ -166,11 +166,13 @@ class _QuestionHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Quick Participation Check',
+                  question.topic ?? 'Live Question',
                   style: theme.textTheme.headlineSmall,
                 ),
                 Text(
-                  'Live Lecture Poll • Points toward course grade',
+                  question.countsTowardGrade
+                      ? 'Counts toward course grade'
+                      : 'Participation check',
                   style: theme.textTheme.bodyMedium,
                 ),
               ],
@@ -207,10 +209,7 @@ class _QuestionText extends StatelessWidget {
         children: [
           Wrap(
             spacing: AppDimensions.spaceSm,
-            children: [
-              Chip(label: Text(question.topic ?? 'Single Choice')),
-              const Chip(label: Text('Question 1 of 1')),
-            ],
+            children: [Chip(label: Text(question.topic ?? 'Single Choice'))],
           ),
           const SizedBox(height: AppDimensions.spaceMd),
           Text(question.text, style: theme.textTheme.headlineSmall),

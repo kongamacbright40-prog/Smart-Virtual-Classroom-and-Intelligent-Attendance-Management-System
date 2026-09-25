@@ -6,7 +6,6 @@ import '../../../core/routing/route_names.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../models/models.dart';
 import '../../../repositories/repositories.dart';
-import '../../../widgets/buttons/icon_button.dart';
 import '../../../widgets/common/app_bar.dart';
 import '../../../widgets/common/app_scaffold.dart';
 import '../../../widgets/common/async_view.dart';
@@ -37,15 +36,7 @@ class _StudentCoursesScreenState extends State<StudentCoursesScreen> {
         return AppScaffold(
           appBar: SmartAppBar(
             title: 'My Courses',
-            subtitle:
-                'Academic Session ${DateTime.now().year}–${DateTime.now().year + 1}',
-            actions: [
-              AppIconButton(
-                icon: Icons.calendar_month_outlined,
-                tooltip: 'Fall Term ${DateTime.now().year}',
-                onPressed: () {},
-              ),
-            ],
+            subtitle: data.activeTerm?.name ?? data.activeTerm?.academicYear,
           ),
           scrollable: true,
           onRefresh: reload,
@@ -55,20 +46,13 @@ class _StudentCoursesScreenState extends State<StudentCoursesScreen> {
               SearchField(
                 hint: 'Search courses, codes, or professor',
                 onChanged: (value) => setState(() => _query = value),
-                onFilter: () {},
               ),
               const SizedBox(height: AppDimensions.spaceMd),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    for (final chip in const [
-                      'All',
-                      'Current Term',
-                      'Computer Science',
-                      'Mathematics',
-                      'Faculty Electives',
-                    ]) ...[
+                    for (final chip in data.filters) ...[
                       ChoiceChip(
                         label: Text(chip),
                         selected: _filter == chip,
@@ -82,11 +66,6 @@ class _StudentCoursesScreenState extends State<StudentCoursesScreen> {
               SectionHeader(
                 title: 'Enrolled Courses',
                 subtitle: '${filtered.length} Total',
-                trailing: TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.swap_vert, size: 18),
-                  label: const Text('Sort by Schedule'),
-                ),
               ),
               if (filtered.isEmpty)
                 const EmptyState(
@@ -120,11 +99,29 @@ class _CoursesData {
     required this.courses,
     required this.attendance,
     required this.nextLabels,
+    this.activeTerm,
   });
 
   final List<CourseModel> courses;
   final Map<String, double> attendance;
   final Map<String, String> nextLabels;
+  final AcademicTermModel? activeTerm;
+
+  List<String> get filters {
+    final values = <String>['All'];
+    if (courses.any((course) => course.status == CourseStatus.active)) {
+      values.add('Active');
+    }
+    for (final course in courses) {
+      final department = course.departmentName?.trim();
+      if (department != null && department.isNotEmpty) values.add(department);
+    }
+    for (final course in courses) {
+      final category = course.category.trim();
+      if (category.isNotEmpty) values.add(category);
+    }
+    return values.toSet().toList();
+  }
 
   List<CourseModel> filter(String query, String filter) {
     final q = query.trim().toLowerCase();
@@ -135,19 +132,9 @@ class _CoursesData {
           course.title.toLowerCase().contains(q) ||
           (course.lecturerName?.toLowerCase().contains(q) ?? false);
       if (!matchesQuery) return false;
-      return switch (filter) {
-        'Current Term' => course.status == CourseStatus.active,
-        'Computer Science' =>
-          (course.departmentName ?? '').toLowerCase().contains('computer') ||
-              course.code.startsWith('CS'),
-        'Mathematics' =>
-          (course.departmentName ?? '').toLowerCase().contains('math') ||
-              course.code.startsWith('MTH'),
-        'Faculty Electives' => course.category.toLowerCase().contains(
-          'elective',
-        ),
-        _ => true,
-      };
+      if (filter == 'Active') return course.status == CourseStatus.active;
+      if (filter == 'All') return true;
+      return course.departmentName == filter || course.category == filter;
     }).toList();
   }
 
@@ -158,8 +145,18 @@ class _CoursesData {
     final courseRepo = context.read<CourseRepository>();
     final attendanceRepo = context.read<AttendanceRepository>();
     final scheduleRepo = context.read<ScheduleRepository>();
+    final adminRepo = context.read<AdminRepository>();
     final now = DateTime.now();
     final courses = await courseRepo.getStudentCourses(studentId);
+    // The term label is optional; students may not have access to the
+    // academic-terms endpoint.
+    final terms = await adminRepo.getAcademicTerms().catchError(
+      (Object _) => <AcademicTermModel>[],
+    );
+    final activeTerm = terms
+        .where((term) => term.status == TermStatus.active)
+        .cast<AcademicTermModel?>()
+        .firstOrNull;
     final summaries = await Future.wait(
       courses.map(
         (c) => attendanceRepo.getStudentSummary(studentId, courseId: c.id),
@@ -180,6 +177,7 @@ class _CoursesData {
         for (final course in courses)
           course.id: _nextLabel(course.id, sessions, now),
       },
+      activeTerm: activeTerm,
     );
   }
 

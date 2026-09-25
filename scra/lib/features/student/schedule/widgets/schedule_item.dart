@@ -52,7 +52,7 @@ class ScheduleItem extends StatelessWidget {
                 const SizedBox(width: AppDimensions.spaceXs),
                 Expanded(
                   child: Text(
-                    'Attended • ${Formatters.duration(session.duration)} logged',
+                    'Completed • ${Formatters.duration(session.duration)}',
                   ),
                 ),
               ],
@@ -67,11 +67,6 @@ class ScheduleItem extends StatelessWidget {
                     icon: Icons.videocam,
                     onPressed: onJoin,
                   ),
-                ),
-                const SizedBox(width: AppDimensions.spaceSm),
-                IconButton.filledTonal(
-                  onPressed: () {},
-                  icon: const Icon(Icons.qr_code_scanner),
                 ),
               ],
             )

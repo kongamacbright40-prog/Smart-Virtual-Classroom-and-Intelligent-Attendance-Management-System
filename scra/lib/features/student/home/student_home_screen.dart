@@ -167,7 +167,7 @@ class _LiveClassCard extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.spaceLg),
           Text(
-            session.courseTitle.replaceAll(' & Algorithms', ''),
+            session.courseTitle,
             style: theme.textTheme.headlineMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w800,

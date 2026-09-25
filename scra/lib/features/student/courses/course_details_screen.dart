@@ -8,7 +8,6 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../models/models.dart';
 import '../../../repositories/repositories.dart';
-import '../../../widgets/buttons/icon_button.dart';
 import '../../../widgets/buttons/primary_button.dart';
 import '../../../widgets/cards/attendance_card.dart';
 import '../../../widgets/cards/schedule_card.dart';
@@ -40,20 +39,8 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
       load: () => _CourseDetailsData.load(context, studentId, widget.courseId),
       builder: (context, data, reload) => AppScaffold(
         appBar: SmartAppBar(
-          overline: data.course.departmentName ?? 'Computer Science',
+          overline: data.course.departmentName,
           title: 'Course Details',
-          actions: [
-            AppIconButton(
-              icon: Icons.bookmark_border,
-              tooltip: 'Bookmark',
-              onPressed: () {},
-            ),
-            AppIconButton(
-              icon: Icons.more_vert,
-              tooltip: 'More',
-              onPressed: () {},
-            ),
-          ],
         ),
         scrollable: true,
         onRefresh: reload,
@@ -120,9 +107,11 @@ class _CourseHero extends StatelessWidget {
             children: [
               CodeTag(course.code),
               Text('• ${course.credits} Credits • ${course.category}'),
-              const StatusChip(
-                label: 'Active Term',
-                tone: StatusTone.success,
+              StatusChip(
+                label: course.status.label,
+                tone: course.status == CourseStatus.active
+                    ? StatusTone.success
+                    : StatusTone.neutral,
                 showDot: true,
                 uppercase: true,
               ),
@@ -160,10 +149,6 @@ class _CourseHero extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.chat_bubble_outline,
-                  color: theme.colorScheme.primary,
-                ),
               ],
             ),
           ),
@@ -191,17 +176,18 @@ class _LiveCourseBanner extends StatelessWidget {
         children: [
           Wrap(
             spacing: AppDimensions.spaceSm,
-            children: const [
-              StatusChip(
+            children: [
+              const StatusChip(
                 label: 'LIVE NOW',
                 tone: StatusTone.live,
                 showDot: true,
               ),
-              StatusChip(
-                label: 'Smart Attendance Active',
-                tone: StatusTone.primary,
-                icon: Icons.sensors,
-              ),
+              if (session.attendanceActive)
+                const StatusChip(
+                  label: 'Smart Attendance Active',
+                  tone: StatusTone.primary,
+                  icon: Icons.sensors,
+                ),
             ],
           ),
           const SizedBox(height: AppDimensions.spaceMd),
@@ -210,7 +196,7 @@ class _LiveCourseBanner extends StatelessWidget {
             style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
           ),
           Text(
-            '${session.room ?? 'Virtual Room'} • ${Formatters.timeRange(session.startTime, session.endTime)}',
+            '${session.room ?? session.mode.label} • ${Formatters.timeRange(session.startTime, session.endTime)}',
             style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
           ),
           const SizedBox(height: AppDimensions.spaceMd),
@@ -228,14 +214,6 @@ class _LiveCourseBanner extends StatelessWidget {
                     arguments: session.id,
                   ),
                 ),
-              ),
-              const SizedBox(width: AppDimensions.spaceSm),
-              AppIconButton(
-                icon: Icons.qr_code_scanner,
-                tooltip: 'Attendance code',
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.white.withValues(alpha: 0.18),
-                onPressed: () {},
               ),
             ],
           ),
@@ -277,16 +255,22 @@ class _OverviewTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppDimensions.spaceMd),
-              Text(data.course.description),
-              const SizedBox(height: AppDimensions.spaceMd),
-              Wrap(
-                spacing: AppDimensions.spaceSm,
-                runSpacing: AppDimensions.spaceSm,
-                children: [
-                  for (final topic in data.course.topics)
-                    Chip(label: Text(topic)),
-                ],
+              Text(
+                data.course.description.trim().isEmpty
+                    ? 'No course description provided.'
+                    : data.course.description,
               ),
+              if (data.course.topics.isNotEmpty) ...[
+                const SizedBox(height: AppDimensions.spaceMd),
+                Wrap(
+                  spacing: AppDimensions.spaceSm,
+                  runSpacing: AppDimensions.spaceSm,
+                  children: [
+                    for (final topic in data.course.topics)
+                      Chip(label: Text(topic)),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -381,33 +365,32 @@ class _OverviewTab extends StatelessWidget {
                       style: theme.textTheme.titleMedium,
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.sync, size: 18),
-                    label: const Text('Sync Calendar'),
-                  ),
                 ],
               ),
               const SizedBox(height: AppDimensions.spaceSm),
-              Wrap(
-                spacing: AppDimensions.spaceSm,
-                runSpacing: AppDimensions.spaceSm,
-                children: [
-                  _InfoPill(
-                    label: 'Days',
-                    value: data.course.scheduleSummary ?? 'See timetable',
-                  ),
-                  _InfoPill(
-                    label: 'Physical Hall',
-                    value: data.course.room ?? 'Virtual room',
-                  ),
-                  if (data.course.virtualRoomUrl != null)
-                    _InfoPill(
-                      label: 'Virtual Room',
-                      value: data.course.virtualRoomUrl!,
-                    ),
-                ],
-              ),
+              if (data.course.scheduleSummary == null &&
+                  data.course.room == null &&
+                  data.course.virtualRoomUrl == null)
+                const Text('No schedule details available.')
+              else
+                Wrap(
+                  spacing: AppDimensions.spaceSm,
+                  runSpacing: AppDimensions.spaceSm,
+                  children: [
+                    if (data.course.scheduleSummary != null)
+                      _InfoPill(
+                        label: 'Schedule',
+                        value: data.course.scheduleSummary!,
+                      ),
+                    if (data.course.room != null)
+                      _InfoPill(label: 'Venue', value: data.course.room!),
+                    if (data.course.virtualRoomUrl != null)
+                      _InfoPill(
+                        label: 'Virtual Room',
+                        value: data.course.virtualRoomUrl!,
+                      ),
+                  ],
+                ),
             ],
           ),
         ),

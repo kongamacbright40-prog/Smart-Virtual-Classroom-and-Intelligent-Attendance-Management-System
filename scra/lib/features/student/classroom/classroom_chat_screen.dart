@@ -70,10 +70,13 @@ class _ClassroomChatScreenState extends State<ClassroomChatScreen> {
                     itemCount: messages.length + 1,
                     itemBuilder: (context, index) {
                       if (index == 0) {
+                        final timestamp = messages.isEmpty
+                            ? DateTime.now()
+                            : messages.first.timestamp;
                         return Center(
                           child: Chip(
                             label: Text(
-                              'Today • ${Formatters.time(DateTime.now())}',
+                              '${Formatters.date(timestamp)} • ${Formatters.time(timestamp)}',
                             ),
                           ),
                         );
@@ -172,26 +175,6 @@ class _ChatHeader extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppDimensions.spaceMd),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SegmentedButton<bool>(
-                segments: const [
-                  ButtonSegment(
-                    value: false,
-                    label: Text('Public Chat'),
-                    icon: Icon(Icons.forum_outlined),
-                  ),
-                  ButtonSegment(
-                    value: true,
-                    label: Text('Q&A'),
-                    icon: Icon(Icons.quiz_outlined),
-                  ),
-                ],
-                selected: const {false},
-                onSelectionChanged: (_) {},
-              ),
-            ),
           ],
         ),
       ),
@@ -234,10 +217,6 @@ class _Composer extends StatelessWidget {
               ),
               Row(
                 children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.attach_file),
-                  ),
                   Expanded(
                     child: TextField(
                       key: const Key('chat_input'),

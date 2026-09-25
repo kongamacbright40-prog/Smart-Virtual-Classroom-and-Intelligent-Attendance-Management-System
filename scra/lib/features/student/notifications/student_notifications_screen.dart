@@ -90,9 +90,11 @@ class _StudentNotificationsScreenState
                 runSpacing: AppDimensions.spaceXs,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Text('TODAY', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Unread',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   Chip(label: Text('$unread new')),
-                  const Text('Auto-clears in 48h'),
                 ],
               ),
               const SizedBox(height: AppDimensions.spaceSm),
@@ -111,12 +113,6 @@ class _StudentNotificationsScreenState
                   ),
                   const SizedBox(height: AppDimensions.spaceMd),
                 ],
-              const EmptyState(
-                compact: true,
-                icon: Icons.task_alt,
-                title: "You're completely caught up!",
-                message: 'No unreviewed notifications remain from this week.',
-              ),
             ],
           ),
         );

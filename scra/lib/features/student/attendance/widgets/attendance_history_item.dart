@@ -96,9 +96,7 @@ class AttendanceHistoryItem extends StatelessWidget {
                           '${record.minutesLogged} / ${record.sessionMinutes} mins logged (${record.durationPercent.round()}%)',
                         )
                       else
-                        const Text(
-                          'Review window closes in 48 hours • 0 min recorded',
-                        ),
+                        Text(_absenceDetail(record)),
                       if (record.verificationMethod != null) ...[
                         const SizedBox(height: AppDimensions.spaceXs),
                         Text(
@@ -125,5 +123,12 @@ class AttendanceHistoryItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _absenceDetail(AttendanceRecordModel record) {
+    if (record.sessionMinutes > 0) {
+      return '${record.minutesLogged} / ${record.sessionMinutes} mins logged';
+    }
+    return 'No attendance recorded';
   }
 }

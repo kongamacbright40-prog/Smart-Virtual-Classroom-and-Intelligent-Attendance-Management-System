@@ -25,8 +25,8 @@ class StudentCourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final percent = attendancePercent ?? 0;
-    final color = Helpers.attendanceColor(percent);
+    final percent = attendancePercent;
+    final color = percent == null ? null : Helpers.attendanceColor(percent);
     return AppCard(
       onTap: onTap,
       child: Column(
@@ -85,10 +85,12 @@ class StudentCourseCard extends StatelessWidget {
                   child: CourseProgress(
                     icon: Icons.verified_outlined,
                     label: 'Attendance',
-                    value: '${percent.round()}%',
-                    detail: Helpers.attendanceLabel(percent),
+                    value: percent == null ? '—' : '${percent.round()}%',
+                    detail: percent == null
+                        ? 'No attendance summary'
+                        : Helpers.attendanceLabel(percent),
                     color: color,
-                    progress: percent / 100,
+                    progress: percent == null ? null : percent / 100,
                   ),
                 ),
                 const SizedBox(width: AppDimensions.spaceSm),
