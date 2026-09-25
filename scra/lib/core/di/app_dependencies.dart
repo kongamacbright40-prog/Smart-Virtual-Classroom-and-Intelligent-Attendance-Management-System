@@ -1,3 +1,4 @@
+import '../../repositories/api/api_live_repositories.dart';
 import '../../repositories/mock/mock_admin_repository.dart';
 import '../../repositories/mock/mock_attendance_repository.dart';
 import '../../repositories/mock/mock_auth_repository.dart';
@@ -67,8 +68,36 @@ class AppDependencies {
 
   /// Builds the dependency graph selected by [AppConfig].
   static Future<AppDependencies> create() async {
-    final store = await SharedPreferencesStore.create();
-    return mock(storage: StorageService(store));
+    final storage = StorageService(await SharedPreferencesStore.create());
+    return AppConfig.useMockData ? mock(storage: storage) : api(storage: storage);
+  }
+
+  /// Graph backed by the FastAPI REST API and WebSocket events.
+  static AppDependencies api({required StorageService storage}) {
+    final authService = AuthService(storage);
+    final apiService = ApiService(tokenProvider: authService.accessToken);
+    final socket = ChannelWebSocketService(tokenProvider: authService.accessToken);
+    final repos = ApiRepositories(apiService, socket);
+    return AppDependencies(
+      storage: storage,
+      authService: authService,
+      apiService: apiService,
+      webSocketService: socket,
+      webRTCService: AppConfig.enableRealtimeMedia
+          ? FlutterWebRTCService()
+          : MockWebRTCService(),
+      notificationService: InAppNotificationService(repos.notifications),
+      authRepository: repos.auth,
+      userRepository: repos.users,
+      courseRepository: repos.courses,
+      scheduleRepository: repos.schedule,
+      attendanceRepository: repos.attendance,
+      classroomRepository: repos.classroom,
+      questionRepository: repos.questions,
+      notificationRepository: repos.notifications,
+      adminRepository: repos.admin,
+      reportRepository: repos.reports,
+    );
   }
 
   /// Mock graph used for development, demos and tests.

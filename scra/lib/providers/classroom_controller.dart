@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/constants/api_endpoints.dart';
 import '../core/errors/error_handler.dart';
 import '../models/models.dart';
 import '../repositories/repositories.dart';
@@ -127,7 +128,7 @@ class ClassroomController extends ChangeNotifier {
         _connection = s;
         _notify();
       }));
-      await _socket.connect('/ws/classroom/$sessionId/${user.id}');
+      await _socket.connect(ApiEndpoints.sessionEvents(sessionId));
       _connection = _socket.state;
 
       _subscriptions.add(_media.stateChanges.listen((s) {

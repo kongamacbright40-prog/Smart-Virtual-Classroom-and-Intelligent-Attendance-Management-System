@@ -61,6 +61,7 @@ abstract final class StorageKeys {
   static const String selectedRole = 'selected_role';
   static const String authToken = 'auth_token';
   static const String refreshToken = 'refresh_token';
+  static const String sessionExpiresAt = 'session_expires_at';
   static const String currentUser = 'current_user';
   static const String rememberMe = 'remember_me';
   static const String appSettings = 'app_settings';

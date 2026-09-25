@@ -111,6 +111,9 @@ class StorageService {
         user: user,
         accessToken: token,
         refreshToken: await _store.getString(StorageKeys.refreshToken),
+        expiresAt: DateTime.tryParse(
+          await _store.getString(StorageKeys.sessionExpiresAt) ?? '',
+        ),
       );
     } on Object {
       await clearSession();
@@ -127,6 +130,12 @@ class StorageService {
     if (session.refreshToken != null) {
       await _store.setString(StorageKeys.refreshToken, session.refreshToken!);
     }
+    if (session.expiresAt != null) {
+      await _store.setString(
+        StorageKeys.sessionExpiresAt,
+        session.expiresAt!.toIso8601String(),
+      );
+    }
   }
 
   Future<void> updateUser(UserModel user) => _store.setString(
@@ -140,6 +149,7 @@ class StorageService {
     await _store.remove(StorageKeys.authToken);
     await _store.remove(StorageKeys.refreshToken);
     await _store.remove(StorageKeys.currentUser);
+    await _store.remove(StorageKeys.sessionExpiresAt);
   }
 
   // Preferences
