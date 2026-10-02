@@ -35,6 +35,13 @@ class ApiService {
   /// Invoked on HTTP 401 so the app can clear the session.
   void Function()? onUnauthorized;
 
+  /// Tries to renew the access token (e.g. via `/auth/refresh`). Called once
+  /// when an authenticated request gets a 401; the request is retried when it
+  /// returns `true`.
+  Future<bool> Function()? refreshSession;
+
+  Future<bool>? _refreshing;
+
   String get baseUrl => _baseUrl;
 
   Uri buildUri(String path, [Map<String, Object?>? query]) {
@@ -47,11 +54,18 @@ class ApiService {
         .replace(queryParameters: params.isEmpty ? null : params);
   }
 
-  Future<Map<String, String>> _headers({bool authenticated = true}) async {
+  Future<Map<String, String>> _headers({
+    bool authenticated = true,
+    String? bearerToken,
+  }) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
+    if (bearerToken != null) {
+      headers['Authorization'] = 'Bearer $bearerToken';
+      return headers;
+    }
     if (authenticated && tokenProvider != null) {
       final token = await tokenProvider!();
       if (token != null && token.isNotEmpty) {
@@ -66,6 +80,15 @@ class ApiService {
     Map<String, Object?>? query,
     bool authenticated = true,
   }) => _send('GET', path, query: query, authenticated: authenticated);
+
+  /// GET with an explicit access token (e.g. right after login, before the
+  /// session is stored). Never triggers a token refresh.
+  Future<Object?> getWithToken(
+    String path,
+    String token, {
+    Map<String, Object?>? query,
+  }) async =>
+      _handle(await _raw('GET', path, query: query, bearerToken: token));
 
   Future<Object?> post(
     String path, {
@@ -122,15 +145,78 @@ class ApiService {
     Map<String, Object?>? query,
     bool authenticated = true,
   }) async {
+    var response = await _raw(
+      method,
+      path,
+      body: body,
+      query: query,
+      authenticated: authenticated,
+    );
+    if (response.statusCode == 401 && authenticated && await _tryRefresh()) {
+      response = await _raw(
+        method,
+        path,
+        body: body,
+        query: query,
+        authenticated: authenticated,
+      );
+    }
+    return _handle(response);
+  }
+
+  /// GET that returns the raw body (file downloads such as PDF/XLSX reports).
+  Future<DownloadedFile> download(
+    String path, {
+    Map<String, Object?>? query,
+  }) async {
+    var response = await _raw('GET', path, query: query);
+    if (response.statusCode == 401 && await _tryRefresh()) {
+      response = await _raw('GET', path, query: query);
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      _handle(response);
+    }
+    final disposition = response.headers['content-disposition'] ?? '';
+    final match = RegExp('filename="?([^";]+)"?').firstMatch(disposition);
+    return DownloadedFile(
+      bytes: response.bodyBytes,
+      fileName: match?.group(1),
+      contentType: response.headers['content-type'],
+    );
+  }
+
+  Future<bool> _tryRefresh() {
+    final refresh = refreshSession;
+    if (refresh == null) return Future.value(false);
+    return _refreshing ??= () async {
+      try {
+        return await refresh();
+      } on Object catch (e) {
+        ErrorHandler.log(e);
+        return false;
+      } finally {
+        _refreshing = null;
+      }
+    }();
+  }
+
+  Future<http.Response> _raw(
+    String method,
+    String path, {
+    Object? body,
+    Map<String, Object?>? query,
+    bool authenticated = true,
+    String? bearerToken,
+  }) async {
     final request = http.Request(method, buildUri(path, query))
-      ..headers.addAll(await _headers(authenticated: authenticated));
+      ..headers.addAll(
+        await _headers(authenticated: authenticated, bearerToken: bearerToken),
+      );
     if (body != null) request.body = jsonEncode(body);
 
     try {
       final streamed = await _client.send(request).timeout(_timeout);
-      final response = await http.Response.fromStream(streamed)
-          .timeout(_timeout);
-      return _handle(response);
+      return await http.Response.fromStream(streamed).timeout(_timeout);
     } on AppException {
       rethrow;
     } on TimeoutException {
@@ -214,4 +300,13 @@ class ApiService {
   }
 
   void dispose() => _client.close();
+}
+
+/// A file returned by [ApiService.download].
+class DownloadedFile {
+  const DownloadedFile({required this.bytes, this.fileName, this.contentType});
+
+  final List<int> bytes;
+  final String? fileName;
+  final String? contentType;
 }

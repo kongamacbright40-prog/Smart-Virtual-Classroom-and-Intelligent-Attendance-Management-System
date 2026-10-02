@@ -47,14 +47,12 @@ class _CourseRosterScreenState extends State<CourseRosterScreen>
     final userRepository = context.read<UserRepository>();
     final attendanceRepository = context.read<AttendanceRepository>();
     final scheduleRepository = context.read<ScheduleRepository>();
-    final course = await courseRepository.getCourse(widget.courseId);
-    final roster = await userRepository.getCourseRoster(widget.courseId);
-    final summaries = await attendanceRepository.getCourseSummaries(
-      widget.courseId,
-    );
-    final sessions = await scheduleRepository.getCourseSessions(
-      widget.courseId,
-    );
+    final (course, roster, summaries, sessions) = await (
+      courseRepository.getCourse(widget.courseId),
+      userRepository.getCourseRoster(widget.courseId),
+      attendanceRepository.getCourseSummaries(widget.courseId),
+      scheduleRepository.getCourseSessions(widget.courseId),
+    ).wait;
     final latest =
         sessions
             .where(
@@ -144,7 +142,8 @@ class _CourseHeader extends StatelessWidget {
             spacing: AppDimensions.spaceSm,
             children: [
               CodeTag(data.course.code),
-              StatusChip(label: '${data.course.credits} Credits'),
+              if (data.course.credits != null)
+                StatusChip(label: '${data.course.credits} Credits'),
               if (data.course.termId != null)
                 StatusChip(label: data.course.termId!, showDot: true),
             ],
@@ -443,7 +442,7 @@ class _SettingsTab extends StatelessWidget {
               LecturerInfoRow(
                 icon: Icons.category_outlined,
                 label: 'Category',
-                value: course.category,
+                value: course.category ?? 'Not set',
               ),
               const SizedBox(height: AppDimensions.spaceSm),
               LecturerInfoRow(

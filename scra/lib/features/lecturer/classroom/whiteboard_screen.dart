@@ -5,8 +5,10 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../models/whiteboard_model.dart';
 import '../../../providers/classroom_controller.dart';
 import '../../../providers/classroom_registry.dart';
+import '../../../widgets/media/whiteboard_view.dart';
 
 class WhiteboardScreen extends StatelessWidget {
   const WhiteboardScreen({super.key, required this.sessionId});
@@ -27,10 +29,42 @@ class _WhiteboardBody extends StatefulWidget {
 }
 
 class _WhiteboardBodyState extends State<_WhiteboardBody> {
-  final List<_Stroke> _strokes = [];
+  /// Pen width as a fraction of the board width (same look on every screen).
+  static const double _penScale = 1 / 600;
+  static const double _eraserWidth = 18 * _penScale;
+
   Color _color = AppColors.sky400;
   double _width = 5;
   bool _eraser = false;
+  ClassroomController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    // Opening the whiteboard shows it on the students' screens (unless the
+    // screen is being shared; then it appears when sharing stops).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _controller?.setBoardVisible(true);
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller = context.read<ClassroomController>();
+  }
+
+  @override
+  void dispose() {
+    // Leaving the whiteboard hides it again for students (the drawing stays).
+    // Deferred: listeners must not be notified while the tree is unmounting.
+    final controller = _controller;
+    Future.microtask(() {
+      controller?.endStroke();
+      controller?.setBoardVisible(false);
+    });
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +100,14 @@ class _WhiteboardBodyState extends State<_WhiteboardBody> {
                 const Icon(Icons.groups, color: Colors.white70),
               ],
             ),
+            const SizedBox(height: AppDimensions.spaceSm),
+            Text(
+              controller.screenSharing
+                  ? 'Students now see your shared screen. The board is hidden '
+                        'for them until you stop sharing.'
+                  : 'Students see this board live while this screen is open.',
+              style: const TextStyle(color: Colors.white70),
+            ),
             const SizedBox(height: AppDimensions.spaceMd),
             FilledButton.icon(
               style: FilledButton.styleFrom(
@@ -90,31 +132,16 @@ class _WhiteboardBodyState extends State<_WhiteboardBody> {
               ),
             ),
             const SizedBox(height: AppDimensions.spaceMd),
-            GestureDetector(
-              onPanStart: (details) => setState(
-                () => _strokes.add(
-                  _Stroke(
-                    color: _eraser ? AppColors.darkNavy : _color,
-                    width: _eraser ? 18 : _width,
-                    points: [details.localPosition],
-                  ),
-                ),
+            WhiteboardView(
+              key: const Key('whiteboard_canvas'),
+              board: controller.board,
+              onPanStart: (p) => controller.beginStroke(
+                color: _eraser ? Whiteboard.background : _color.toARGB32(),
+                width: _eraser ? _eraserWidth : _width * _penScale,
+                point: p,
               ),
-              onPanUpdate: (details) => setState(
-                () => _strokes.last.points.add(details.localPosition),
-              ),
-              child: Container(
-                height: 420,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF111827),
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-                  border: Border.all(color: Colors.white12),
-                ),
-                child: CustomPaint(
-                  painter: _WhiteboardPainter(_strokes),
-                  child: const SizedBox.expand(),
-                ),
-              ),
+              onPanUpdate: controller.extendStroke,
+              onPanEnd: controller.endStroke,
             ),
             const SizedBox(height: AppDimensions.spaceMd),
             Wrap(
@@ -153,13 +180,15 @@ class _WhiteboardBodyState extends State<_WhiteboardBody> {
                   ),
                 ),
                 IconButton.filledTonal(
-                  onPressed: _strokes.isEmpty
+                  tooltip: 'Undo',
+                  onPressed: controller.board.strokes.isEmpty
                       ? null
-                      : () => setState(() => _strokes.removeLast()),
+                      : controller.undoStroke,
                   icon: const Icon(Icons.undo),
                 ),
                 IconButton.filledTonal(
-                  onPressed: () => setState(_strokes.clear),
+                  tooltip: 'Clear board',
+                  onPressed: controller.clearBoard,
                   icon: const Icon(Icons.delete_sweep),
                 ),
               ],
@@ -195,33 +224,4 @@ class _WhiteboardBodyState extends State<_WhiteboardBody> {
       ),
     );
   }
-}
-
-class _Stroke {
-  _Stroke({required this.color, required this.width, required this.points});
-  final Color color;
-  final double width;
-  final List<Offset> points;
-}
-
-class _WhiteboardPainter extends CustomPainter {
-  const _WhiteboardPainter(this.strokes);
-  final List<_Stroke> strokes;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    for (final stroke in strokes) {
-      final paint = Paint()
-        ..color = stroke.color
-        ..strokeWidth = stroke.width
-        ..strokeCap = StrokeCap.round
-        ..style = PaintingStyle.stroke;
-      for (var i = 1; i < stroke.points.length; i++) {
-        canvas.drawLine(stroke.points[i - 1], stroke.points[i], paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _WhiteboardPainter oldDelegate) => true;
 }

@@ -6,14 +6,14 @@ class StudentModel {
     required this.user,
     required this.matricule,
     required this.programme,
-    required this.level,
-    required this.semester,
+    this.level,
+    this.semester,
     this.facultyName,
     this.enrolledCourseIds = const [],
-    this.overallAttendance = 0,
-    this.activeCredits = 0,
+    this.overallAttendance,
+    this.activeCredits,
     this.gpa,
-    this.campusPassValid = true,
+    this.campusPassValid,
   });
 
   final UserModel user;
@@ -21,14 +21,16 @@ class StudentModel {
   /// Institutional student ID, e.g. `MAT-2024-9148`.
   final String matricule;
   final String programme;
-  final int level;
-  final int semester;
+  final int? level;
+  final int? semester;
   final String? facultyName;
   final List<String> enrolledCourseIds;
-  final double overallAttendance;
-  final int activeCredits;
+
+  /// `null` until at least one class has been held.
+  final double? overallAttendance;
+  final int? activeCredits;
   final double? gpa;
-  final bool campusPassValid;
+  final bool? campusPassValid;
 
   String get id => user.id;
 
@@ -36,14 +38,18 @@ class StudentModel {
     user: UserModel.fromJson(JsonX.map(json['user'])),
     matricule: json['matricule'] as String,
     programme: json['programme'] as String? ?? '',
-    level: JsonX.toInt(json['level'], 100),
-    semester: JsonX.toInt(json['semester'], 1),
+    level: json['level'] == null ? null : JsonX.toInt(json['level']),
+    semester: json['semester'] == null ? null : JsonX.toInt(json['semester']),
     facultyName: json['faculty_name'] as String?,
     enrolledCourseIds: JsonX.stringList(json['enrolled_course_ids']),
-    overallAttendance: JsonX.toDouble(json['overall_attendance']),
-    activeCredits: JsonX.toInt(json['active_credits']),
+    overallAttendance: json['overall_attendance'] == null
+        ? null
+        : JsonX.toDouble(json['overall_attendance']),
+    activeCredits: json['active_credits'] == null
+        ? null
+        : JsonX.toInt(json['active_credits']),
     gpa: json['gpa'] == null ? null : JsonX.toDouble(json['gpa']),
-    campusPassValid: json['campus_pass_valid'] as bool? ?? true,
+    campusPassValid: json['campus_pass_valid'] as bool?,
   );
 
   Json toJson() => {
@@ -60,14 +66,18 @@ class StudentModel {
     'campus_pass_valid': campusPassValid,
   };
 
-  StudentModel copyWith({UserModel? user, String? programme}) => StudentModel(
+  StudentModel copyWith({
+    UserModel? user,
+    String? programme,
+    List<String>? enrolledCourseIds,
+  }) => StudentModel(
     user: user ?? this.user,
     matricule: matricule,
     programme: programme ?? this.programme,
     level: level,
     semester: semester,
     facultyName: facultyName,
-    enrolledCourseIds: enrolledCourseIds,
+    enrolledCourseIds: enrolledCourseIds ?? this.enrolledCourseIds,
     overallAttendance: overallAttendance,
     activeCredits: activeCredits,
     gpa: gpa,

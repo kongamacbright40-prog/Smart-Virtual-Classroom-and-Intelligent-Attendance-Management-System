@@ -9,6 +9,12 @@ import 'app_exception.dart';
 abstract final class ErrorHandler {
   static AppException normalize(Object error) {
     if (error is AppException) return error;
+    // Several requests loaded at once (`(a, b).wait`): report the first
+    // failure itself, e.g. "Unable to reach the campus server".
+    if (error is ParallelWaitError) {
+      final first = _firstError(error.errors);
+      if (first != null) return normalize(first);
+    }
     if (error is http.ClientException) {
       return NetworkException(
         'Unable to reach the campus server. Check your connection and try again.',
@@ -29,6 +35,23 @@ abstract final class ErrorHandler {
   }
 
   static String message(Object error) => normalize(error).message;
+
+  /// The first error inside a [ParallelWaitError.errors] record / list.
+  static Object? _firstError(Object? errors) {
+    final values = switch (errors) {
+      (final a, final b) => [a, b],
+      (final a, final b, final c) => [a, b, c],
+      (final a, final b, final c, final d) => [a, b, c, d],
+      (final a, final b, final c, final d, final e) => [a, b, c, d, e],
+      final List<Object?> list => list,
+      _ => const <Object?>[],
+    };
+    for (final value in values) {
+      if (value is AsyncError) return value.error;
+      if (value != null) return value;
+    }
+    return null;
+  }
 
   /// Installs global handlers so uncaught errors are logged instead of
   /// crashing the application.

@@ -106,7 +106,13 @@ class _CourseHero extends StatelessWidget {
             runSpacing: AppDimensions.spaceXs,
             children: [
               CodeTag(course.code),
-              Text('• ${course.credits} Credits • ${course.category}'),
+              if (course.credits != null || course.category != null)
+                Text(
+                  [
+                    if (course.credits != null) '${course.credits} Credits',
+                    ?course.category,
+                  ].map((s) => '• $s').join(' '),
+                ),
               StatusChip(
                 label: course.status.label,
                 tone: course.status == CourseStatus.active
@@ -293,8 +299,12 @@ class _OverviewTab extends StatelessWidget {
                     ),
                   ),
                   StatusChip(
-                    label: Helpers.attendanceLabel(data.summary.percentage),
-                    tone: data.summary.meetsRequirement
+                    label: data.summary.totalSessions == 0
+                        ? 'No classes yet'
+                        : Helpers.attendanceLabel(data.summary.percentage),
+                    tone: data.summary.totalSessions == 0
+                        ? StatusTone.neutral
+                        : data.summary.meetsRequirement
                         ? StatusTone.success
                         : StatusTone.warning,
                   ),
@@ -317,7 +327,9 @@ class _OverviewTab extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          Formatters.percent(data.summary.percentage),
+                          data.summary.totalSessions == 0
+                              ? '—'
+                              : Formatters.percent(data.summary.percentage),
                           style: theme.textTheme.titleLarge,
                         ),
                       ],

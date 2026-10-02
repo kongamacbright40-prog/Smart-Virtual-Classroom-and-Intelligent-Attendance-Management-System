@@ -25,11 +25,16 @@ class AdminSettingsScreen extends StatelessWidget {
       body: AsyncView<_SettingsData>(
         load: () async {
           final repo = context.read<AdminRepository>();
-          final terms = await repo.getAcademicTerms();
+          final (terms, settings, faculties, departments) = await (
+            repo.getAcademicTerms(),
+            repo.getSystemSettings(),
+            repo.getFaculties(),
+            repo.getDepartments(),
+          ).wait;
           return _SettingsData(
-            await repo.getSystemSettings(),
-            await repo.getFaculties(),
-            await repo.getDepartments(),
+            settings,
+            faculties,
+            departments,
             terms.where((t) => t.status == TermStatus.active).firstOrNull,
           );
         },
@@ -113,7 +118,8 @@ class AdminSettingsScreen extends StatelessWidget {
                       secondary: const Icon(Icons.sensors_outlined),
                       title: const Text('Automatic Join / Leave Recording'),
                       subtitle: const Text(
-                        'Automate logs with WebRTC telemetry',
+                        'Mark students present when they join a live class. '
+                        'Off: lecturers mark attendance by hand.',
                       ),
                       value: settings.autoJoinLeaveRecording,
                       onChanged: (v) => _save(
@@ -122,72 +128,25 @@ class AdminSettingsScreen extends StatelessWidget {
                         reload,
                       ),
                     ),
-                    AdminInfoRow(
-                      icon: Icons.forum_outlined,
-                      title: 'Participation Weighting',
-                      subtitle:
-                          'Live Q&A and chat: ${settings.participationWeight}% score weight',
-                      trailing: StatusChip(
-                        label: '${settings.participationWeight}% Weight',
-                        tone: StatusTone.neutral,
-                        icon: Icons.edit_outlined,
-                        dense: true,
-                      ),
-                      onTap: () => _participation(context, settings, reload),
-                    ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      secondary: const Icon(Icons.location_on_outlined),
-                      title: const Text('Enforce Strict Geofencing'),
-                      subtitle: const Text('Verify student location on campus'),
-                      value: settings.strictGeofencing,
-                      onChanged: (v) => _save(
-                        context,
-                        settings.copyWith(strictGeofencing: v),
-                        reload,
-                      ),
-                    ),
                   ],
                 ),
                 _Section(
                   title: 'Security & Access Control',
-                  trailing: settings.enforceSso
-                      ? 'SSO enabled'
-                      : 'SSO optional',
                   children: [
                     AdminInfoRow(
                       icon: Icons.badge_outlined,
-                      title: 'Role Permissions & Access Matrix',
-                      trailing: const Icon(Icons.chevron_right),
+                      title: 'Roles',
                       subtitle: UserRole.values.map((r) => r.label).join(', '),
                     ),
-                    const AdminInfoRow(
-                      icon: Icons.receipt_long_outlined,
-                      title: 'Audit Logs & Compliance',
-                      subtitle: 'Immutable tamper-proof activity ledger',
-                      trailing: Icon(Icons.chevron_right),
-                    ),
                     AdminInfoRow(
-                      icon: Icons.timer_off_outlined,
-                      title: 'Session Inactivity Timeout',
-                      subtitle: 'Force re-authentication after idle duration',
-                      trailing: StatusChip(
-                        label: '${settings.sessionTimeoutMinutes} mins',
-                        tone: StatusTone.neutral,
-                        dense: true,
-                      ),
-                    ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      secondary: const Icon(Icons.vpn_key_outlined),
-                      title: const Text('Enforce Institutional SSO'),
-                      subtitle: const Text('Mandate university single sign-on'),
-                      value: settings.enforceSso,
-                      onChanged: (v) => _save(
-                        context,
-                        settings.copyWith(enforceSso: v),
-                        reload,
-                      ),
+                      key: const Key('open_activity_log'),
+                      icon: Icons.receipt_long_outlined,
+                      title: 'Activity Log',
+                      subtitle: 'Who changed what, and when',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () =>
+                          Navigator.of(context)
+                              .pushNamed(RouteNames.adminActivity),
                     ),
                   ],
                 ),
@@ -288,59 +247,6 @@ class AdminSettingsScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _participation(
-    BuildContext context,
-    SystemSettingsModel settings,
-    Future<void> Function() reload,
-  ) async {
-    final controller = TextEditingController(
-      text: settings.participationWeight.toString(),
-    );
-    final formKey = GlobalKey<FormState>();
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Participation Weight'),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            validator: (value) {
-              final number = int.tryParse(value ?? '');
-              if (number == null || number < 0 || number > 100) {
-                return 'Enter 0–100';
-              }
-              return null;
-            },
-            decoration: const InputDecoration(labelText: 'Weight (%)'),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (!formKey.currentState!.validate()) return;
-              Navigator.pop(dialogContext);
-              await _save(
-                context,
-                settings.copyWith(
-                  participationWeight: int.parse(controller.text),
-                ),
-                reload,
-              );
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
   }
 }
 

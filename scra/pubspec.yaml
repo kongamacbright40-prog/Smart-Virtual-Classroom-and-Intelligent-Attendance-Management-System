@@ -17,11 +17,33 @@ dependencies:
   provider: ^6.1.5+1
   shared_preferences: ^2.5.5
   web_socket_channel: ^2.4.0
+  web: ^1.1.1
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# App icon. Regenerate the platform icons after changing the artwork with:
+#   dart run flutter_launcher_icons
+# Sources live in assets/launcher_icon/ (not bundled into the app).
+flutter_launcher_icons:
+  image_path: "assets/logos/app_icon.png"
+  android: "ic_launcher"
+  adaptive_icon_background: "assets/launcher_icon/icon_adaptive_background.png"
+  adaptive_icon_foreground: "assets/launcher_icon/icon_adaptive_foreground.png"
+  ios: true
+  image_path_ios: "assets/launcher_icon/icon_full_bleed.png"
+  remove_alpha_ios: true
+  web:
+    generate: true
+  windows:
+    generate: true
+    icon_size: 256
+  macos:
+    generate: true
 
 flutter:
   uses-material-design: true

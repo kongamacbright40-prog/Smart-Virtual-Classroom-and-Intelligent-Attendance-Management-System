@@ -51,10 +51,11 @@ class CourseCard extends StatelessWidget {
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             CodeTag(course.code),
-                            Text(
-                              '• ${course.category}',
-                              style: theme.textTheme.labelMedium,
-                            ),
+                            if (course.category != null)
+                              Text(
+                                '• ${course.category}',
+                                style: theme.textTheme.labelMedium,
+                              ),
                           ],
                         ),
                         const SizedBox(height: AppDimensions.spaceSm),

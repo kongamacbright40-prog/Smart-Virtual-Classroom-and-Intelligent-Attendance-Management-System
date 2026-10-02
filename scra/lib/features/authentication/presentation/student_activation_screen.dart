@@ -50,7 +50,7 @@ class StudentActivationScreen extends StatelessWidget {
                   idValidator: Validators.studentId,
                   idSuffixLabel: 'SIS ID',
                   emailHint: 'name@campus.edu',
-                  submitLabel: 'Activate Account',
+                  submitLabel: 'Create Student Account',
                   acknowledgement: 'I acknowledge institutional terms of academic integrity, identity verification protocols, and automatic biometric attendance logging.',
                 ),
                 SizedBox(height: AppDimensions.spaceMd),

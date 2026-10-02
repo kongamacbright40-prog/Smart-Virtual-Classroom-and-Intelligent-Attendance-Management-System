@@ -16,7 +16,17 @@ import 'package:smart_class/widgets/dialogs/confirmation_dialog.dart';
 import 'package:smart_class/widgets/inputs/search_field.dart';
 
 class UserManagementScreen extends StatefulWidget {
-  const UserManagementScreen({super.key});
+  const UserManagementScreen({
+    super.key,
+    this.initialRole,
+    this.showBack = false,
+  });
+
+  /// Role filter selected when the screen opens (e.g. from a dashboard card).
+  final UserRole? initialRole;
+
+  /// True when opened as its own page rather than as the Users tab.
+  final bool showBack;
 
   @override
   State<UserManagementScreen> createState() => _UserManagementScreenState();
@@ -24,7 +34,7 @@ class UserManagementScreen extends StatefulWidget {
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
   String _query = '';
-  UserRole? _role;
+  late UserRole? _role = widget.initialRole;
   bool _activeOnly = false;
 
   Future<_UsersData> _load(BuildContext context) async {
@@ -37,7 +47,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AdminScreenHeader(title: 'User Management'),
+      appBar: AdminScreenHeader(
+        title: 'User Management',
+        showBack: widget.showBack,
+      ),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('add_user'),
         icon: const Icon(Icons.person_add_alt_1),

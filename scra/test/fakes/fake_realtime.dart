@@ -55,7 +55,20 @@ class MockWebSocketService implements WebSocketService {
 /// UI-only implementation: tracks toggles without touching hardware.
 class MockWebRTCService implements WebRTCService {
   final _controller = StreamController<MediaState>.broadcast();
+  final _board = StreamController<Map<String, dynamic>>.broadcast();
   MediaState _state = const MediaState();
+
+  /// Whiteboard operations sent by the lecturer (for assertions).
+  final List<Map<String, dynamic>> sentBoard = [];
+
+  /// Simulates a whiteboard message arriving from the server.
+  void receiveBoard(Map<String, dynamic> message) => _board.add(message);
+
+  @override
+  Stream<Map<String, dynamic>> get boardMessages => _board.stream;
+
+  @override
+  void sendBoard(Map<String, dynamic> operation) => sentBoard.add(operation);
 
   @override
   MediaState get state => _state;
@@ -109,5 +122,8 @@ class MockWebRTCService implements WebRTCService {
       _set(_state.copyWith(screenSharing: false));
 
   @override
-  Future<void> dispose() => _controller.close();
+  Future<void> dispose() async {
+    await _controller.close();
+    await _board.close();
+  }
 }

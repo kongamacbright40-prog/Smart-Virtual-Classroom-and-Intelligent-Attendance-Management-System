@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' show RTCVideoViewObjectFit;
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -14,6 +15,8 @@ import '../../../widgets/common/loading_state.dart';
 import '../../../widgets/common/status_chip.dart';
 import '../../../widgets/common/user_avatar.dart';
 import '../../../widgets/dialogs/confirmation_dialog.dart';
+import '../../../widgets/media/video_tile.dart';
+import '../../../widgets/media/whiteboard_view.dart';
 import 'widgets/classroom_controls.dart';
 import 'widgets/participant_list.dart';
 import 'widgets/question_card.dart';
@@ -245,9 +248,25 @@ class _LecturerStage extends StatelessWidget {
   Widget build(BuildContext context) {
     final lecturer = controller.lecturer;
     final theme = Theme.of(context);
+    final lecturerPeerId = lecturer?.userId ?? session.lecturerId;
+    final sharing = controller.board.screenSharing && !controller.boardActive;
+    final camera = VideoTile(
+      key: ValueKey('lecturer-video-$lecturerPeerId'),
+      peerId: lecturerPeerId,
+      fit: sharing
+          ? RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
+          : RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+      placeholder: Center(
+        child: Icon(
+          sharing ? Icons.person_outline : Icons.smart_display_outlined,
+          size: sharing ? 28 : 92,
+          color: Colors.white.withValues(alpha: sharing ? 0.5 : 0.18),
+        ),
+      ),
+    );
     return Container(
       height: 260,
-      padding: const EdgeInsets.all(AppDimensions.spaceMd),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         border: Border.all(color: AppColors.primaryContainer, width: 2),
@@ -259,58 +278,124 @@ class _LecturerStage extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Center(
-            child: Icon(
-              Icons.smart_display_outlined,
-              size: 92,
-              color: Colors.white.withValues(alpha: 0.18),
-            ),
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: StatusChip(
-              label: session.mode.label,
-              tone: StatusTone.neutral,
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Row(
-              children: [
-                UserAvatar(
-                  name: lecturer?.name ?? session.lecturerName ?? 'Lecturer',
-                ),
-                const SizedBox(width: AppDimensions.spaceMd),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        lecturer?.name ??
-                            session.lecturerName ??
-                            'Course Lecturer',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'Course Lecturer • ${session.courseCode}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.slate300,
-                        ),
-                      ),
-                    ],
+          if (sharing) ...[
+            // The lecturer's shared screen (with its sound), shown whole.
+            Positioned.fill(
+              child: ColoredBox(
+                color: Colors.black,
+                child: VideoTile(
+                  key: ValueKey('lecturer-screen-$lecturerPeerId'),
+                  peerId: lecturerPeerId,
+                  screen: true,
+                  fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+                  placeholder: const Center(
+                    child: Text(
+                      'Waiting for the shared screen…',
+                      key: Key('student_screen_waiting'),
+                      style: TextStyle(color: Colors.white70),
+                    ),
                   ),
                 ),
-              ],
+              ),
+            ),
+            // Lecturer camera as a small picture-in-picture.
+            Positioned(
+              top: AppDimensions.spaceSm,
+              left: AppDimensions.spaceSm,
+              width: 112,
+              height: 80,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                child: ColoredBox(
+                  color: const Color(0xFF0F172A),
+                  child: camera,
+                ),
+              ),
+            ),
+          ] else
+            Positioned.fill(child: camera),
+          if (controller.boardActive)
+            Positioned.fill(
+              child: ColoredBox(
+                key: const Key('student_whiteboard'),
+                color: const Color(Whiteboard.background),
+                child: Center(
+                  child: WhiteboardView(
+                    board: controller.board,
+                    borderRadius: 0,
+                  ),
+                ),
+              ),
+            ),
+          // Keeps the name readable on top of bright video.
+          if (!controller.boardActive && !sharing)
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 90,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.transparent, Colors.black54],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ),
+          Positioned(
+            top: AppDimensions.spaceMd,
+            right: AppDimensions.spaceMd,
+            child: StatusChip(
+              label: controller.boardActive
+                  ? 'Whiteboard'
+                  : sharing
+                  ? 'Screen share'
+                  : session.mode.label,
+              tone: controller.boardActive
+                  ? StatusTone.info
+                  : StatusTone.neutral,
             ),
           ),
+          if (!controller.boardActive && !sharing)
+            Positioned(
+              left: AppDimensions.spaceMd,
+              right: AppDimensions.spaceMd,
+              bottom: AppDimensions.spaceMd,
+              child: Row(
+                children: [
+                  UserAvatar(
+                    name: lecturer?.name ?? session.lecturerName ?? 'Lecturer',
+                  ),
+                  const SizedBox(width: AppDimensions.spaceMd),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          lecturer?.name ??
+                              session.lecturerName ??
+                              'Course Lecturer',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: Colors.white,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'Course Lecturer • ${session.courseCode}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.slate300,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

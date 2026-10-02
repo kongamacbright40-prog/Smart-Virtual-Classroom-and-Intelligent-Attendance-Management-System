@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:smart_class/core/constants/app_colors.dart';
+import 'package:smart_class/core/errors/app_exception.dart';
 import 'package:smart_class/core/constants/app_dimensions.dart';
 import 'package:smart_class/core/routing/route_names.dart';
 import 'package:smart_class/core/utils/formatters.dart';
 import 'package:smart_class/features/authentication/providers/auth_provider.dart';
+import 'package:smart_class/models/app_settings_model.dart';
+import 'package:smart_class/repositories/repositories.dart';
 import 'package:smart_class/widgets/common/app_bar.dart';
 import 'package:smart_class/widgets/common/app_card.dart';
 import 'package:smart_class/widgets/common/status_chip.dart';
@@ -13,6 +16,16 @@ import 'package:smart_class/widgets/common/user_avatar.dart';
 import 'package:smart_class/widgets/navigation/role_shell.dart';
 
 const adminGap = SizedBox(height: AppDimensions.spaceMd);
+
+/// System settings, or `null` when the server does not provide them yet.
+Future<SystemSettingsModel?> loadSystemSettings(AdminRepository repo) async {
+  try {
+    return await repo.getSystemSettings();
+  } on UnsupportedFeatureException {
+    return null;
+  }
+}
+
 const adminSmallGap = SizedBox(height: AppDimensions.spaceSm);
 
 class AdminScreenHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -35,11 +48,16 @@ class AdminScreenHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Pages opened on top of the tabs always get a back arrow; the menu
+    // button only works inside the tab shell.
+    final back =
+        showBack ||
+        (ShellScope.maybeOf(context) == null && Navigator.of(context).canPop());
     return SmartAppBar(
       title: title,
       subtitle: subtitle,
-      showBack: showBack,
-      leading: showBack
+      showBack: back,
+      leading: back
           ? null
           : IconButton(
               key: const Key('admin_menu'),

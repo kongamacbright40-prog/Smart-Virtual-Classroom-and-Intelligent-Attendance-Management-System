@@ -74,6 +74,13 @@ final class ParsingException extends AppException {
   ]) : super(cause: cause);
 }
 
+/// The connected backend does not provide this feature yet.
+final class UnsupportedFeatureException extends AppException {
+  const UnsupportedFeatureException([
+    super.message = 'This feature is not available on the server yet.',
+  ]);
+}
+
 /// Anything else.
 final class UnknownException extends AppException {
   const UnknownException([

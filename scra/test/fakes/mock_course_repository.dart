@@ -136,4 +136,48 @@ class MockCourseRepository extends MockRepositoryBase
     _store.courses[courseId] = updated;
     return updated;
   });
+
+  /// The mock always acts as the demo student.
+  @override
+  Future<CourseModel> enrollInCourse(String courseId) => delay(() {
+    _setEnrolled(courseId, MockDataStore.currentStudentId, true);
+    return _store.courses[courseId]!.copyWith(
+      enrollment: CourseEnrollment.explicit,
+    );
+  });
+
+  @override
+  Future<CourseModel> dropCourse(String courseId) => delay(() {
+    _setEnrolled(courseId, MockDataStore.currentStudentId, false);
+    return _store.courses[courseId]!.copyWith(clearEnrollment: true);
+  });
+
+  @override
+  Future<void> addStudentToCourse({
+    required String courseId,
+    required String studentId,
+  }) => delay(() => _setEnrolled(courseId, studentId, true));
+
+  @override
+  Future<void> removeStudentFromCourse({
+    required String courseId,
+    required String studentId,
+  }) => delay(() => _setEnrolled(courseId, studentId, false));
+
+  void _setEnrolled(String courseId, String studentId, bool enrolled) {
+    final course = _store.courses[courseId];
+    final student = _store.students[studentId];
+    if (course == null || student == null) {
+      throw const NotFoundException('Course or student not found.');
+    }
+    final cohort = _store.enrollments.putIfAbsent(courseId, () => []);
+    final ids = [...student.enrolledCourseIds]..remove(courseId);
+    cohort.remove(studentId);
+    if (enrolled) {
+      ids.add(courseId);
+      cohort.add(studentId);
+    }
+    _store.students[studentId] = student.copyWith(enrolledCourseIds: ids);
+    _store.courses[courseId] = course.copyWith(enrolledCount: cohort.length);
+  }
 }

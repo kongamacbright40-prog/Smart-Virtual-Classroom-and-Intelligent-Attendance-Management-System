@@ -33,7 +33,7 @@ class MockAuthRepository extends MockRepositoryBase implements AuthRepository {
         }
       case UserRole.admin:
         for (final a in _store.admins.values) {
-          if (a.adminId.toLowerCase() == id ||
+          if (a.adminId?.toLowerCase() == id ||
               a.user.email.toLowerCase() == id) {
             return a.user;
           }
@@ -72,70 +72,78 @@ class MockAuthRepository extends MockRepositoryBase implements AuthRepository {
     return _session(active);
   });
 
+  /// Code the mock accepts for admin self-registration.
+  static const String demoAdminCode = 'ADMIN-CODE';
+
   @override
-  Future<AuthSessionModel> activateStudent({
-    required String matricule,
+  Future<AuthSessionModel> register({
+    required UserRole role,
+    required String fullName,
     required String email,
+    String? phone,
+    required String identifier,
     required String password,
+    String? departmentId,
+    String? adminCode,
   }) => delay(() {
-    final existing = _findUser(UserRole.student, matricule);
+    final idValue = identifier.trim().toUpperCase();
+    final existing = _findUser(role, idValue);
     if (existing != null) {
       if (existing.email.toLowerCase() != email.trim().toLowerCase()) {
         throw const ValidationException(
-          'The email does not match the matricule on record.',
+          'The email does not match the ID on record.',
         );
       }
       _store.passwords[existing.id] = password;
       return _session(existing);
     }
-    final id = _store.nextId('stu');
+    if (role == UserRole.admin && adminCode?.trim() != demoAdminCode) {
+      throw const ForbiddenException('Invalid admin registration code');
+    }
+    final id = _store.nextId(switch (role) {
+      UserRole.student => 'stu',
+      UserRole.lecturer => 'lec',
+      UserRole.admin => 'adm',
+    });
     final user = UserModel(
       id: id,
-      fullName: email.split('@').first.replaceAll('.', ' '),
+      fullName: fullName.trim(),
       email: email.trim(),
-      role: UserRole.student,
+      role: role,
+      phone: (phone?.trim().isEmpty ?? true) ? null : phone!.trim(),
+      departmentId: departmentId,
+      departmentName: _store.departments[departmentId]?.name,
       createdAt: DateTime.now(),
     );
     _store.users[id] = user;
     _store.passwords[id] = password;
-    _store.students[id] = StudentModel(
-      user: user,
-      matricule: matricule.trim().toUpperCase(),
-      programme: 'Undeclared',
-      level: 100,
-      semester: 1,
-    );
+    switch (role) {
+      case UserRole.student:
+        _store.students[id] = StudentModel(
+          user: user,
+          matricule: idValue,
+          programme: 'Undeclared',
+          level: 100,
+          semester: 1,
+        );
+      case UserRole.lecturer:
+        _store.lecturers[id] = LecturerModel(
+          user: user,
+          staffId: idValue,
+          title: 'Dr.',
+        );
+      case UserRole.admin:
+        _store.admins[id] = AdminModel(user: user, adminId: idValue);
+    }
     return _session(user);
   });
 
   @override
-  Future<AuthSessionModel> registerLecturer({
-    required String staffId,
-    required String email,
-    required String password,
-  }) => delay(() {
-    final existing = _findUser(UserRole.lecturer, staffId);
-    if (existing != null) {
-      _store.passwords[existing.id] = password;
-      return _session(existing);
-    }
-    final id = _store.nextId('lec');
-    final user = UserModel(
-      id: id,
-      fullName: email.split('@').first.replaceAll('.', ' '),
-      email: email.trim(),
-      role: UserRole.lecturer,
-      createdAt: DateTime.now(),
-    );
-    _store.users[id] = user;
-    _store.passwords[id] = password;
-    _store.lecturers[id] = LecturerModel(
-      user: user,
-      staffId: staffId.trim().toUpperCase(),
-      title: 'Dr.',
-    );
-    return _session(user);
-  });
+  Future<List<DepartmentModel>> getRegistrationDepartments() => delay(
+    () =>
+        _store.departments.values.where((d) => d.isActive).toList()
+          ..sort((a, b) => a.name.compareTo(b.name)),
+  );
 
   UserModel? _userByEmail(String email) {
     final e = email.trim().toLowerCase();

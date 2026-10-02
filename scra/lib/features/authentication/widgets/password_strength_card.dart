@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/utils/validators.dart';
 import '../../../widgets/common/progress_bar.dart';
@@ -27,10 +28,13 @@ class PasswordStrengthCard extends StatelessWidget {
     final theme = Theme.of(context);
     final strength = Validators.passwordStrength(password);
     final rules = [
-      ('At least 8 characters long', strength.hasMinLength),
-      ('At least one uppercase letter (A–Z)', strength.hasUppercase),
-      ('At least one numeric digit (0–9)', strength.hasDigit),
-      (r'Include special symbol (!@#$%^&*)', strength.hasSpecial),
+      (
+        '${AppConstants.recommendedPasswordLength}+ characters',
+        strength.hasMinLength,
+      ),
+      ('An uppercase letter (A–Z)', strength.hasUppercase),
+      ('A number (0–9)', strength.hasDigit),
+      (r'A special symbol (!@#$%^&*)', strength.hasSpecial),
     ];
     final color = switch (strength.score) {
       0 || 1 => AppColors.error,
@@ -40,7 +44,10 @@ class PasswordStrengthCard extends StatelessWidget {
 
     if (compact) {
       final chips = [
-        ('Min 8 characters', strength.hasMinLength),
+        (
+          '${AppConstants.recommendedPasswordLength}+ characters',
+          strength.hasMinLength,
+        ),
         ('1 number', strength.hasDigit),
         ('1 special char', strength.hasSpecial),
       ];
@@ -146,7 +153,15 @@ class PasswordStrengthCard extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.spaceSm),
           SegmentedProgress(total: 4, filled: strength.score, color: color),
-          const SizedBox(height: AppDimensions.spaceMd),
+          const SizedBox(height: AppDimensions.spaceSm),
+          Text(
+            'Only ${AppConstants.minPasswordLength} characters are required. '
+            'These make your password stronger:',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.spaceSm),
           for (final r in rules)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),

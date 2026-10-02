@@ -3,10 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_class/core/routing/app_router.dart';
 import 'package:smart_class/core/routing/route_names.dart';
 import 'package:smart_class/features/authentication/presentation/admin_login_screen.dart';
+import 'package:smart_class/features/authentication/presentation/admin_registration_screen.dart';
 import 'package:smart_class/features/authentication/presentation/forgot_password_screen.dart';
 import 'package:smart_class/features/authentication/presentation/lecturer_registration_screen.dart';
 import 'package:smart_class/features/authentication/presentation/login_screen.dart';
 import 'package:smart_class/features/authentication/presentation/student_activation_screen.dart';
+import 'package:smart_class/models/department_model.dart';
 import 'package:smart_class/models/user_model.dart';
 
 import '../fakes/mock_auth_repository.dart';
@@ -106,8 +108,25 @@ void main() {
 
     await tapVisible(tester, find.byKey(const Key('setup_submit')));
     await tester.pump();
+    expect(find.text('Full name is required'), findsOneWidget);
     expect(find.text('Student matricule is required'), findsOneWidget);
+    expect(
+      find.text('Select your department to see its courses'),
+      findsOneWidget,
+    );
 
+    await tapVisible(
+      tester,
+      find.descendant(
+        of: find.byKey(const Key('setup_department')),
+        matching: find.byType(DropdownButtonFormField<DepartmentModel>),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownMenuItem<DepartmentModel>).last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('setup_name')), 'Alex Rivers');
     await tester.enterText(find.byKey(const Key('setup_id')), 'MAT-2024-9148');
     await tester.enterText(
       find.byKey(const Key('setup_email')),
@@ -132,6 +151,39 @@ void main() {
     await tapVisible(tester, find.byKey(const Key('setup_submit')));
     await pumpFrames(tester, 10);
     expect(find.byType(StudentNavigation), findsOneWidget);
+  });
+
+  testWidgets('admin login links to admin registration with the code field', (
+    tester,
+  ) async {
+    await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
+    _navigator(tester).pushNamed(RouteNames.adminLogin);
+    await tester.pumpAndSettle();
+    await tapVisible(tester, find.byKey(const Key('admin_register')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AdminRegistrationScreen), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('setup_name')), 'New Admin');
+    await tester.enterText(find.byKey(const Key('setup_id')), 'ADM-777');
+    await tester.enterText(
+      find.byKey(const Key('setup_email')),
+      'new.admin@smartclass.edu',
+    );
+    await tester.enterText(
+      find.byKey(const Key('setup_admin_code')),
+      MockAuthRepository.demoAdminCode,
+    );
+    await tester.enterText(
+      find.byKey(const Key('setup_password')),
+      'Secure123!',
+    );
+    await tester.enterText(
+      find.byKey(const Key('setup_confirm')),
+      'Secure123!',
+    );
+    await tapVisible(tester, find.byKey(const Key('setup_submit')));
+    await pumpFrames(tester, 10);
+    expect(find.byType(AdminNavigation), findsOneWidget);
   });
 
   testWidgets('forgot password completes the three recovery steps', (

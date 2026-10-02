@@ -8,8 +8,6 @@ abstract final class Validators {
     r'^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$',
   );
   static final RegExp _phone = RegExp(r'^\+?[0-9]{7,15}$');
-  static final RegExp _studentId = RegExp(r'^[A-Z]{2,4}-?\d{4}-?\d{3,6}$');
-  static final RegExp _staffId = RegExp(r'^[A-Z]{2,4}-?\d{4}-?\d{3,6}$');
   static final RegExp _adminId = RegExp(r'^[A-Z]{3}-\d{3,6}(-[A-Z]{2,5})?$');
   static final RegExp _courseCode = RegExp(r'^[A-Z]{2,5}-?\d{3,4}[A-Z]?$');
   static final RegExp _time24h = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
@@ -58,15 +56,9 @@ abstract final class Validators {
     return null;
   }
 
-  /// Password used when creating credentials: length + upper + digit.
-  static String? newPassword(String? value) {
-    final base = password(value);
-    if (base != null) return base;
-    final v = value!;
-    if (!_upper.hasMatch(v)) return 'Include at least one uppercase letter';
-    if (!_digit.hasMatch(v)) return 'Include at least one number';
-    return null;
-  }
+  /// Password used when creating credentials. Only the minimum length is
+  /// enforced; the strength meter suggests (but does not require) more.
+  static String? newPassword(String? value) => password(value);
 
   static String? confirmPassword(String? value, String original) {
     if (value == null || value.isEmpty) return 'Please confirm your password';
@@ -81,19 +73,17 @@ abstract final class Validators {
     return null;
   }
 
+  /// Any non-empty matricule (short ones such as `LEC002` included).
   static String? studentId(String? value) {
-    final v = value?.trim().toUpperCase() ?? '';
+    final v = value?.trim() ?? '';
     if (v.isEmpty) return 'Student matricule is required';
-    if (!_studentId.hasMatch(v)) {
-      return 'Enter a valid student matricule';
-    }
     return null;
   }
 
+  /// Any non-empty staff / lecturer matricule.
   static String? staffId(String? value) {
-    final v = value?.trim().toUpperCase() ?? '';
+    final v = value?.trim() ?? '';
     if (v.isEmpty) return 'Staff ID is required';
-    if (!_staffId.hasMatch(v)) return 'Enter a valid staff ID';
     return null;
   }
 
@@ -197,7 +187,7 @@ abstract final class Validators {
   /// Returns the rules satisfied by [password], used by strength meters.
   static PasswordStrength passwordStrength(String password) {
     return PasswordStrength(
-      hasMinLength: password.length >= AppConstants.minPasswordLength,
+      hasMinLength: password.length >= AppConstants.recommendedPasswordLength,
       hasUppercase: _upper.hasMatch(password),
       hasDigit: _digit.hasMatch(password),
       hasSpecial: _special.hasMatch(password),

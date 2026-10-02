@@ -48,6 +48,17 @@ class _StudentCoursesScreenState extends State<StudentCoursesScreen> {
                 onChanged: (value) => setState(() => _query = value),
               ),
               const SizedBox(height: AppDimensions.spaceMd),
+              OutlinedButton.icon(
+                key: const Key('open_course_catalog'),
+                icon: const Icon(Icons.add_circle_outline),
+                label: const Text('Enroll in a course'),
+                onPressed: () async {
+                  await Navigator.of(context)
+                      .pushNamed(RouteNames.courseCatalog);
+                  await reload();
+                },
+              ),
+              const SizedBox(height: AppDimensions.spaceMd),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -67,7 +78,22 @@ class _StudentCoursesScreenState extends State<StudentCoursesScreen> {
                 title: 'Enrolled Courses',
                 subtitle: '${filtered.length} Total',
               ),
-              if (filtered.isEmpty)
+              if (data.courses.isEmpty)
+                EmptyState(
+                  icon: Icons.menu_book_outlined,
+                  title: 'No courses yet',
+                  message:
+                      'You get every course of your department automatically. '
+                      'You can also enroll in other courses.',
+                  actionLabel: 'Browse courses',
+                  onAction: () async {
+                    await Navigator.of(context)
+                        .pushNamed(RouteNames.courseCatalog);
+                    await reload();
+                  },
+                  compact: true,
+                )
+              else if (filtered.isEmpty)
                 const EmptyState(
                   icon: Icons.search_off,
                   title: 'No matching courses',
@@ -117,7 +143,7 @@ class _CoursesData {
       if (department != null && department.isNotEmpty) values.add(department);
     }
     for (final course in courses) {
-      final category = course.category.trim();
+      final category = course.category?.trim() ?? '';
       if (category.isNotEmpty) values.add(category);
     }
     return values.toSet().toList();
@@ -147,12 +173,19 @@ class _CoursesData {
     final scheduleRepo = context.read<ScheduleRepository>();
     final adminRepo = context.read<AdminRepository>();
     final now = DateTime.now();
-    final courses = await courseRepo.getStudentCourses(studentId);
     // The term label is optional; students may not have access to the
     // academic-terms endpoint.
-    final terms = await adminRepo.getAcademicTerms().catchError(
-      (Object _) => <AcademicTermModel>[],
-    );
+    final (courses, terms, sessions) = await (
+      courseRepo.getStudentCourses(studentId),
+      adminRepo.getAcademicTerms().catchError(
+        (Object _) => <AcademicTermModel>[],
+      ),
+      scheduleRepo.getStudentSessions(
+        studentId,
+        from: now,
+        to: now.add(const Duration(days: 14)),
+      ),
+    ).wait;
     final activeTerm = terms
         .where((term) => term.status == TermStatus.active)
         .cast<AcademicTermModel?>()
@@ -162,16 +195,12 @@ class _CoursesData {
         (c) => attendanceRepo.getStudentSummary(studentId, courseId: c.id),
       ),
     );
-    final sessions = await scheduleRepo.getStudentSessions(
-      studentId,
-      from: now,
-      to: now.add(const Duration(days: 14)),
-    );
     return _CoursesData(
       courses: courses,
       attendance: {
         for (final summary in summaries)
-          if (summary.courseId != null) summary.courseId!: summary.percentage,
+          if (summary.courseId != null && summary.totalSessions > 0)
+            summary.courseId!: summary.percentage,
       },
       nextLabels: {
         for (final course in courses)

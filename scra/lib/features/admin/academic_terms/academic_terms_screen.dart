@@ -38,11 +38,12 @@ class AcademicTermsScreen extends StatelessWidget {
       body: AsyncView<_TermsData>(
         load: () async {
           final repo = context.read<AdminRepository>();
-          return _TermsData(
-            await repo.getAcademicTerms(),
-            await repo.getFaculties(),
-            await repo.getDepartments(),
-          );
+          final (terms, faculties, departments) = await (
+            repo.getAcademicTerms(),
+            repo.getFaculties(),
+            repo.getDepartments(),
+          ).wait;
+          return _TermsData(terms, faculties, departments);
         },
         isEmpty: (data) => data.terms.isEmpty,
         builder: (context, data, reload) {

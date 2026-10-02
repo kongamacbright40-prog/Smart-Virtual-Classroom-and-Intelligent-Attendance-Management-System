@@ -105,15 +105,17 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
                 crossAxisSpacing: AppDimensions.spaceSm,
                 children: [
                   StatisticCard(
-                    value: attendancePercent(
-                      data.report.metric('average_rate'),
-                    ),
+                    value: data.report.metricOrNull('average_rate') == null
+                        ? '—'
+                        : attendancePercent(data.report.metric('average_rate')),
                     label: 'Average Rate',
                     icon: Icons.pie_chart,
-                    valueColor: colorForAttendance(
-                      context,
-                      data.report.metric('average_rate'),
-                    ),
+                    valueColor: data.report.metricOrNull('average_rate') == null
+                        ? null
+                        : colorForAttendance(
+                            context,
+                            data.report.metric('average_rate'),
+                          ),
                     alignment: CrossAxisAlignment.start,
                   ),
                   StatisticCard(

@@ -51,6 +51,22 @@ class AuthService {
     if (await _storage.getRememberMe()) await _storage.updateUser(user);
   }
 
+  /// Replaces the tokens of the current session (after `/auth/refresh`).
+  Future<void> updateTokens({
+    required String accessToken,
+    String? refreshToken,
+  }) async {
+    final current = _session;
+    if (current == null) return;
+    _session = AuthSessionModel(
+      user: current.user,
+      accessToken: accessToken,
+      refreshToken: refreshToken ?? current.refreshToken,
+      expiresAt: current.expiresAt,
+    );
+    if (await _storage.getRememberMe()) await _storage.saveSession(_session!);
+  }
+
   Future<void> clear() async {
     _session = null;
     await _storage.clearSession();

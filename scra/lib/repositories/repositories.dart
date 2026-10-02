@@ -13,17 +13,21 @@ abstract interface class AuthRepository {
     required String password,
   });
 
-  Future<AuthSessionModel> activateStudent({
-    required String matricule,
+  /// Creates (or activates an admin-created) account, then signs in.
+  /// [adminCode] is needed to register as admin once an admin exists.
+  Future<AuthSessionModel> register({
+    required UserRole role,
+    required String fullName,
     required String email,
+    String? phone,
+    required String identifier,
     required String password,
+    String? departmentId,
+    String? adminCode,
   });
 
-  Future<AuthSessionModel> registerLecturer({
-    required String staffId,
-    required String email,
-    required String password,
-  });
+  /// Active departments, loaded before sign-in for the registration forms.
+  Future<List<DepartmentModel>> getRegistrationDepartments();
 
   /// Sends a recovery code to [email].
   Future<void> requestPasswordReset(String email);
@@ -70,6 +74,25 @@ abstract interface class CourseRepository {
     required String lecturerId,
   });
   Future<CourseModel> archiveCourse(String courseId);
+
+  /// Student: joins [courseId] on top of their department's courses.
+  Future<CourseModel> enrollInCourse(String courseId);
+
+  /// Student: leaves a course they joined individually (department courses
+  /// can't be dropped).
+  Future<CourseModel> dropCourse(String courseId);
+
+  /// Admin: adds [studentId] to [courseId].
+  Future<void> addStudentToCourse({
+    required String courseId,
+    required String studentId,
+  });
+
+  /// Admin: removes a student added individually to [courseId].
+  Future<void> removeStudentFromCourse({
+    required String courseId,
+    required String studentId,
+  });
 }
 
 abstract interface class ScheduleRepository {
@@ -179,12 +202,19 @@ abstract interface class NotificationRepository {
 abstract interface class AdminRepository {
   Future<List<UserModel>> getUsers({UserRole? role, String? query});
   Future<UserModel> getUser(String userId);
-  Future<UserModel> createUser(UserModel user);
+
+  /// Classes running right now (started, not ended).
+  Future<List<ClassSessionModel>> getLiveSessions();
+
+  /// Without [password] the account is created pending activation; with it
+  /// the person can sign in straight away.
+  Future<UserModel> createUser(UserModel user, {String? password});
   Future<UserModel> updateUser(UserModel user);
   Future<UserModel> setUserActive(String userId, bool active);
   Future<void> deleteUser(String userId);
 
   Future<List<FacultyModel>> getFaculties();
+  Future<FacultyModel> createFaculty(String name);
   Future<List<DepartmentModel>> getDepartments({String? facultyId});
   Future<DepartmentModel> saveDepartment(DepartmentModel department);
   Future<DepartmentModel> archiveDepartment(String departmentId);

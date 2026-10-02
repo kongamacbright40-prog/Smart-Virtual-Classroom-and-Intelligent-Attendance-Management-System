@@ -82,20 +82,6 @@ class DepartmentItem extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppDimensions.spaceMd),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppDimensions.spaceMd),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            ),
-            child: Text(
-              'Head of Department\n${department.headName ?? 'Unassigned'}',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: AppDimensions.spaceMd),
           Wrap(
             spacing: AppDimensions.spaceSm,
             runSpacing: AppDimensions.spaceSm,

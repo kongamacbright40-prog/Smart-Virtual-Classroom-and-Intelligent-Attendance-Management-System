@@ -29,25 +29,31 @@ class LecturerDashboardScreen extends StatelessWidget {
     final notificationRepository = context.read<NotificationRepository>();
     final attendanceRepository = context.read<AttendanceRepository>();
     final now = DateTime.now();
-    final courses = await courseRepository.getLecturerCourses(lecturerId);
-    final sessions = await scheduleRepository.getLecturerSessions(
-      lecturerId,
-      from: now.subtract(const Duration(days: 7)),
-      to: now.add(const Duration(days: 7)),
-    );
-    final report = await reportRepository.getLecturerReport(lecturerId);
-    final notifications = await notificationRepository.getNotifications(
-      lecturerId,
-    );
+    // Independent requests: load them at the same time.
+    final results = await Future.wait<Object>([
+      courseRepository.getLecturerCourses(lecturerId),
+      scheduleRepository.getLecturerSessions(
+        lecturerId,
+        from: now.subtract(const Duration(days: 7)),
+        to: now.add(const Duration(days: 7)),
+      ),
+      reportRepository.getLecturerReport(lecturerId),
+      notificationRepository.getNotifications(lecturerId),
+    ]);
+    final courses = results[0] as List<CourseModel>;
+    final sessions = results[1] as List<ClassSessionModel>;
+    final report = results[2] as ReportModel;
+    final notifications = results[3] as List<NotificationModel>;
     final recent =
         sessions.where((s) => s.status == SessionStatus.completed).toList()
           ..sort((a, b) => b.startTime.compareTo(a.startTime));
-    final attendance = <String, List<AttendanceRecordModel>>{};
-    for (final session in recent.take(3)) {
-      attendance[session.id] = await attendanceRepository.getSessionAttendance(
-        session.id,
-      );
-    }
+    final latest = recent.take(3).toList();
+    final records = await Future.wait(
+      latest.map((s) => attendanceRepository.getSessionAttendance(s.id)),
+    );
+    final attendance = <String, List<AttendanceRecordModel>>{
+      for (var i = 0; i < latest.length; i++) latest[i].id: records[i],
+    };
     return _DashboardData(
       courses: courses,
       sessions: sessions,
@@ -193,7 +199,7 @@ class LecturerDashboardScreen extends StatelessWidget {
                 const SizedBox(height: AppDimensions.spaceLg),
                 LecturerSummary(
                   assignedCourses: data.courses.length,
-                  averageAttendance: data.report.metric('average_rate'),
+                  averageAttendance: data.report.metricOrNull('average_rate'),
                   pendingAppeals: data.pendingAppeals,
                 ),
                 const SizedBox(height: AppDimensions.spaceLg),

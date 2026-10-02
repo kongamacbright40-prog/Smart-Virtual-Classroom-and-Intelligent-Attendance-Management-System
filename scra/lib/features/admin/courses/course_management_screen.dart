@@ -45,12 +45,13 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
         load: () async {
           final courseRepo = context.read<CourseRepository>();
           final adminRepo = context.read<AdminRepository>();
-          return _CoursesData(
-            await courseRepo.getAllCourses(status: _status, query: _query),
-            await courseRepo.getAllCourses(),
-            await adminRepo.getDepartments(),
-            await adminRepo.getFaculties(),
-          );
+          final (filtered, all, departments, faculties) = await (
+            courseRepo.getAllCourses(status: _status, query: _query),
+            courseRepo.getAllCourses(),
+            adminRepo.getDepartments(),
+            adminRepo.getFaculties(),
+          ).wait;
+          return _CoursesData(filtered, all, departments, faculties);
         },
         builder: (context, data, reload) => RefreshIndicator(
           onRefresh: reload,

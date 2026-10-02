@@ -160,9 +160,9 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
   String? _studentSubtitle(StudentModel student) {
     final parts = [
       if (student.programme.trim().isNotEmpty) student.programme.trim(),
-      'Level ${student.level}',
+      if (student.level != null) 'Level ${student.level}',
     ];
-    return parts.join(' • ');
+    return parts.isEmpty ? null : parts.join(' • ');
   }
 }
 
@@ -195,7 +195,9 @@ class _SummaryCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      Formatters.percent(percent),
+                      summary.totalSessions == 0
+                          ? '—'
+                          : Formatters.percent(percent),
                       style: theme.textTheme.headlineSmall,
                     ),
                     Text('Aggregate', style: theme.textTheme.labelMedium),

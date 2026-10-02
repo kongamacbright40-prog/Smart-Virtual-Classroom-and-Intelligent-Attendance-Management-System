@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -15,6 +16,7 @@ import '../../../widgets/common/error_state.dart';
 import '../../../widgets/common/loading_state.dart';
 import '../../../widgets/common/status_chip.dart';
 import '../../../widgets/dialogs/confirmation_dialog.dart';
+import '../../../widgets/media/video_tile.dart';
 import 'widgets/classroom_toolbar.dart';
 import 'widgets/lecturer_controls.dart';
 import 'widgets/participant_panel.dart';
@@ -222,6 +224,7 @@ class _Stage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final remotePeers = controller.mediaState.remotePeerIds;
     return Container(
       height: 260,
       padding: const EdgeInsets.all(AppDimensions.spaceLg),
@@ -254,7 +257,7 @@ class _Stage extends StatelessWidget {
                     ?.copyWith(color: Colors.white),
               ),
               const Spacer(),
-              if (session.materials.isNotEmpty)
+              if (session.materials.isNotEmpty && remotePeers.isEmpty)
                 Text(
                   session.materials.first,
                   maxLines: 1,
@@ -279,27 +282,83 @@ class _Stage extends StatelessWidget {
             child: Container(
               width: 112,
               height: 130,
-              padding: const EdgeInsets.all(AppDimensions.spaceSm),
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.primaryContainer, width: 3),
                 borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
                 color: Colors.black26,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
+              child: Stack(
                 children: [
-                  const StatusChip(label: 'Host', tone: StatusTone.primary),
-                  const Spacer(),
-                  Text(
-                    controller.user.fullName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white),
+                  Positioned.fill(
+                    child: VideoTile(
+                      showVideo:
+                          controller.cameraEnabled || controller.screenSharing,
+                      // Mirror the selfie camera, never the shared screen.
+                      mirror: !controller.screenSharing,
+                      fit: controller.screenSharing
+                          ? RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
+                          : RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                      placeholder: const SizedBox.shrink(),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(AppDimensions.spaceSm),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const StatusChip(
+                          label: 'Host',
+                          tone: StatusTone.primary,
+                        ),
+                        const Spacer(),
+                        Text(
+                          controller.user.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            shadows: [Shadow(blurRadius: 4)],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
+          if (remotePeers.isNotEmpty)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 72,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: remotePeers.length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppDimensions.spaceSm),
+                itemBuilder: (context, i) => ClipRRect(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                  child: SizedBox(
+                    width: 96,
+                    child: VideoTile(
+                      key: ValueKey('student-video-${remotePeers[i]}'),
+                      peerId: remotePeers[i],
+                      placeholder: Container(
+                        color: Colors.black38,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.person_outline,
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -117,22 +117,6 @@ class StudentSettingsScreen extends StatelessWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _changePassword(context),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.account_balance),
-                  title: const Text('Institutional SSO'),
-                  subtitle: Text('Connected: ${user.email}'),
-                ),
-                const Divider(height: 1),
-                _SwitchRow(
-                  title: 'Biometric Attendance Lock',
-                  subtitle: 'Require fingerprint when checking into hall',
-                  value: settings.biometricAttendanceLock,
-                  onChanged: (v) => _update(
-                    context,
-                    (s) => s.copyWith(biometricAttendanceLock: v),
-                  ),
-                ),
               ],
             ),
           ),

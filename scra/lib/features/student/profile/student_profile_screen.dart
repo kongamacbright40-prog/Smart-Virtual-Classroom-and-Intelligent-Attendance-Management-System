@@ -107,7 +107,12 @@ class StudentProfileScreen extends StatelessWidget {
               student.user.fullName,
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            Text('${student.matricule} • ${student.programme}'),
+            Text(
+              [
+                student.matricule,
+                student.programme,
+              ].where((s) => s.trim().isNotEmpty).join(' • '),
+            ),
             const SizedBox(height: AppDimensions.spaceLg),
             const Text('Use this ID for attendance verification.'),
             const SizedBox(height: AppDimensions.spaceLg),
@@ -197,14 +202,15 @@ class _ProfileHeader extends StatelessWidget {
           alignment: WrapAlignment.center,
           children: [
             Chip(label: Text('Matric: ${student.matricule}')),
-            if (student.user.departmentName != null)
+            if (student.user.departmentName != null || student.level != null)
               Chip(
                 label: Text(
-                  '${student.user.departmentName} • Level ${student.level}',
+                  [
+                    ?student.user.departmentName,
+                    if (student.level != null) 'Level ${student.level}',
+                  ].join(' • '),
                 ),
-              )
-            else
-              Chip(label: Text('Level ${student.level}')),
+              ),
             Chip(label: Text(student.user.isActive ? 'Active' : 'Inactive')),
           ],
         ),
@@ -247,18 +253,28 @@ class _AcademicInfo extends StatelessWidget {
         children: [
           _SectionTitle(icon: Icons.school, title: 'Academic Information'),
           _InfoRow('Department', student.user.departmentName ?? 'Not set'),
-          _InfoRow('Program', student.programme),
+          _InfoRow(
+            'Program',
+            student.programme.trim().isEmpty ? 'Not set' : student.programme,
+          ),
           _InfoRow(
             'Level',
-            'Level ${student.level} (Year ${(student.level / 100).round()})',
+            student.level == null
+                ? 'Not set'
+                : 'Level ${student.level} (Year ${(student.level! / 100).round()})',
           ),
           _InfoRow(
             'Current Term',
-            activeTerm?.name ?? 'Semester ${student.semester}',
+            activeTerm?.name ??
+                (student.semester == null
+                    ? 'Not set'
+                    : 'Semester ${student.semester}'),
           ),
           _InfoRow(
             'Enrolled Courses',
-            '${student.enrolledCourseIds.length} Courses (${student.activeCredits} Credits)',
+            student.activeCredits == null
+                ? '${student.enrolledCourseIds.length} Courses'
+                : '${student.enrolledCourseIds.length} Courses (${student.activeCredits} Credits)',
             action: () =>
                 Navigator.of(context).pushNamed(RouteNames.studentCourses),
           ),
@@ -311,10 +327,12 @@ class _CoursesSummary extends StatelessWidget {
           _SectionTitle(
             icon: Icons.auto_stories,
             title: 'Enrolled Courses Summary',
-            trailing: StatusChip(
-              label: '${student.overallAttendance.round()}% Aggregate',
-              tone: StatusTone.info,
-            ),
+            trailing: student.overallAttendance == null
+                ? null
+                : StatusChip(
+                    label: '${student.overallAttendance!.round()}% Aggregate',
+                    tone: StatusTone.info,
+                  ),
           ),
           const SizedBox(height: AppDimensions.spaceMd),
           GridView.count(
@@ -570,13 +588,15 @@ class _ProfileData {
     final courseRepo = context.read<CourseRepository>();
     final attendanceRepo = context.read<AttendanceRepository>();
     final adminRepo = context.read<AdminRepository>();
-    final student = await userRepo.getStudentProfile(studentId);
-    final courses = await courseRepo.getStudentCourses(studentId);
     // The term label is optional; students may not have access to the
     // academic-terms endpoint.
-    final terms = await adminRepo.getAcademicTerms().catchError(
-      (Object _) => <AcademicTermModel>[],
-    );
+    final (student, courses, terms) = await (
+      userRepo.getStudentProfile(studentId),
+      courseRepo.getStudentCourses(studentId),
+      adminRepo.getAcademicTerms().catchError(
+        (Object _) => <AcademicTermModel>[],
+      ),
+    ).wait;
     final activeTerm = terms
         .where((term) => term.status == TermStatus.active)
         .cast<AcademicTermModel?>()
@@ -591,7 +611,8 @@ class _ProfileData {
       courses: courses,
       attendance: {
         for (final s in summaries)
-          if (s.courseId != null) s.courseId!: s.percentage,
+          if (s.courseId != null && s.totalSessions > 0)
+            s.courseId!: s.percentage,
       },
       activeTerm: activeTerm,
     );

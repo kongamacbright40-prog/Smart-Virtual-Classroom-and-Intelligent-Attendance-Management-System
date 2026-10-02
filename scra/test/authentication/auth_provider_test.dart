@@ -136,22 +136,29 @@ void main() {
   });
 
   group('account setup', () {
-    test('student activation signs the student in', () async {
-      final ok = await auth.activateStudent(
-        matricule: 'mat-2024-9148',
+    test('student registration signs the student in', () async {
+      final ok = await auth.register(
+        role: UserRole.student,
+        fullName: 'Alex Rivers',
         email: 'alex.rivers@campus.edu',
+        phone: '+237600000001',
+        identifier: 'mat-2024-9148',
         password: 'Secure123!',
       );
       expect(ok, isTrue);
       expect(auth.role, UserRole.student);
+      expect(auth.user?.fullName, 'Alex Rivers');
+      expect(auth.user?.phone, '+237600000001');
     });
 
     test(
       'activation rejects an email that does not match the matricule',
       () async {
-        final ok = await auth.activateStudent(
-          matricule: DemoAccounts.studentId,
+        final ok = await auth.register(
+          role: UserRole.student,
+          fullName: 'Someone Else',
           email: 'someone.else@campus.edu',
+          identifier: DemoAccounts.studentId,
           password: 'Secure123!',
         );
         expect(ok, isFalse);
@@ -160,13 +167,30 @@ void main() {
     );
 
     test('lecturer registration signs the lecturer in', () async {
-      final ok = await auth.registerLecturer(
-        staffId: 'FAC-2025-0001',
+      final ok = await auth.register(
+        role: UserRole.lecturer,
+        fullName: 'New Lecturer',
         email: 'new.lecturer@faculty.edu',
+        identifier: 'FAC-2025-0001',
         password: 'Secure123!',
       );
       expect(ok, isTrue);
       expect(auth.role, UserRole.lecturer);
+    });
+
+    test('admin registration needs the admin code', () async {
+      Future<bool> attempt(String? code) => auth.register(
+        role: UserRole.admin,
+        fullName: 'New Admin',
+        email: 'new.admin@smartclass.edu',
+        identifier: 'ADM-777',
+        password: 'Secure123!',
+        adminCode: code,
+      );
+      expect(await attempt('wrong'), isFalse);
+      expect(auth.errorMessage, contains('admin registration code'));
+      expect(await attempt(MockAuthRepository.demoAdminCode), isTrue);
+      expect(auth.role, UserRole.admin);
     });
   });
 

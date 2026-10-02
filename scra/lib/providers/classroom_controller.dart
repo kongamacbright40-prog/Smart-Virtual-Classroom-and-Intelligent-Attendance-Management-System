@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ui' show Offset;
 
 import 'package:flutter/foundation.dart';
 
 import '../core/constants/api_endpoints.dart';
+import '../core/errors/app_exception.dart';
 import '../core/errors/error_handler.dart';
 import '../models/models.dart';
 import '../repositories/repositories.dart';
@@ -63,6 +65,13 @@ class ClassroomController extends ChangeNotifier {
   MediaState _mediaState = const MediaState();
   bool _isSubmittingAnswer = false;
   bool _isEnding = false;
+
+  /// The lecturer's whiteboard, shared live with the class.
+  final Whiteboard board = Whiteboard();
+  final List<Offset> _pendingPoints = [];
+  String? _drawingStrokeId;
+  Timer? _boardFlush;
+  int _strokeCounter = 0;
 
   bool get isLecturer => user.role == UserRole.lecturer;
   ClassSessionModel? get session => _session;
@@ -135,8 +144,18 @@ class ClassroomController extends ChangeNotifier {
 
       _subscriptions.add(
         _media.stateChanges.listen((s) {
+          final wasSharing = _mediaState.screenSharing;
           _mediaState = s;
+          if (isLecturer && wasSharing != s.screenSharing) {
+            _onScreenShareChanged(s.screenSharing);
+          }
           _notify();
+        }),
+      );
+      // Subscribe before joining: the server sends the current board on join.
+      _subscriptions.add(
+        _media.boardMessages.listen((m) {
+          if (board.apply(m)) _notify();
         }),
       );
       await _media.joinRoom(
@@ -223,6 +242,121 @@ class ClassroomController extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------------
+  // Whiteboard (lecturer draws; changes are sent to the class)
+  // ---------------------------------------------------------------------------
+
+  bool get boardActive => board.active;
+
+  /// Board hidden for students only because a screen share is running; it
+  /// comes back when sharing stops.
+  bool _boardPausedForShare = false;
+
+  /// Shows / hides the whiteboard on the students' screens. While the screen
+  /// is shared the board stays hidden (it would cover the shared screen).
+  void setBoardVisible(bool visible) {
+    if (visible && screenSharing) {
+      _boardPausedForShare = true;
+      _sendBoardVisibility(false);
+      return;
+    }
+    _boardPausedForShare = false;
+    _sendBoardVisibility(visible);
+  }
+
+  void _sendBoardVisibility(bool visible) {
+    if (board.active == visible) return;
+    board.active = visible;
+    _media.sendBoard({'op': visible ? 'show' : 'hide'});
+    _notify();
+  }
+
+  void _onScreenShareChanged(bool sharing) {
+    // Tell students to show (or stop showing) the shared screen.
+    _media.sendBoard({'op': 'screen', 'on': sharing});
+    if (sharing && board.active) {
+      _boardPausedForShare = true;
+      _sendBoardVisibility(false);
+    } else if (!sharing && _boardPausedForShare) {
+      _boardPausedForShare = false;
+      _sendBoardVisibility(true);
+    }
+  }
+
+  /// Starts a stroke at [point] (fractions of the board size).
+  void beginStroke({
+    required int color,
+    required double width,
+    required Offset point,
+  }) {
+    _flushBoardPoints();
+    final id =
+        '${user.id}-${DateTime.now().microsecondsSinceEpoch}-'
+        '${_strokeCounter++}';
+    board.strokes.add(
+      BoardStroke(id: id, color: color, width: width, points: [point]),
+    );
+    _drawingStrokeId = id;
+    _media.sendBoard({
+      'op': 'begin',
+      'id': id,
+      'color': color,
+      'width': width,
+      'points': Whiteboard.encodePoints([point]),
+    });
+    _notify();
+  }
+
+  /// Adds [point] to the current stroke; points are sent in small batches.
+  void extendStroke(Offset point) {
+    final id = _drawingStrokeId;
+    if (id == null || board.strokes.isEmpty || board.strokes.last.id != id) {
+      return;
+    }
+    board.strokes.last.points.add(point);
+    _pendingPoints.add(point);
+    _boardFlush ??= Timer(const Duration(milliseconds: 40), _flushBoardPoints);
+    _notify();
+  }
+
+  void endStroke() {
+    _flushBoardPoints();
+    _drawingStrokeId = null;
+  }
+
+  void undoStroke() {
+    if (board.strokes.isEmpty) return;
+    _flushBoardPoints();
+    board.strokes.removeLast();
+    _media.sendBoard({'op': 'undo'});
+    _notify();
+  }
+
+  void clearBoard() {
+    _flushBoardPoints();
+    board.strokes.clear();
+    _media.sendBoard({'op': 'clear'});
+    _notify();
+  }
+
+  void _flushBoardPoints() {
+    _boardFlush?.cancel();
+    _boardFlush = null;
+    final id = _drawingStrokeId;
+    if (id == null || _pendingPoints.isEmpty) return;
+    final points = List.of(_pendingPoints);
+    _pendingPoints.clear();
+    for (var i = 0; i < points.length; i += 400) {
+      _media.sendBoard({
+        'op': 'extend',
+        'id': id,
+        'points': Whiteboard.encodePoints(
+          points.sublist(i, (i + 400).clamp(0, points.length)),
+        ),
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Media controls
   // ---------------------------------------------------------------------------
 
@@ -242,11 +376,18 @@ class ClassroomController extends ChangeNotifier {
     );
   }
 
+  /// Throws (with a readable message) when sharing could not start, so the
+  /// screen can tell the lecturer why.
   Future<void> toggleScreenShare() async {
     if (screenSharing) {
       await _media.stopScreenShare();
     } else {
       await _media.startScreenShare();
+      if (!_media.state.screenSharing) {
+        throw ValidationException(
+          _media.state.errorMessage ?? 'Screen sharing is not available.',
+        );
+      }
     }
     await _safe(
       () => _classroom.updateMediaState(
@@ -428,6 +569,7 @@ class ClassroomController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _boardFlush?.cancel();
     for (final s in _subscriptions) {
       s.cancel();
     }

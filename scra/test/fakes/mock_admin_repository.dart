@@ -39,6 +39,13 @@ class MockAdminRepository extends MockRepositoryBase
       _store.admins[userId]?.adminId;
 
   @override
+  Future<List<ClassSessionModel>> getLiveSessions() => delay(
+    () => _store.sessions.values
+        .where((s) => s.status == SessionStatus.live)
+        .toList(),
+  );
+
+  @override
   Future<UserModel> getUser(String userId) => delay(() {
     final u = _store.users[userId];
     if (u == null) throw const NotFoundException('User not found.');
@@ -46,7 +53,7 @@ class MockAdminRepository extends MockRepositoryBase
   });
 
   @override
-  Future<UserModel> createUser(UserModel user) => delay(() {
+  Future<UserModel> createUser(UserModel user, {String? password}) => delay(() {
     final exists = _store.users.values.any(
       (u) => u.email.toLowerCase() == user.email.toLowerCase(),
     );
@@ -140,6 +147,20 @@ class MockAdminRepository extends MockRepositoryBase
   @override
   Future<List<FacultyModel>> getFaculties() =>
       delay(() => _store.faculties.values.toList());
+
+  @override
+  Future<FacultyModel> createFaculty(String name) => delay(() {
+    final trimmed = name.trim();
+    if (_store.faculties.values.any(
+      (f) => f.name.toLowerCase() == trimmed.toLowerCase(),
+    )) {
+      throw const ValidationException('Faculty already exists.');
+    }
+    final id = _store.nextId('fac');
+    final faculty = FacultyModel(id: id, name: trimmed, code: id.toUpperCase());
+    _store.faculties[id] = faculty;
+    return faculty;
+  });
 
   @override
   Future<List<DepartmentModel>> getDepartments({String? facultyId}) => delay(

@@ -3,7 +3,6 @@
 /// belong here.
 abstract final class AppStrings {
   static const String appName = 'Smart Class';
-  static const String suiteName = 'EduVerse Suite';
   static const String tagline =
       'Intelligent Virtual Classroom & Attendance Management';
 

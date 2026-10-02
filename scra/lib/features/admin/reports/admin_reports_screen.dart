@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:smart_class/core/constants/app_constants.dart';
 import 'package:smart_class/core/constants/app_dimensions.dart';
 import 'package:smart_class/core/utils/formatters.dart';
 import 'package:smart_class/core/utils/helpers.dart';
@@ -22,6 +23,11 @@ class AdminReportsScreen extends StatefulWidget {
   @override
   State<AdminReportsScreen> createState() => _AdminReportsScreenState();
 }
+
+String _percentOrDash(ReportModel report, String key) =>
+    report.metricOrNull(key) == null
+    ? '—'
+    : Formatters.percent(report.metric(key), decimals: 1);
 
 class _AdminReportsScreenState extends State<AdminReportsScreen> {
   String? _departmentId;
@@ -46,12 +52,17 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
         load: () async {
           final adminRepo = context.read<AdminRepository>();
           final reportRepo = context.read<ReportRepository>();
-          final terms = await adminRepo.getAcademicTerms();
+          final (terms, report, departments, settings) = await (
+            adminRepo.getAcademicTerms(),
+            reportRepo.getInstitutionReport(departmentId: _departmentId),
+            adminRepo.getDepartments(),
+            loadSystemSettings(adminRepo),
+          ).wait;
           return _ReportsData(
-            await reportRepo.getInstitutionReport(departmentId: _departmentId),
-            await adminRepo.getDepartments(),
+            report,
+            departments,
             terms.where((t) => t.status == TermStatus.active).firstOrNull,
-            await adminRepo.getSystemSettings(),
+            settings,
           );
         },
         builder: (context, data, reload) {
@@ -67,7 +78,8 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
               : data.departments.firstWhere((d) => d.id == _departmentId);
           final target = data.report.metric(
             'target',
-            data.settings.minimumAttendance,
+            data.settings?.minimumAttendance ??
+                AppConstants.attendanceWarningThreshold,
           );
           return RefreshIndicator(
             onRefresh: reload,
@@ -120,37 +132,41 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                   children: [
                     AnalyticsCard(
                       title: 'Overall Rate',
-                      value: Formatters.percent(
-                        data.report.metric('overall_rate'),
-                        decimals: 1,
-                      ),
+                      value: _percentOrDash(data.report, 'overall_rate'),
                       icon: Icons.school_outlined,
-                      badge:
-                          '+${data.report.metric('rate_change').toStringAsFixed(1)}%',
+                      badge: data.report.metricOrNull('rate_change') == null
+                          ? null
+                          : '+${data.report.metric('rate_change').toStringAsFixed(1)}%',
                       tone: StatusTone.success,
                     ),
                     AnalyticsCard(
                       title: 'Sessions',
-                      value: Formatters.compactNumber(
-                        data.report.metric('sessions'),
-                      ),
+                      value: data.report.metricOrNull('sessions') == null
+                          ? '—'
+                          : Formatters.compactNumber(
+                              data.report.metric('sessions'),
+                            ),
                       icon: Icons.verified_outlined,
-                      badge:
-                          '${data.report.metric('sync_rate').toStringAsFixed(1)}%',
+                      badge: data.report.metricOrNull('sync_rate') == null
+                          ? null
+                          : '${data.report.metric('sync_rate').toStringAsFixed(1)}%',
                       tone: StatusTone.live,
                     ),
                     AnalyticsCard(
                       title:
                           'At-Risk (<${Formatters.percent(target, decimals: 0)})',
-                      value: data.report.metric('at_risk').round().toString(),
+                      value: data.report.metricOrNull('at_risk') == null
+                          ? '—'
+                          : data.report.metric('at_risk').round().toString(),
                       icon: Icons.warning_amber_outlined,
                       badge: 'Action',
                       tone: StatusTone.warning,
                     ),
                     AnalyticsCard(
                       title: 'Sync',
-                      value:
-                          '${data.report.metric('sync_rate').toStringAsFixed(1)}%',
+                      value: data.report.metricOrNull('sync_rate') == null
+                          ? '—'
+                          : '${data.report.metric('sync_rate').toStringAsFixed(1)}%',
                       icon: Icons.cloud_done_outlined,
                       tone: StatusTone.success,
                     ),
@@ -256,7 +272,7 @@ class _ReportsData {
   final ReportModel report;
   final List<DepartmentModel> departments;
   final AcademicTermModel? activeTerm;
-  final SystemSettingsModel settings;
+  final SystemSettingsModel? settings;
 }
 
 class _FacultyBar extends StatelessWidget {

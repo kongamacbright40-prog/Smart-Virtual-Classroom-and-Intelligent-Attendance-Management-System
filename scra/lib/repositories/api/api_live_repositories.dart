@@ -1,136 +1,192 @@
 import '../../core/constants/api_endpoints.dart';
+import '../../core/errors/app_exception.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
-import '../../services/websocket_service.dart';
+import '../../services/file_saver.dart';
 import '../repositories.dart';
 import 'api_core_repositories.dart';
 import 'api_repository_base.dart';
+import 'backend_mappers.dart';
+
+bool _sameRecords(
+  List<AttendanceRecordModel> a,
+  List<AttendanceRecordModel> b,
+) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    final x = a[i];
+    final y = b[i];
+    if (x.id != y.id ||
+        x.status != y.status ||
+        x.checkedInAt != y.checkedInAt ||
+        x.leftAt != y.leftAt ||
+        x.minutesLogged != y.minutesLogged) {
+      return false;
+    }
+  }
+  return true;
+}
 
 class ApiAttendanceRepository extends ApiRepositoryBase
     implements AttendanceRepository {
-  ApiAttendanceRepository(super.api, this._socket);
-
-  final WebSocketService _socket;
+  ApiAttendanceRepository(super.api, super.context);
 
   @override
   Future<AttendanceModel> getStudentSummary(
     String studentId, {
     String? courseId,
-  }) => getOne(
-    ApiEndpoints.studentAttendanceSummary(studentId),
-    AttendanceModel.fromJson,
-    query: {'course_id': courseId},
-  );
+  }) async {
+    final records = await getStudentRecords(studentId, courseId: courseId);
+    final first = records.firstOrNull;
+    return AttendanceModel.fromRecords(
+      studentId,
+      records,
+      courseId: courseId,
+      courseCode: courseId == null ? null : first?.courseCode,
+      courseTitle: courseId == null ? null : first?.courseTitle,
+    );
+  }
 
+  /// Every finished class of the student's courses (absences included).
   @override
   Future<List<AttendanceRecordModel>> getStudentRecords(
     String studentId, {
     String? courseId,
-  }) => getMany(
-    ApiEndpoints.studentAttendance(studentId),
-    AttendanceRecordModel.fromJson,
+  }) => getArray(
+    ApiEndpoints.myAttendance,
+    (json) => BackendMappers.myAttendance(json, context.currentUser),
     query: {'course_id': courseId},
   );
 
   @override
-  Future<List<AttendanceRecordModel>> getSessionAttendance(String sessionId) =>
-      getMany(
-        ApiEndpoints.sessionAttendance(sessionId),
-        AttendanceRecordModel.fromJson,
-      );
+  Future<List<AttendanceRecordModel>> getSessionAttendance(
+    String sessionId,
+  ) async {
+    final session = context.sessions[sessionId];
+    return getMany(
+      ApiEndpoints.sessionAttendance(sessionId),
+      (json) => BackendMappers.attendance(json, session: session),
+    );
+  }
 
   @override
-  Future<List<AttendanceModel>> getCourseSummaries(String courseId) => getMany(
-    ApiEndpoints.courseAttendanceSummaries(courseId),
-    AttendanceModel.fromJson,
-  );
+  Future<List<AttendanceModel>> getCourseSummaries(String courseId) async {
+    final course = await getOne(
+      ApiEndpoints.course(courseId),
+      BackendMappers.course,
+    );
+    return getArray(
+      ApiEndpoints.courseAttendanceSummary(courseId),
+      (json) => BackendMappers.courseSummary(json, course: course),
+    );
+  }
+
+  /// The backend records attendance automatically while participants are
+  /// connected; the lecturer's capture toggle is kept locally.
+  Future<ClassSessionModel> _setCapture(String sessionId, bool active) async {
+    context.attendanceCapture[sessionId] = active;
+    return fetchSession(sessionId);
+  }
 
   @override
-  Future<ClassSessionModel> startAttendance(String sessionId) => postOne(
-    ApiEndpoints.sessionAttendanceStart(sessionId),
-    null,
-    ClassSessionModel.fromJson,
-  );
+  Future<ClassSessionModel> startAttendance(String sessionId) =>
+      _setCapture(sessionId, true);
 
   @override
-  Future<ClassSessionModel> endAttendance(String sessionId) => postOne(
-    ApiEndpoints.sessionAttendanceEnd(sessionId),
-    null,
-    ClassSessionModel.fromJson,
-  );
+  Future<ClassSessionModel> endAttendance(String sessionId) =>
+      _setCapture(sessionId, false);
 
   @override
   Future<AttendanceRecordModel> markAttendance({
     required String sessionId,
     required String studentId,
     required AttendanceStatus status,
-  }) => putOne(ApiEndpoints.sessionAttendanceStudent(sessionId, studentId), {
-    'status': status.value,
-  }, AttendanceRecordModel.fromJson);
+  }) async => postOne(
+    ApiEndpoints.sessionAttendanceMark(sessionId),
+    {
+      'profile_id': BackendMappers.id(studentId),
+      'status': BackendMappers.attendanceStatusValue(status),
+    },
+    (json) =>
+        BackendMappers.attendance(json, session: context.sessions[sessionId]),
+  );
 
+  /// The backend records check-in when the student connects to the class
+  /// signaling socket; this reads the resulting record.
   @override
   Future<AttendanceRecordModel> checkIn({
     required String sessionId,
     required String studentId,
-  }) => postOne(ApiEndpoints.sessionAttendanceCheckIn(sessionId), {
-    'student_id': studentId,
-  }, AttendanceRecordModel.fromJson);
+  }) async {
+    for (final r in await getSessionAttendance(sessionId)) {
+      if (r.studentId == studentId) return r;
+    }
+    throw const NotFoundException(
+      'You are not checked in yet. Rejoin the class to be marked present.',
+    );
+  }
 
+  /// Student record ids are `session-<class id>` (see
+  /// [BackendMappers.myAttendance]); appeals are filed per class.
   @override
   Future<void> submitAppeal({
     required String recordId,
     required String reason,
     String? documentName,
-  }) => api.post(
-    ApiEndpoints.attendanceAppeals(recordId),
-    body: {'reason': reason, 'document_name': documentName},
-  );
+  }) async {
+    final sessionId = recordId.startsWith(BackendMappers.myRecordPrefix)
+        ? recordId.substring(BackendMappers.myRecordPrefix.length)
+        : null;
+    if (sessionId == null) {
+      throw const ValidationException('This record cannot be appealed.');
+    }
+    await api.post(
+      ApiEndpoints.sessionAppeals(sessionId),
+      body: {'reason': reason, 'document_name': documentName},
+    );
+  }
 
   @override
   Stream<List<AttendanceRecordModel>> watchSessionAttendance(
     String sessionId,
-  ) => refetchOnEvents(
-    _socket,
-    'attendance.',
+  ) => poll(
     () => getSessionAttendance(sessionId),
+    // Attendance changes slowly (joins / leaves); keeps the server load low
+    // with many students. Chat and questions keep the faster default.
+    interval: const Duration(seconds: 10),
+    equals: _sameRecords,
   );
 }
 
 class ApiClassroomRepository extends ApiRepositoryBase
     implements ClassroomRepository {
-  ApiClassroomRepository(super.api, this._socket);
-
-  final WebSocketService _socket;
+  ApiClassroomRepository(super.api, super.context);
 
   @override
-  Future<ClassSessionModel> startClass(String sessionId) => postOne(
-    ApiEndpoints.sessionStart(sessionId),
-    null,
-    ClassSessionModel.fromJson,
-  );
+  Future<ClassSessionModel> startClass(String sessionId) async =>
+      mapSession(asJson(await api.post(ApiEndpoints.classStart(sessionId))));
 
   @override
-  Future<ClassSessionModel> endClass(String sessionId) => postOne(
-    ApiEndpoints.sessionEnd(sessionId),
-    null,
-    ClassSessionModel.fromJson,
-  );
+  Future<ClassSessionModel> endClass(String sessionId) async =>
+      mapSession(asJson(await api.post(ApiEndpoints.classEnd(sessionId))));
+
+  /// Presence is tracked by the signaling socket (see `SignalingService`).
+  @override
+  Future<void> joinClass(String sessionId, UserModel user) async {}
 
   @override
-  Future<void> joinClass(String sessionId, UserModel user) =>
-      api.post(ApiEndpoints.sessionJoin(sessionId));
+  Future<void> leaveClass(String sessionId, String userId) async {}
 
   @override
-  Future<void> leaveClass(String sessionId, String userId) =>
-      api.post(ApiEndpoints.sessionLeave(sessionId));
+  Future<void> setHandRaised(
+    String sessionId,
+    String userId,
+    bool raised,
+  ) async {
+    await api.put(ApiEndpoints.classHand(sessionId), body: {'raised': raised});
+  }
 
-  @override
-  Future<void> setHandRaised(String sessionId, String userId, bool raised) =>
-      api.patch(
-        ApiEndpoints.sessionParticipant(sessionId, userId),
-        body: {'is_hand_raised': raised},
-      );
-
+  /// Media state is local to each device; the backend does not track it.
   @override
   Future<void> updateMediaState(
     String sessionId,
@@ -138,68 +194,108 @@ class ApiClassroomRepository extends ApiRepositoryBase
     bool? isMuted,
     bool? isVideoOn,
     bool? isScreenSharing,
-  }) => api.patch(
-    ApiEndpoints.sessionParticipant(sessionId, userId),
-    body: {
-      'is_muted': ?isMuted,
-      'is_video_on': ?isVideoOn,
-      'is_screen_sharing': ?isScreenSharing,
-    },
-  );
+  }) async {}
 
-  Future<List<ParticipantModel>> _participants(String sessionId) => getMany(
-    ApiEndpoints.sessionParticipants(sessionId),
-    ParticipantModel.fromJson,
+  Future<List<ParticipantModel>> _participants(String sessionId) => getArray(
+    ApiEndpoints.classParticipants(sessionId),
+    BackendMappers.participant,
   );
 
   @override
-  Stream<List<ParticipantModel>> watchParticipants(String sessionId) =>
-      refetchOnEvents(_socket, 'participant.', () => _participants(sessionId));
-
-  @override
-  Future<List<ChatMessageModel>> getMessages(String sessionId) => getMany(
-    ApiEndpoints.sessionMessages(sessionId),
-    ChatMessageModel.fromJson,
+  Stream<List<ParticipantModel>> watchParticipants(String sessionId) => poll(
+    () => _participants(sessionId),
+    interval: const Duration(seconds: 5),
+    equals: (a, b) =>
+        a.length == b.length &&
+        [
+          for (var i = 0; i < a.length; i++)
+            a[i].userId == b[i].userId &&
+                a[i].isHandRaised == b[i].isHandRaised,
+        ].every((same) => same),
   );
 
   @override
-  Stream<ChatMessageModel> watchMessages(String sessionId) => _socket.events
-      .where((e) => e.type == 'chat.message')
-      .map((e) => ChatMessageModel.fromJson(e.payload))
-      .where((m) => m.classroomId == sessionId);
+  Future<List<ChatMessageModel>> getMessages(String sessionId) =>
+      getArray(ApiEndpoints.classMessages(sessionId), BackendMappers.message);
+
+  /// New messages only (polled with `after_id`).
+  @override
+  Stream<ChatMessageModel> watchMessages(String sessionId) async* {
+    int? lastId;
+    final existing = await getMessages(sessionId);
+    if (existing.isNotEmpty) lastId = int.tryParse(existing.last.id);
+    await for (final batch in poll(
+      () => getArray(
+        ApiEndpoints.classMessages(sessionId),
+        BackendMappers.message,
+        query: {'after_id': lastId},
+      ),
+    )) {
+      for (final message in batch) {
+        lastId = int.tryParse(message.id) ?? lastId;
+        yield message;
+      }
+    }
+  }
 
   @override
   Future<ChatMessageModel> sendMessage(ChatMessageModel message) => postOne(
-    ApiEndpoints.sessionMessages(message.classroomId),
+    ApiEndpoints.classMessages(message.classroomId),
     {'message': message.message, 'is_question': message.isQuestion},
-    ChatMessageModel.fromJson,
+    BackendMappers.message,
   );
 }
 
 class ApiQuestionRepository extends ApiRepositoryBase
     implements QuestionRepository {
-  ApiQuestionRepository(super.api, this._socket);
+  ApiQuestionRepository(super.api, super.context);
 
-  final WebSocketService _socket;
+  int _expected(String sessionId) =>
+      context.sessions[sessionId]?.expectedCount ?? 0;
 
+  /// Lecturers see every question of their class (with answers and counts);
+  /// students only see open ones.
   @override
-  Future<List<QuestionModel>> getSessionQuestions(String sessionId) =>
-      getMany(ApiEndpoints.sessionQuestions(sessionId), QuestionModel.fromJson);
-
-  @override
-  Future<QuestionModel> saveDraft(QuestionModel question) => postOne(
-    ApiEndpoints.questions,
-    question.toJson(),
-    QuestionModel.fromJson,
+  Future<List<QuestionModel>> getSessionQuestions(String sessionId) => getMany(
+    context.role == UserRole.lecturer
+        ? ApiEndpoints.sessionQuestions(sessionId)
+        : ApiEndpoints.sessionOpenQuestions(sessionId),
+    (json) =>
+        BackendMappers.question(json, expectedResponders: _expected(sessionId)),
   );
 
+  bool _saved(QuestionModel q) => q.id.isNotEmpty && int.tryParse(q.id) != null;
+
+  @override
+  Future<QuestionModel> saveDraft(QuestionModel question) async {
+    if (_saved(question)) return question;
+    return postOne(
+      ApiEndpoints.sessionQuestions(question.sessionId),
+      BackendMappers.questionCreate(question, launch: false),
+      BackendMappers.question,
+    );
+  }
+
+  /// Launching closes any other live question of the class.
   @override
   Future<QuestionModel> launchQuestion(QuestionModel question) async {
-    final saved = question.id.isEmpty ? await saveDraft(question) : question;
+    if (_saved(question)) {
+      return postOne(
+        ApiEndpoints.questionLaunch(question.id),
+        null,
+        (json) => BackendMappers.question(
+          json,
+          expectedResponders: _expected(question.sessionId),
+        ),
+      );
+    }
     return postOne(
-      ApiEndpoints.questionLaunch(saved.id),
-      null,
-      QuestionModel.fromJson,
+      ApiEndpoints.sessionQuestions(question.sessionId),
+      BackendMappers.questionCreate(question, launch: true),
+      (json) => BackendMappers.question(
+        json,
+        expectedResponders: _expected(question.sessionId),
+      ),
     );
   }
 
@@ -207,60 +303,55 @@ class ApiQuestionRepository extends ApiRepositoryBase
   Future<QuestionModel> closeQuestion(String questionId) => postOne(
     ApiEndpoints.questionClose(questionId),
     null,
-    QuestionModel.fromJson,
+    BackendMappers.question,
   );
 
+  /// Students see whether they were right as soon as they answer; closing
+  /// the question publishes the final result counts.
   @override
-  Future<QuestionModel> broadcastResults(String questionId) => postOne(
-    ApiEndpoints.questionBroadcast(questionId),
-    null,
-    QuestionModel.fromJson,
-  );
+  Future<QuestionModel> broadcastResults(String questionId) =>
+      closeQuestion(questionId);
 
   @override
   Future<QuestionResponseModel> submitResponse({
     required String questionId,
     required String studentId,
     required String optionId,
-  }) => postOne(ApiEndpoints.questionResponses(questionId), {
-    'selected_option_id': optionId,
-  }, QuestionResponseModel.fromJson);
+  }) async => postOne(ApiEndpoints.questionRespond(questionId), {
+    'selected_option_id': BackendMappers.id(optionId),
+  }, (json) => BackendMappers.response(json, studentId: studentId));
 
   @override
   Future<QuestionResponseModel?> getResponse({
     required String questionId,
     required String studentId,
   }) async {
-    final data = await api.get(
-      ApiEndpoints.questionResponse(questionId, studentId),
-    );
-    return data is Map ? QuestionResponseModel.fromJson(asJson(data)) : null;
+    final data = await api.get(ApiEndpoints.questionMyResponse(questionId));
+    return data is Map
+        ? BackendMappers.response(asJson(data), studentId: studentId)
+        : null;
   }
 
   @override
-  Stream<QuestionModel?> watchActiveQuestion(String sessionId) async* {
-    final all = await getSessionQuestions(sessionId);
-    yield all.where((q) => q.status == QuestionStatus.active).firstOrNull;
-    await for (final event in _socket.events) {
-      if (!event.type.startsWith('question.')) continue;
-      final q = QuestionModel.fromJson(event.payload);
-      if (q.sessionId != sessionId) continue;
-      yield q.status == QuestionStatus.active ? q : null;
-    }
-  }
+  Stream<QuestionModel?> watchActiveQuestion(String sessionId) => poll(
+    () async =>
+        (await getSessionQuestions(sessionId))
+            .where((q) => q.status == QuestionStatus.active)
+            .lastOrNull,
+    equals: (a, b) =>
+        a?.id == b?.id &&
+        a?.status == b?.status &&
+        a?.responseCount == b?.responseCount,
+  );
 }
 
 class ApiNotificationRepository extends ApiRepositoryBase
     implements NotificationRepository {
-  ApiNotificationRepository(super.api, this._socket);
-
-  final WebSocketService _socket;
+  ApiNotificationRepository(super.api, super.context);
 
   @override
-  Future<List<NotificationModel>> getNotifications(String userId) => getMany(
-    ApiEndpoints.userNotifications(userId),
-    NotificationModel.fromJson,
-  );
+  Future<List<NotificationModel>> getNotifications(String userId) =>
+      getMany(ApiEndpoints.notifications, BackendMappers.notification);
 
   @override
   Future<void> markAsRead(String notificationId) =>
@@ -268,135 +359,195 @@ class ApiNotificationRepository extends ApiRepositoryBase
 
   @override
   Future<void> markAllAsRead(String userId) =>
-      api.post(ApiEndpoints.userNotificationsReadAll(userId));
+      api.post(ApiEndpoints.notificationsReadAll);
 
+  /// Emits notifications that arrive after listening starts (polled).
   @override
-  Stream<NotificationModel> watchNotifications(String userId) => _socket.events
-      .where((e) => e.type == 'notification.created')
-      .map((e) => NotificationModel.fromJson(e.payload))
-      .where((n) => n.userId == userId);
+  Stream<NotificationModel> watchNotifications(String userId) async* {
+    var seen = <String>{};
+    var primed = false;
+    await for (final batch in poll(
+      () => getMany(
+        ApiEndpoints.notifications,
+        BackendMappers.notification,
+        query: {'unread_only': true},
+      ),
+      interval: const Duration(seconds: 15),
+    )) {
+      final ids = {for (final n in batch) n.id};
+      if (primed) {
+        for (final n in batch.reversed) {
+          if (!seen.contains(n.id)) yield n;
+        }
+      }
+      seen = {...seen, ...ids};
+      primed = true;
+    }
+  }
 }
 
 class ApiAdminRepository extends ApiRepositoryBase implements AdminRepository {
-  ApiAdminRepository(super.api);
+  ApiAdminRepository(super.api, super.context);
 
   @override
   Future<List<UserModel>> getUsers({UserRole? role, String? query}) => getMany(
-    ApiEndpoints.users,
-    UserModel.fromJson,
-    query: {'role': role?.value, 'q': query},
+    ApiEndpoints.adminUsers,
+    BackendMappers.user,
+    query: {
+      'role': role?.value,
+      'q': (query?.trim().isEmpty ?? true) ? null : query!.trim(),
+    },
   );
 
   @override
-  Future<UserModel> getUser(String userId) =>
-      getOne(ApiEndpoints.user(userId), UserModel.fromJson);
+  Future<List<ClassSessionModel>> getLiveSessions() => getMany(
+    ApiEndpoints.adminSessions,
+    mapSession,
+    query: {'live_only': true},
+  );
 
   @override
-  Future<UserModel> createUser(UserModel user) =>
-      postOne(ApiEndpoints.users, user.toJson(), UserModel.fromJson);
+  Future<UserModel> getUser(String userId) async {
+    for (final u in await getUsers()) {
+      if (u.id == userId) return u;
+    }
+    throw const NotFoundException('User not found.');
+  }
+
+  /// Without a password the person activates the account from the app
+  /// (student activation / lecturer registration / admin "Forgot password").
+  /// With an initial password they can sign in immediately.
+  @override
+  Future<UserModel> createUser(UserModel user, {String? password}) async =>
+      postOne(ApiEndpoints.adminUsers, {
+        'full_name': user.fullName,
+        'email': user.email,
+        'role': user.role.value,
+        'phone_number': user.phone,
+        if (user.departmentId != null && user.departmentId!.isNotEmpty)
+          'department_id': BackendMappers.id(user.departmentId!),
+        if (password != null && password.isNotEmpty) 'password': password,
+      }, BackendMappers.user);
 
   @override
-  Future<UserModel> updateUser(UserModel user) =>
-      putOne(ApiEndpoints.user(user.id), user.toJson(), UserModel.fromJson);
+  Future<UserModel> updateUser(UserModel user) async =>
+      patchOne(ApiEndpoints.adminUser(user.id), {
+        'full_name': user.fullName,
+        'email': user.email,
+        'phone_number': user.phone,
+        'department_id': user.departmentId == null || user.departmentId!.isEmpty
+            ? null
+            : BackendMappers.id(user.departmentId!),
+      }, BackendMappers.user);
 
   @override
   Future<UserModel> setUserActive(String userId, bool active) => patchOne(
-    ApiEndpoints.userStatus(userId),
+    ApiEndpoints.adminUserStatus(userId),
     {'is_active': active},
-    UserModel.fromJson,
+    BackendMappers.user,
   );
 
   @override
   Future<void> deleteUser(String userId) =>
-      api.delete(ApiEndpoints.user(userId));
+      api.delete(ApiEndpoints.adminUser(userId));
 
   @override
   Future<List<FacultyModel>> getFaculties() =>
-      getMany(ApiEndpoints.faculties, FacultyModel.fromJson);
+      getMany(ApiEndpoints.faculties, BackendMappers.faculty);
+
+  @override
+  Future<FacultyModel> createFaculty(String name) => postOne(
+    ApiEndpoints.faculties,
+    {'name': name.trim()},
+    BackendMappers.faculty,
+  );
 
   @override
   Future<List<DepartmentModel>> getDepartments({String? facultyId}) => getMany(
     ApiEndpoints.departments,
-    DepartmentModel.fromJson,
+    BackendMappers.department,
     query: {'faculty_id': facultyId},
   );
 
   @override
-  Future<DepartmentModel> saveDepartment(DepartmentModel department) =>
+  Future<DepartmentModel> saveDepartment(DepartmentModel department) async =>
       department.id.isEmpty
-      ? postOne(
-          ApiEndpoints.departments,
-          department.toJson(),
-          DepartmentModel.fromJson,
-        )
-      : putOne(
-          ApiEndpoints.department(department.id),
-          department.toJson(),
-          DepartmentModel.fromJson,
-        );
+      ? postOne(ApiEndpoints.departments, {
+          'name': department.name,
+          'faculty_id': BackendMappers.id(department.facultyId),
+        }, BackendMappers.department)
+      : patchOne(ApiEndpoints.department(department.id), {
+          'name': department.name,
+          if (department.facultyId.isNotEmpty)
+            'faculty_id': BackendMappers.id(department.facultyId),
+        }, BackendMappers.department);
 
   @override
   Future<DepartmentModel> archiveDepartment(String departmentId) => postOne(
     ApiEndpoints.departmentArchive(departmentId),
     null,
-    DepartmentModel.fromJson,
+    BackendMappers.department,
   );
 
   @override
   Future<List<AcademicTermModel>> getAcademicTerms() =>
-      getMany(ApiEndpoints.academicTerms, AcademicTermModel.fromJson);
+      getArray(ApiEndpoints.academicTerms, BackendMappers.term);
 
   @override
   Future<AcademicTermModel> saveAcademicTerm(AcademicTermModel term) =>
       term.id.isEmpty
       ? postOne(
           ApiEndpoints.academicTerms,
-          term.toJson(),
-          AcademicTermModel.fromJson,
+          BackendMappers.termBody(term),
+          BackendMappers.term,
         )
       : putOne(
           ApiEndpoints.academicTerm(term.id),
-          term.toJson(),
-          AcademicTermModel.fromJson,
+          BackendMappers.termBody(term),
+          BackendMappers.term,
         );
 
   @override
   Future<SystemSettingsModel> getSystemSettings() =>
-      getOne(ApiEndpoints.systemSettings, SystemSettingsModel.fromJson);
+      getOne(ApiEndpoints.systemSettings, BackendMappers.settings);
 
   @override
   Future<SystemSettingsModel> updateSystemSettings(
     SystemSettingsModel settings,
   ) => putOne(
     ApiEndpoints.systemSettings,
-    settings.toJson(),
-    SystemSettingsModel.fromJson,
+    BackendMappers.settingsBody(settings),
+    BackendMappers.settings,
   );
 
   @override
-  Future<List<ActivityLogModel>> getRecentActivity({int limit = 20}) => getMany(
-    ApiEndpoints.adminActivity,
-    ActivityLogModel.fromJson,
-    query: {'limit': limit},
-  );
+  Future<List<ActivityLogModel>> getRecentActivity({int limit = 20}) =>
+      getArray(
+        ApiEndpoints.adminActivity,
+        BackendMappers.activity,
+        query: {'limit': limit},
+      );
 }
 
 class ApiReportRepository extends ApiRepositoryBase
     implements ReportRepository {
-  ApiReportRepository(super.api);
+  ApiReportRepository(super.api, super.context);
 
   @override
   Future<ReportModel> getAdminDashboard() =>
-      getOne(ApiEndpoints.adminDashboardReport, ReportModel.fromJson);
+      getOne(ApiEndpoints.reportOverview, BackendMappers.report);
 
   @override
   Future<ReportModel> getLecturerReport(
     String lecturerId, {
     String? courseId,
   }) => getOne(
-    ApiEndpoints.lecturerReport(lecturerId),
-    ReportModel.fromJson,
-    query: {'course_id': courseId},
+    ApiEndpoints.reportLecturer,
+    BackendMappers.report,
+    query: {
+      'course_id': courseId,
+      if (context.role == UserRole.admin) 'lecturer_id': lecturerId,
+    },
   );
 
   @override
@@ -404,10 +555,19 @@ class ApiReportRepository extends ApiRepositoryBase
     String? departmentId,
     String? termId,
   }) => getOne(
-    ApiEndpoints.institutionReport,
-    ReportModel.fromJson,
-    query: {'department_id': departmentId, 'term_id': termId},
+    ApiEndpoints.reportInstitution,
+    BackendMappers.report,
+    query: {'department_id': departmentId},
   );
+
+  /// Report ids name their scope: `session-<id>`, `course-<id>`,
+  /// `lecturer-<id>`, `department-<id>` or the whole institution.
+  static Map<String, Object?> exportScope(String reportId) {
+    final match = RegExp(r'^(session|course|lecturer|department)-(\d+)$')
+        .firstMatch(reportId);
+    if (match == null) return const {};
+    return {'${match.group(1)}_id': match.group(2)};
+  }
 
   @override
   Future<String> exportReport(
@@ -416,35 +576,46 @@ class ApiReportRepository extends ApiRepositoryBase
     bool includeMatricule = true,
     bool includeGeolocation = false,
   }) async {
-    final data = asJson(
-      await api.post(
-        ApiEndpoints.reportExport(reportId),
-        body: {
-          'format': format.value,
-          'include_matricule': includeMatricule,
-          'include_geolocation': includeGeolocation,
-        },
-      ),
+    final path = switch (format) {
+      ReportFormat.pdf => ApiEndpoints.attendancePdf,
+      ReportFormat.xlsx => ApiEndpoints.attendanceXlsx,
+      ReportFormat.csv => ApiEndpoints.attendanceCsv,
+    };
+    final file = await api.download(
+      path,
+      query: {
+        ...exportScope(reportId),
+        // Join / leave times in the report are shown in this device's clock.
+        'utc_offset_minutes': DateTime.now().timeZoneOffset.inMinutes,
+      },
     );
-    return (data['url'] ?? data['file_name']).toString();
+    return saveDownloadedFile(
+      file.bytes,
+      fileName: file.fileName ?? 'attendance_report.${format.value}',
+      contentType: file.contentType,
+    );
   }
 }
 
 /// Convenience factory so the composition root stays short.
 class ApiRepositories {
-  ApiRepositories(ApiService api, WebSocketService socket)
-    : auth = ApiAuthRepository(api),
-      users = ApiUserRepository(api),
-      courses = ApiCourseRepository(api),
-      schedule = ApiScheduleRepository(api),
-      attendance = ApiAttendanceRepository(api, socket),
-      classroom = ApiClassroomRepository(api, socket),
-      questions = ApiQuestionRepository(api, socket),
-      notifications = ApiNotificationRepository(api, socket),
-      admin = ApiAdminRepository(api),
-      reports = ApiReportRepository(api);
+  ApiRepositories(ApiService api, {UserModel? Function()? currentUser})
+    : this._(api, ApiContext(currentUser: currentUser));
 
-  final AuthRepository auth;
+  ApiRepositories._(ApiService api, this.context)
+    : auth = ApiAuthRepository(api, context),
+      users = ApiUserRepository(api, context),
+      courses = ApiCourseRepository(api, context),
+      schedule = ApiScheduleRepository(api, context),
+      attendance = ApiAttendanceRepository(api, context),
+      classroom = ApiClassroomRepository(api, context),
+      questions = ApiQuestionRepository(api, context),
+      notifications = ApiNotificationRepository(api, context),
+      admin = ApiAdminRepository(api, context),
+      reports = ApiReportRepository(api, context);
+
+  final ApiContext context;
+  final ApiAuthRepository auth;
   final UserRepository users;
   final CourseRepository courses;
   final ScheduleRepository schedule;

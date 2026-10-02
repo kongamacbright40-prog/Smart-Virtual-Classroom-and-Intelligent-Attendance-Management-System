@@ -113,6 +113,9 @@ class ReportModel {
 
   double metric(String key, [double fallback = 0]) => metrics[key] ?? fallback;
 
+  /// The metric, or `null` when the backend did not report it.
+  double? metricOrNull(String key) => metrics[key];
+
   factory ReportModel.fromJson(Json json) => ReportModel(
     id: json['id'].toString(),
     title: json['title'] as String,

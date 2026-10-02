@@ -68,7 +68,13 @@ class StudentRosterItem extends StatelessWidget {
                       ),
                       const SizedBox(height: AppDimensions.spaceXs),
                       Text(
-                        '${student.matricule} • ${student.programme} • Year ${student.level ~/ 100}',
+                        [
+                          student.matricule,
+                          if (student.programme.trim().isNotEmpty)
+                            student.programme.trim(),
+                          if (student.level != null)
+                            'Year ${student.level! ~/ 100}',
+                        ].where((s) => s.isNotEmpty).join(' • '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

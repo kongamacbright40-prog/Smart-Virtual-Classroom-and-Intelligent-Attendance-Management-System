@@ -18,7 +18,9 @@ class LecturerCourseCard extends StatelessWidget {
   });
 
   final CourseModel course;
-  final double averageAttendance;
+
+  /// `null` until the course has held a class.
+  final double? averageAttendance;
   final ClassSessionModel? nextSession;
 
   @override
@@ -34,8 +36,10 @@ class LecturerCourseCard extends StatelessWidget {
           Row(
             children: [
               CodeTag(course.code),
-              const SizedBox(width: AppDimensions.spaceSm),
-              StatusChip(label: '${course.credits} CR', dense: true),
+              if (course.credits != null) ...[
+                const SizedBox(width: AppDimensions.spaceSm),
+                StatusChip(label: '${course.credits} CR', dense: true),
+              ],
               const Spacer(),
               PopupMenuButton<String>(
                 itemBuilder: (context) => const [
@@ -104,10 +108,14 @@ class LecturerCourseCard extends StatelessWidget {
                   children: [
                     const Text('Avg Attendance'),
                     Text(
-                      attendancePercent(averageAttendance),
+                      averageAttendance == null
+                          ? '—'
+                          : attendancePercent(averageAttendance!),
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: colorForAttendance(context, averageAttendance),
+                        color: averageAttendance == null
+                            ? null
+                            : colorForAttendance(context, averageAttendance!),
                       ),
                     ),
                   ],

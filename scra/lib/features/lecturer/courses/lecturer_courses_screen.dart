@@ -7,6 +7,7 @@ import '../../../models/models.dart';
 import '../../../repositories/repositories.dart';
 import '../../../widgets/common/app_bar.dart';
 import '../../../widgets/common/async_view.dart';
+import '../../../widgets/common/empty_state.dart';
 import '../../../widgets/inputs/search_field.dart';
 import '../lecturer_shared.dart';
 import 'widgets/lecturer_course_card.dart';
@@ -27,14 +28,21 @@ class _LecturerCoursesScreenState extends State<LecturerCoursesScreen> {
     final courseRepository = context.read<CourseRepository>();
     final reportRepository = context.read<ReportRepository>();
     final scheduleRepository = context.read<ScheduleRepository>();
-    final courses = await courseRepository.getLecturerCourses(lecturerId);
-    final report = await reportRepository.getLecturerReport(lecturerId);
-    final sessions = await scheduleRepository.getLecturerSessions(
-      lecturerId,
-      from: DateTime.now().subtract(const Duration(days: 1)),
-      to: DateTime.now().add(const Duration(days: 14)),
+    final now = DateTime.now();
+    final results = await Future.wait<Object>([
+      courseRepository.getLecturerCourses(lecturerId),
+      reportRepository.getLecturerReport(lecturerId),
+      scheduleRepository.getLecturerSessions(
+        lecturerId,
+        from: now.subtract(const Duration(days: 1)),
+        to: now.add(const Duration(days: 14)),
+      ),
+    ]);
+    return _CoursesData(
+      courses: results[0] as List<CourseModel>,
+      report: results[1] as ReportModel,
+      sessions: results[2] as List<ClassSessionModel>,
     );
-    return _CoursesData(courses: courses, report: report, sessions: sessions);
   }
 
   @override
@@ -123,19 +131,23 @@ class _LecturerCoursesScreenState extends State<LecturerCoursesScreen> {
                   ),
                 ),
                 const SizedBox(height: AppDimensions.spaceMd),
+                if (data.courses.isEmpty)
+                  const EmptyState(
+                    icon: Icons.menu_book_outlined,
+                    title: 'No courses assigned yet',
+                    message:
+                        'An administrator assigns lecturers to courses '
+                        '(Admin → Courses → course → Assign Lecturer). '
+                        'Assigned courses appear here.',
+                    compact: true,
+                  ),
                 for (final course in courses)
                   LecturerCourseCard(
                     course: course,
                     averageAttendance: data.report.breakdown
-                        .firstWhere(
-                          (b) => b.id == course.id,
-                          orElse: () => ReportBreakdown(
-                            id: course.id,
-                            label: course.code,
-                            value: data.report.metric('average_rate'),
-                          ),
-                        )
-                        .value,
+                        .where((b) => b.id == course.id)
+                        .firstOrNull
+                        ?.value,
                     nextSession:
                         (data.sessions
                                 .where(

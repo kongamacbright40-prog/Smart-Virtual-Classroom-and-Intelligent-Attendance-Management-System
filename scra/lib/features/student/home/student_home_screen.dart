@@ -68,8 +68,7 @@ class StudentHomeScreen extends StatelessWidget {
               StudentHeader(
                 student: data.profile,
                 unreadCount: unread,
-                onSearch: () =>
-                    Navigator.of(context).pushNamed(RouteNames.studentCourses),
+                onSearch: () => _openCourses(context),
                 onNotifications: () =>
                     Navigator.of(context).pushNamed(RouteNames.notifications),
               ),
@@ -94,9 +93,10 @@ class StudentHomeScreen extends StatelessWidget {
               StudentSummary(student: data.profile),
               SectionHeader(
                 title: 'MY COURSES',
-                actionLabel: 'View All (${data.courses.length})',
-                onAction: () =>
-                    Navigator.of(context).pushNamed(RouteNames.studentCourses),
+                actionLabel: data.courses.isEmpty
+                    ? 'Enroll'
+                    : 'View All (${data.courses.length})',
+                onAction: () => _openCourses(context),
               ),
               for (final course in data.courses.take(2)) ...[
                 shared.CourseCard(
@@ -114,6 +114,16 @@ class StudentHomeScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Switches to the Courses tab (or opens the courses page outside the shell).
+  void _openCourses(BuildContext context) {
+    final shell = ShellScope.maybeOf(context);
+    if (shell != null) {
+      shell.selectTab(StudentTabs.courses);
+    } else {
+      Navigator.of(context).pushNamed(RouteNames.studentCourses);
+    }
   }
 }
 
@@ -324,7 +334,8 @@ class _HomeData {
     );
     final attendance = <String, double>{
       for (final summary in summaries)
-        if (summary.courseId != null) summary.courseId!: summary.percentage,
+        if (summary.courseId != null && summary.totalSessions > 0)
+          summary.courseId!: summary.percentage,
     };
     final nextLabels = <String, String>{};
     for (final course in courses) {

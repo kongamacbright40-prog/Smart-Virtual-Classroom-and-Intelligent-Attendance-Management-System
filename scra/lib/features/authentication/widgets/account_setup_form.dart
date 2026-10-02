@@ -3,18 +3,23 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/errors/error_handler.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/utils/validators.dart';
+import '../../../models/department_model.dart';
 import '../../../models/user_model.dart';
+import '../../../repositories/repositories.dart';
 import '../../../widgets/buttons/primary_button.dart';
+import '../../../widgets/inputs/app_dropdown.dart';
 import '../../../widgets/inputs/app_text_field.dart';
 import '../providers/auth_provider.dart';
 import 'password_strength_card.dart';
 
-/// Credential setup form shared by Student Activation (07) and Lecturer
-/// Registration (08): institutional ID, email, password + confirmation,
-/// strength meter, optional acknowledgement and submit.
+/// Account registration form shared by Student Activation, Lecturer
+/// Registration and Admin Registration: full name, institutional ID, email,
+/// optional phone, (admin code), password + confirmation, strength meter,
+/// optional acknowledgement and submit.
 class AccountSetupForm extends StatefulWidget {
   const AccountSetupForm({
     super.key,
@@ -29,6 +34,7 @@ class AccountSetupForm extends StatefulWidget {
     this.idSuffixLabel,
     this.acknowledgement,
     this.strengthNote,
+    this.loginRoute = RouteNames.login,
   });
 
   final UserRole role;
@@ -43,18 +49,35 @@ class AccountSetupForm extends StatefulWidget {
   final String? acknowledgement;
   final String? strengthNote;
 
+  /// Where "Back to Login" goes when there is nothing to pop.
+  final String loginRoute;
+
   @override
   State<AccountSetupForm> createState() => _AccountSetupFormState();
 }
 
 class _AccountSetupFormState extends State<AccountSetupForm> {
   final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
   final _id = TextEditingController();
   final _email = TextEditingController();
+  final _phone = TextEditingController();
+  final _adminCode = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
   bool _acknowledged = false;
   bool _showAckError = false;
+
+  /// Departments for the dropdown (students & lecturers); null while loading.
+  List<DepartmentModel>? _departments;
+  bool _departmentsFailed = false;
+  DepartmentModel? _department;
+
+  bool get _isAdmin => widget.role == UserRole.admin;
+
+  /// Students need a department: it decides which courses they take.
+  bool get _departmentRequired =>
+      widget.role == UserRole.student && (_departments?.isNotEmpty ?? false);
 
   @override
   void initState() {
@@ -62,11 +85,38 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
     for (final c in [_email, _password, _confirm]) {
       c.addListener(() => setState(() {}));
     }
+    if (!_isAdmin) _loadDepartments();
+  }
+
+  Future<void> _loadDepartments() async {
+    setState(() => _departmentsFailed = false);
+    try {
+      final list = await context
+          .read<AuthRepository>()
+          .getRegistrationDepartments();
+      if (mounted) setState(() => _departments = list);
+    } on Object catch (e) {
+      ErrorHandler.log(e);
+      if (mounted) {
+        setState(() {
+          _departments = const [];
+          _departmentsFailed = true;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
-    for (final c in [_id, _email, _password, _confirm]) {
+    for (final c in [
+      _name,
+      _id,
+      _email,
+      _phone,
+      _adminCode,
+      _password,
+      _confirm,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -81,23 +131,74 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
 
     final auth = context.read<AuthProvider>();
     final navigator = Navigator.of(context);
-    final ok = widget.role == UserRole.student
-        ? await auth.activateStudent(
-            matricule: _id.text,
-            email: _email.text,
-            password: _password.text,
-          )
-        : await auth.registerLecturer(
-            staffId: _id.text,
-            email: _email.text,
-            password: _password.text,
-          );
+    final ok = await auth.register(
+      role: widget.role,
+      fullName: _name.text,
+      email: _email.text,
+      phone: _phone.text,
+      identifier: _id.text,
+      password: _password.text,
+      departmentId: _department?.id,
+      adminCode: _isAdmin ? _adminCode.text : null,
+    );
     if (ok && auth.role != null) {
       navigator.pushNamedAndRemoveUntil(
         AppRouter.homeFor(auth.role!),
         (_) => false,
       );
     }
+  }
+
+  Widget _departmentField(ThemeData theme) {
+    final departments = _departments;
+    if (departments == null) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: AppDimensions.spaceSm),
+        child: LinearProgressIndicator(),
+      );
+    }
+    if (_departmentsFailed) {
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Could not load departments. You can still register; an '
+              'administrator can set your department later.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
+          TextButton(onPressed: _loadDepartments, child: const Text('Retry')),
+        ],
+      );
+    }
+    if (departments.isEmpty) {
+      return Text(
+        'No departments exist yet. An administrator can set your '
+        'department later.',
+        style: theme.textTheme.bodySmall,
+      );
+    }
+    return KeyedSubtree(
+      key: const Key('setup_department'),
+      child: AppDropdown<DepartmentModel>(
+        label: widget.role == UserRole.student
+            ? 'Department'
+            : 'Department (optional)',
+        isRequired: _departmentRequired,
+        hint: 'Select your department',
+        prefixIcon: Icons.apartment_outlined,
+        value: _department,
+        items: departments,
+        itemLabel: (d) =>
+            d.facultyName == null ? d.name : '${d.name} • ${d.facultyName}',
+        onChanged: (d) => setState(() => _department = d),
+        validator: (d) => _departmentRequired && d == null
+            ? 'Select your department to see its courses'
+            : null,
+      ),
+    );
   }
 
   String? get _emailDomain {
@@ -118,6 +219,19 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          AppTextField(
+            fieldKey: const Key('setup_name'),
+            controller: _name,
+            label: 'Full Name',
+            isRequired: true,
+            hint: 'Your full name',
+            prefixIcon: Icons.person_outline,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.name],
+            validator: (v) => Validators.required(v, field: 'Full name'),
+          ),
+          const SizedBox(height: AppDimensions.spaceMd),
           AppTextField(
             fieldKey: const Key('setup_id'),
             controller: _id,
@@ -199,6 +313,37 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
                   ),
             validator: Validators.email,
           ),
+          const SizedBox(height: AppDimensions.spaceMd),
+          AppTextField(
+            fieldKey: const Key('setup_phone'),
+            controller: _phone,
+            label: 'Phone Number (optional)',
+            hint: 'e.g. +237 6XX XXX XXX',
+            prefixIcon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.telephoneNumber],
+            validator: (v) => Validators.phone(v, isRequired: false),
+          ),
+          if (!_isAdmin) ...[
+            const SizedBox(height: AppDimensions.spaceMd),
+            _departmentField(theme),
+          ],
+          if (_isAdmin) ...[
+            const SizedBox(height: AppDimensions.spaceMd),
+            AppTextField(
+              fieldKey: const Key('setup_admin_code'),
+              controller: _adminCode,
+              label: 'Admin Registration Code',
+              hint: 'Code from your institution',
+              prefixIcon: Icons.key_outlined,
+              obscure: true,
+              textInputAction: TextInputAction.next,
+              helper:
+                  'Required unless this is the very first administrator, or '
+                  'an administrator already added you with this email.',
+            ),
+          ],
           const SizedBox(height: AppDimensions.spaceMd),
           AppTextField(
             fieldKey: const Key('setup_password'),
@@ -305,7 +450,10 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
             alignment: WrapAlignment.center,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text('Already activated? ', style: theme.textTheme.bodyLarge),
+              Text(
+                'Already have an account? ',
+                style: theme.textTheme.bodyLarge,
+              ),
               TextButton(
                 onPressed: () {
                   final navigator = Navigator.of(context);
@@ -313,8 +461,8 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
                     navigator.pop();
                   } else {
                     navigator.pushReplacementNamed(
-                      RouteNames.login,
-                      arguments: widget.role,
+                      widget.loginRoute,
+                      arguments: _isAdmin ? null : widget.role,
                     );
                   }
                 },

@@ -14,7 +14,7 @@ import '../../../widgets/common/app_logo.dart';
 import '../../authentication/providers/auth_provider.dart';
 
 /// Stitch screen 01 — dark brand splash. Restores the session and routes to
-/// the right place: role home, login, or onboarding.
+/// the role home when signed in, otherwise straight to login.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({
     super.key,
@@ -45,8 +45,6 @@ class _SplashScreenState extends State<SplashScreen> {
     Object? args;
     if (auth.isAuthenticated && auth.role != null) {
       route = AppRouter.homeFor(auth.role!);
-    } else if (!auth.onboardingCompleted) {
-      route = RouteNames.welcome;
     } else if (auth.selectedRole == UserRole.admin) {
       route = RouteNames.adminLogin;
     } else {

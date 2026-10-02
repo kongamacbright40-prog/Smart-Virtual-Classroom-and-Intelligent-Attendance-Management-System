@@ -86,31 +86,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: AppDimensions.spaceMd),
                   const Center(child: AppLogo(size: 88)),
                   const SizedBox(height: AppDimensions.spaceMd),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          AppStrings.appName,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: theme.colorScheme.primaryContainer,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppDimensions.spaceSm),
-                      Text('•', style: theme.textTheme.bodySmall),
-                      const SizedBox(width: AppDimensions.spaceSm),
-                      Flexible(
-                        child: Text(
-                          AppStrings.suiteName,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    AppStrings.appName,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.colorScheme.primaryContainer,
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.spaceSm),
                   Text(
@@ -132,9 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   LoginForm(
                     key: ValueKey(_role),
                     onSubmit: _login,
-                    identifierHint: _role == UserRole.student
-                        ? 'Student matricule or institutional email'
-                        : 'Staff ID or institutional email',
+                    identifierHint: 'Your registered email address',
                     onLink: () =>
                         Navigator.of(context)
                             .pushNamed(RouteNames.forgotPassword),

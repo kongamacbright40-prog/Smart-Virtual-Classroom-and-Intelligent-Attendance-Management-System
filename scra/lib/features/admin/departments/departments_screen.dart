@@ -37,12 +37,16 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
       appBar: AdminScreenHeader(
         title: 'Departments & Faculties',
         subtitle: 'Smart Class System',
+        showBack: true,
         actions: [
-          IconButton(
-            tooltip: 'Faculties',
+          TextButton.icon(
+            key: const Key('open_faculties'),
             icon: const Icon(Icons.account_balance_outlined),
+            label: const Text('Faculties'),
             onPressed: () =>
-                Navigator.of(context).pushNamed(RouteNames.faculties),
+                Navigator.of(context)
+                    .pushNamed(RouteNames.faculties)
+                    .then((_) => setState(() {})),
           ),
         ],
       ),
@@ -57,10 +61,14 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
         key: ValueKey('dept-$_query-$_category'),
         load: () async {
           final repo = context.read<AdminRepository>();
-          final terms = await repo.getAcademicTerms();
+          final (terms, departments, faculties) = await (
+            repo.getAcademicTerms(),
+            repo.getDepartments(),
+            repo.getFaculties(),
+          ).wait;
           return _DepartmentsData(
-            await repo.getDepartments(),
-            await repo.getFaculties(),
+            departments,
+            faculties,
             terms.where((t) => t.status == TermStatus.active).firstOrNull,
           );
         },
@@ -311,10 +319,6 @@ class _DepartmentForm extends StatefulWidget {
 class _DepartmentFormState extends State<_DepartmentForm> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.department?.name ?? '');
-  late final _code = TextEditingController(text: widget.department?.code ?? '');
-  late final _head = TextEditingController(
-    text: widget.department?.headName ?? '',
-  );
   late String? _facultyId =
       widget.department?.facultyId ??
       (widget.faculties.isEmpty ? null : widget.faculties.first.id);
@@ -323,8 +327,6 @@ class _DepartmentFormState extends State<_DepartmentForm> {
   @override
   void dispose() {
     _name.dispose();
-    _code.dispose();
-    _head.dispose();
     super.dispose();
   }
 
@@ -355,6 +357,7 @@ class _DepartmentFormState extends State<_DepartmentForm> {
                 ),
                 const SizedBox(height: AppDimensions.spaceMd),
                 AppTextField(
+                  key: const Key('department_name'),
                   controller: _name,
                   label: 'Name',
                   isRequired: true,
@@ -362,13 +365,25 @@ class _DepartmentFormState extends State<_DepartmentForm> {
                       Validators.required(v, field: 'Department name'),
                 ),
                 const SizedBox(height: AppDimensions.spaceMd),
-                AppTextField(
-                  controller: _code,
-                  label: 'Code',
-                  isRequired: true,
-                  validator: (v) => Validators.required(v, field: 'Code'),
-                ),
-                const SizedBox(height: AppDimensions.spaceMd),
+                if (widget.faculties.isEmpty)
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'A department belongs to a faculty. Create a '
+                          'faculty first.',
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          final navigator = Navigator.of(context);
+                          navigator.pop();
+                          navigator.pushNamed(RouteNames.faculties);
+                        },
+                        child: const Text('Add Faculty'),
+                      ),
+                    ],
+                  ),
                 AppDropdown<FacultyModel>(
                   label: 'Faculty',
                   value: selectedFaculty,
@@ -377,14 +392,9 @@ class _DepartmentFormState extends State<_DepartmentForm> {
                   itemLabel: (f) => f.name,
                   validator: (f) => f == null ? 'Faculty is required' : null,
                 ),
-                const SizedBox(height: AppDimensions.spaceMd),
-                AppTextField(
-                  controller: _head,
-                  label: 'HOD',
-                  validator: (v) => null,
-                ),
                 const SizedBox(height: AppDimensions.spaceLg),
                 PrimaryButton(
+                  key: const Key('save_department'),
                   label: 'Save Department',
                   isLoading: _saving,
                   onPressed: _save,
@@ -404,9 +414,11 @@ class _DepartmentFormState extends State<_DepartmentForm> {
     final department = DepartmentModel(
       id: base?.id ?? '',
       name: _name.text.trim(),
-      code: _code.text.trim(),
+      // Code and head of department aren't collected (not stored by the
+      // server); keep whatever an existing department already has.
+      code: base?.code ?? '',
       facultyId: _facultyId!,
-      headName: _head.text.trim().isEmpty ? null : _head.text.trim(),
+      headName: base?.headName,
       courseCount: base?.courseCount ?? 0,
       studentCount: base?.studentCount ?? 0,
       staffCount: base?.staffCount ?? 0,

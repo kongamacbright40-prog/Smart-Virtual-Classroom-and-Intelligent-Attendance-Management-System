@@ -66,7 +66,7 @@ void main() {
       find.byKey(const Key('user_phone')),
       '+233302777777',
     );
-    await tester.tap(find.byKey(const Key('save_user')));
+    await tapVisible(tester, find.byKey(const Key('save_user')));
     await pumpFrames(tester, 10);
     expect(
       (await deps.adminRepository.getUsers(query: 'Test Admin Student'))
@@ -225,6 +225,12 @@ void main() {
     await pumpFrames(tester, 4);
     expect(find.text('Full name is required'), findsOneWidget);
     expect(find.text('Email is required'), findsOneWidget);
+    // The initial password is optional, but validated when given.
+    expect(find.textContaining('Password must be'), findsNothing);
+    await tester.enterText(find.byKey(const Key('user_password')), 'abc');
+    await tapVisible(tester, find.byKey(const Key('save_user')));
+    await pumpFrames(tester, 4);
+    expect(find.text('Password must be at least 4 characters'), findsOneWidget);
 
     navigator.pushNamedAndRemoveUntil(
       RouteNames.adminDashboard,

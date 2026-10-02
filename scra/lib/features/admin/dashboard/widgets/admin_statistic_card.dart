@@ -14,6 +14,7 @@ class AdminStatisticCard extends StatelessWidget {
     required this.helper,
     this.badge,
     this.tone = StatusTone.primary,
+    this.onTap,
   });
 
   final IconData icon;
@@ -23,10 +24,14 @@ class AdminStatisticCard extends StatelessWidget {
   final String? badge;
   final StatusTone tone;
 
+  /// Opens the details behind the number (shows a chevron when set).
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AppCard(
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -65,11 +70,23 @@ class AdminStatisticCard extends StatelessWidget {
           ),
           Text(label, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppDimensions.spaceXs),
-          Text(
-            helper,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  helper,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+              if (onTap != null)
+                Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+            ],
           ),
         ],
       ),

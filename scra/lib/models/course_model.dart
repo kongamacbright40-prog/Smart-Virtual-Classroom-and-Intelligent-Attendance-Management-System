@@ -17,15 +17,35 @@ enum CourseStatus {
   );
 }
 
+/// How the signed-in student takes a course (null: not enrolled / not a student).
+enum CourseEnrollment {
+  /// Course of the student's own department (automatic, can't be dropped).
+  department('department'),
+
+  /// Joined individually (can be dropped).
+  explicit('explicit');
+
+  const CourseEnrollment(this.value);
+
+  final String value;
+
+  static CourseEnrollment? tryParse(Object? value) {
+    for (final e in CourseEnrollment.values) {
+      if (e.value == value) return e;
+    }
+    return null;
+  }
+}
+
 class CourseModel {
   const CourseModel({
     required this.id,
     required this.code,
     required this.title,
-    required this.credits,
+    this.credits,
     required this.departmentId,
     this.description = '',
-    this.category = 'Core Major',
+    this.category,
     this.creditNote,
     this.lecturerId,
     this.lecturerName,
@@ -42,6 +62,7 @@ class CourseModel {
     this.room,
     this.virtualRoomUrl,
     this.topics = const [],
+    this.enrollment,
   });
 
   final String id;
@@ -52,8 +73,8 @@ class CourseModel {
   final String description;
 
   /// `Core Major`, `Faculty Elective`, `Required`, ...
-  final String category;
-  final int credits;
+  final String? category;
+  final int? credits;
 
   /// Extra descriptor shown with credits, e.g. `Theory + Lab`.
   final String? creditNote;
@@ -76,6 +97,11 @@ class CourseModel {
   final String? virtualRoomUrl;
   final List<String> topics;
 
+  /// Set for students only.
+  final CourseEnrollment? enrollment;
+
+  bool get isEnrolled => enrollment != null;
+
   bool get hasLecturer => lecturerId != null && lecturerId!.isNotEmpty;
 
   double get progress =>
@@ -86,8 +112,8 @@ class CourseModel {
     code: json['code'] as String,
     title: json['title'] as String,
     description: json['description'] as String? ?? '',
-    category: json['category'] as String? ?? 'Core Major',
-    credits: JsonX.toInt(json['credits']),
+    category: json['category'] as String?,
+    credits: json['credits'] == null ? null : JsonX.toInt(json['credits']),
     creditNote: json['credit_note'] as String?,
     lecturerId: json['lecturer_id'] as String?,
     lecturerName: json['lecturer_name'] as String?,
@@ -105,6 +131,7 @@ class CourseModel {
     room: json['room'] as String?,
     virtualRoomUrl: json['virtual_room_url'] as String?,
     topics: JsonX.stringList(json['topics']),
+    enrollment: CourseEnrollment.tryParse(json['enrollment']),
   );
 
   Json toJson() => {
@@ -131,6 +158,7 @@ class CourseModel {
     'room': room,
     'virtual_room_url': virtualRoomUrl,
     'topics': topics,
+    'enrollment': enrollment?.value,
   };
 
   CourseModel copyWith({
@@ -147,6 +175,8 @@ class CourseModel {
     CourseStatus? status,
     int? enrolledCount,
     int? sessionsHeld,
+    CourseEnrollment? enrollment,
+    bool clearEnrollment = false,
   }) => CourseModel(
     id: id,
     code: code ?? this.code,
@@ -171,5 +201,6 @@ class CourseModel {
     room: room,
     virtualRoomUrl: virtualRoomUrl,
     topics: topics,
+    enrollment: clearEnrollment ? null : (enrollment ?? this.enrollment),
   );
 }

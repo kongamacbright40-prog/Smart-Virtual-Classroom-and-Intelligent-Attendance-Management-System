@@ -32,11 +32,12 @@ void main() {
 
     test('password and new password rules', () {
       expect(Validators.password(''), isNotNull);
-      expect(Validators.password('short'), isNotNull);
-      expect(Validators.password('longenough'), isNull);
-      expect(Validators.newPassword('alllowercase1'), isNotNull);
-      expect(Validators.newPassword('NoDigitsHere'), isNotNull);
-      expect(Validators.newPassword('Secure123'), isNull);
+      expect(Validators.password('abc'), isNotNull);
+      expect(Validators.password('abcd'), isNull);
+      // Only the minimum length is enforced for new passwords.
+      expect(Validators.newPassword('abc'), isNotNull);
+      expect(Validators.newPassword('abcd'), isNull);
+      expect(Validators.newPassword('alllowercase'), isNull);
       expect(Validators.confirmPassword('a', 'b'), isNotNull);
       expect(Validators.confirmPassword('Secure123', 'Secure123'), isNull);
     });
@@ -59,9 +60,11 @@ void main() {
     test('institutional IDs', () {
       expect(Validators.studentId('MAT-2024-9148'), isNull);
       expect(Validators.studentId('ict20251181'), isNull);
-      expect(Validators.studentId('123'), isNotNull);
+      expect(Validators.studentId('123'), isNull);
+      expect(Validators.studentId('  '), isNotNull);
       expect(Validators.staffId('FAC-2018-042'), isNull);
-      expect(Validators.staffId('FAC'), isNotNull);
+      expect(Validators.staffId('LEC002'), isNull);
+      expect(Validators.staffId(''), isNotNull);
       expect(Validators.adminId('ADM-001'), isNull);
       expect(Validators.adminId('ADM-9021-SYS'), isNull);
       expect(Validators.adminId('admin'), isNotNull);

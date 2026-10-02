@@ -66,7 +66,7 @@ Counts shown in the UI (`enrolled_count`, `course_count`, `student_count`,
 | --- | --- |
 | `notifications` | `id`, `user_id` FK, `type` (`class_reminder`/`new_course`/`attendance_update`/`live_question`/`announcement`), `title`, `body`, `reference_id`, `action_label`, `is_read`, `created_at` |
 | `activity_logs` | `id`, `title`, `description`, `actor_id` FK NULL, `severity`, `category`, `created_at` (append-only) |
-| `system_settings` | singleton row: `late_threshold_minutes`, `auto_join_leave_recording`, `participation_weight`, `strict_geofencing`, `session_timeout_minutes`, `enforce_sso`, `minimum_attendance`, `updated_at`, `updated_by` |
+| `system_settings` | singleton row: `late_threshold_minutes`, `auto_join_leave_recording`, `participation_weight`, `strict_geofencing`, `session_timeout_minutes`, `enforce_sso`, `minimum_attendance`, `updated_at`, `updated_by`. Used: late threshold, minimum attendance, auto join/leave recording; the others are stored for future features |
 | `user_settings` | optional server copy of `AppSettingsModel` per user |
 | `report_exports` | `id`, `report_type`, `scope_id`, `format`, `file_url`, `requested_by`, `created_at` |
 

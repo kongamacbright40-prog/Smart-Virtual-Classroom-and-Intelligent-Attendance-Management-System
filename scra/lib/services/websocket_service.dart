@@ -53,6 +53,33 @@ abstract interface class WebSocketService {
   Future<void> dispose();
 }
 
+/// Socket used when the backend has no classroom event stream: it never
+/// connects and never emits, so repositories fall back to polling.
+class DisabledWebSocketService implements WebSocketService {
+  final _states = StreamController<RealtimeConnectionState>.broadcast();
+
+  @override
+  RealtimeConnectionState get state => RealtimeConnectionState.disconnected;
+
+  @override
+  Stream<RealtimeConnectionState> get stateChanges => _states.stream;
+
+  @override
+  Stream<RealtimeEvent> get events => const Stream.empty();
+
+  @override
+  Future<void> connect(String path, {Map<String, String>? query}) async {}
+
+  @override
+  void send(RealtimeEvent event) {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<void> dispose() => _states.close();
+}
+
 /// `web_socket_channel` implementation with exponential-backoff reconnects.
 class ChannelWebSocketService implements WebSocketService {
   ChannelWebSocketService({

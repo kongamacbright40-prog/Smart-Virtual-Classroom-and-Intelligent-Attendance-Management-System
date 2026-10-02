@@ -16,7 +16,9 @@ class StudentSummary extends StatelessWidget {
       children: [
         Expanded(
           child: _SummaryTile(
-            value: Formatters.percent(student.overallAttendance),
+            value: student.overallAttendance == null
+                ? '—'
+                : Formatters.percent(student.overallAttendance!),
             label: 'Overall Attend.',
             emphasize: true,
           ),
@@ -24,16 +26,22 @@ class StudentSummary extends StatelessWidget {
         const SizedBox(width: AppDimensions.spaceSm),
         Expanded(
           child: _SummaryTile(
-            value: '${student.activeCredits}',
+            value: student.activeCredits == null
+                ? '—'
+                : '${student.activeCredits}',
             label: 'Active Credits',
           ),
         ),
         const SizedBox(width: AppDimensions.spaceSm),
         Expanded(
           child: _SummaryTile(
-            value: student.campusPassValid ? 'Valid' : 'Hold',
+            value: switch (student.campusPassValid) {
+              true => 'Valid',
+              false => 'Hold',
+              null => '—',
+            },
             label: 'Campus Pass',
-            icon: Icons.verified,
+            icon: student.campusPassValid == true ? Icons.verified : null,
           ),
         ),
       ],

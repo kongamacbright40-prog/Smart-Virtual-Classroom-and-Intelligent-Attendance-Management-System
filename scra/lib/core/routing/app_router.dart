@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../features/admin/academic_terms/academic_terms_screen.dart';
+import '../../features/admin/activity/activity_log_screen.dart';
 import '../../features/admin/courses/admin_course_details_screen.dart';
 import '../../features/admin/departments/departments_screen.dart';
 import '../../features/admin/departments/faculties_screen.dart';
 import '../../features/admin/profile/admin_profile_screen.dart';
 import '../../features/admin/reports/admin_reports_screen.dart';
+import '../../features/admin/sessions/live_classes_screen.dart';
+import '../../features/admin/users/user_management_screen.dart';
 import '../../features/admin/users/user_details_screen.dart';
 import '../../features/authentication/presentation/admin_login_screen.dart';
+import '../../features/authentication/presentation/admin_registration_screen.dart';
 import '../../features/authentication/presentation/forgot_password_screen.dart';
 import '../../features/authentication/presentation/lecturer_registration_screen.dart';
 import '../../features/authentication/presentation/login_screen.dart';
@@ -21,14 +25,11 @@ import '../../features/lecturer/profile/lecturer_profile_screen.dart';
 import '../../features/lecturer/questions/create_question_screen.dart';
 import '../../features/lecturer/reports/attendance_reports_screen.dart';
 import '../../features/lecturer/schedule/schedule_class_screen.dart';
-import '../../features/onboarding/presentation/attendance_intro_screen.dart';
-import '../../features/onboarding/presentation/participation_intro_screen.dart';
-import '../../features/onboarding/presentation/role_selection_screen.dart';
 import '../../features/onboarding/presentation/splash_screen.dart';
-import '../../features/onboarding/presentation/welcome_screen.dart';
 import '../../features/student/classroom/classroom_chat_screen.dart';
 import '../../features/student/classroom/live_question_screen.dart';
 import '../../features/student/classroom/student_live_classroom_screen.dart';
+import '../../features/student/courses/course_catalog_screen.dart';
 import '../../features/student/courses/course_details_screen.dart';
 import '../../features/student/courses/student_courses_screen.dart';
 import '../../features/student/notifications/student_notifications_screen.dart';
@@ -103,12 +104,8 @@ class AppRouter {
     int tab() => args is int ? args : 0;
 
     return switch (name) {
-      // Onboarding
+      // Launch
       RouteNames.splash => const SplashScreen(),
-      RouteNames.welcome => const WelcomeScreen(),
-      RouteNames.attendanceIntro => const AttendanceIntroScreen(),
-      RouteNames.participationIntro => const ParticipationIntroScreen(),
-      RouteNames.roleSelection => const RoleSelectionScreen(),
 
       // Authentication
       RouteNames.login => LoginScreen(
@@ -116,6 +113,7 @@ class AppRouter {
       ),
       RouteNames.studentActivation => const StudentActivationScreen(),
       RouteNames.lecturerRegistration => const LecturerRegistrationScreen(),
+      RouteNames.adminRegistration => const AdminRegistrationScreen(),
       RouteNames.adminLogin => const AdminLoginScreen(),
       RouteNames.forgotPassword => const ForgotPasswordScreen(),
 
@@ -125,6 +123,7 @@ class AppRouter {
       // Student
       RouteNames.studentHome => StudentNavigation(initialIndex: tab()),
       RouteNames.studentCourses => const StudentCoursesScreen(),
+      RouteNames.courseCatalog => const CourseCatalogScreen(),
       RouteNames.courseDetails => CourseDetailsScreen(courseId: id()),
       RouteNames.studentLiveClassroom => StudentLiveClassroomScreen(
         sessionId: id(),
@@ -154,6 +153,12 @@ class AppRouter {
       // Admin
       RouteNames.adminDashboard => AdminNavigation(initialIndex: tab()),
       RouteNames.userDetails => UserDetailsScreen(userId: optionalId()),
+      RouteNames.adminUsers => UserManagementScreen(
+        initialRole: args is UserRole ? args : null,
+        showBack: true,
+      ),
+      RouteNames.adminLiveClasses => const LiveClassesScreen(),
+      RouteNames.adminActivity => const ActivityLogScreen(),
       RouteNames.departments => const DepartmentsScreen(),
       RouteNames.faculties => const FacultiesScreen(),
       RouteNames.academicTerms => const AcademicTermsScreen(),

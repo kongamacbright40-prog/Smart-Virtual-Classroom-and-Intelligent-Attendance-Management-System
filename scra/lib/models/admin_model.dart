@@ -11,50 +11,51 @@ enum AdminAccessLevel {
   final String value;
   final String label;
 
-  static AdminAccessLevel fromJson(Object? value) =>
-      AdminAccessLevel.values.firstWhere(
-        (e) => e.value == value,
-        orElse: () => AdminAccessLevel.departmental,
-      );
+  static AdminAccessLevel? tryParse(Object? value) {
+    for (final e in AdminAccessLevel.values) {
+      if (e.value == value) return e;
+    }
+    return null;
+  }
 }
 
 class AdminModel {
   const AdminModel({
     required this.user,
-    required this.adminId,
-    required this.accessLevel,
+    this.adminId,
+    this.accessLevel,
     this.jobTitle,
     this.permissions = const [],
-    this.twoFactorEnabled = true,
+    this.twoFactorEnabled,
     this.lastLoginAt,
   });
 
   final UserModel user;
 
   /// Institutional administrator ID, e.g. `ADM-9021-SYS`.
-  final String adminId;
-  final AdminAccessLevel accessLevel;
+  final String? adminId;
+  final AdminAccessLevel? accessLevel;
   final String? jobTitle;
   final List<String> permissions;
-  final bool twoFactorEnabled;
+  final bool? twoFactorEnabled;
   final DateTime? lastLoginAt;
 
   String get id => user.id;
 
   factory AdminModel.fromJson(Json json) => AdminModel(
     user: UserModel.fromJson(JsonX.map(json['user'])),
-    adminId: json['admin_id'] as String,
-    accessLevel: AdminAccessLevel.fromJson(json['access_level']),
+    adminId: json['admin_id'] as String?,
+    accessLevel: AdminAccessLevel.tryParse(json['access_level']),
     jobTitle: json['job_title'] as String?,
     permissions: JsonX.stringList(json['permissions']),
-    twoFactorEnabled: json['two_factor_enabled'] as bool? ?? true,
+    twoFactorEnabled: json['two_factor_enabled'] as bool?,
     lastLoginAt: JsonX.dateOrNull(json['last_login_at']),
   );
 
   Json toJson() => {
     'user': user.toJson(),
     'admin_id': adminId,
-    'access_level': accessLevel.value,
+    'access_level': accessLevel?.value,
     'job_title': jobTitle,
     'permissions': permissions,
     'two_factor_enabled': twoFactorEnabled,

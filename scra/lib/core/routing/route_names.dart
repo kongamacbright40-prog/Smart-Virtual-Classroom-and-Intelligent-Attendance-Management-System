@@ -1,17 +1,14 @@
 /// Every named route in the app. Role-scoped routes are prefixed with the
 /// role (`/student`, `/lecturer`, `/admin`) so [AppRouter] can guard them.
 abstract final class RouteNames {
-  // Onboarding
+  // Launch
   static const String splash = '/';
-  static const String welcome = '/onboarding';
-  static const String attendanceIntro = '/onboarding/attendance';
-  static const String participationIntro = '/onboarding/participation';
-  static const String roleSelection = '/role-selection';
 
   // Authentication
   static const String login = '/login';
   static const String studentActivation = '/activate-student';
   static const String lecturerRegistration = '/register-lecturer';
+  static const String adminRegistration = '/register-admin';
   static const String adminLogin = '/admin-login';
   static const String forgotPassword = '/forgot-password';
 
@@ -21,6 +18,7 @@ abstract final class RouteNames {
   // Student
   static const String studentHome = '/student';
   static const String studentCourses = '/student/courses';
+  static const String courseCatalog = '/student/course-catalog';
   static const String courseDetails = '/student/course-details';
   static const String studentLiveClassroom = '/student/classroom';
   static const String classroomChat = '/student/classroom/chat';
@@ -41,6 +39,9 @@ abstract final class RouteNames {
 
   // Admin
   static const String adminDashboard = '/admin';
+  static const String adminUsers = '/admin/users';
+  static const String adminLiveClasses = '/admin/live-classes';
+  static const String adminActivity = '/admin/activity';
   static const String userDetails = '/admin/user-details';
   static const String departments = '/admin/departments';
   static const String faculties = '/admin/faculties';
@@ -54,9 +55,10 @@ abstract final class RouteNames {
 /// shell route to open a specific tab).
 abstract final class StudentTabs {
   static const int home = 0;
-  static const int schedule = 1;
-  static const int attendance = 2;
-  static const int profile = 3;
+  static const int courses = 1;
+  static const int schedule = 2;
+  static const int attendance = 3;
+  static const int profile = 4;
 }
 
 abstract final class LecturerTabs {

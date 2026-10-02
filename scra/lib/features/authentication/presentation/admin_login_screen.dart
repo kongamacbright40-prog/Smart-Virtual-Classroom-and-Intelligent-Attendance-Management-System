@@ -88,8 +88,8 @@ class AdminLoginScreen extends StatelessWidget {
                         children: [
                           LoginForm(
                             showRequired: true,
-                            identifierLabel: 'Administrator ID',
-                            identifierHint: 'Your administrator ID',
+                            identifierLabel: 'Administrator email',
+                            identifierHint: 'Your registered email address',
                             identifierValidator: (v) => (v ?? '').contains('@')
                                 ? Validators.email(v)
                                 : Validators.adminId(v),
@@ -102,6 +102,29 @@ class AdminLoginScreen extends StatelessWidget {
                             submitIcon: Icons.vpn_key_outlined,
                             onSubmit: (id, pw, remember) =>
                                 _login(context, id, pw, remember),
+                          ),
+                          const SizedBox(height: AppDimensions.spaceMd),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                'New administrator? ',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                              TextButton(
+                                key: const Key('admin_register'),
+                                onPressed: () => Navigator.of(context)
+                                    .pushNamed(RouteNames.adminRegistration),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  minimumSize: const Size(0, 36),
+                                ),
+                                child: const Text('Register as admin'),
+                              ),
+                            ],
                           ),
                         ],
                       ),

@@ -45,11 +45,12 @@ class StudentCourseCard extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         CodeTag(course.code),
-                        StatusChip(
-                          label: course.category,
-                          tone: StatusTone.info,
-                          dense: true,
-                        ),
+                        if (course.category != null)
+                          StatusChip(
+                            label: course.category!,
+                            tone: StatusTone.info,
+                            dense: true,
+                          ),
                       ],
                     ),
                     const SizedBox(height: AppDimensions.spaceSm),
@@ -98,8 +99,10 @@ class StudentCourseCard extends StatelessWidget {
                   child: CourseProgress(
                     icon: Icons.school_outlined,
                     label: 'Weight',
-                    value: '${course.credits} Credits',
-                    detail: course.creditNote ?? course.category,
+                    value: course.credits == null
+                        ? '—'
+                        : '${course.credits} Credits',
+                    detail: course.creditNote ?? course.category ?? '',
                   ),
                 ),
                 const SizedBox(width: AppDimensions.spaceSm),

@@ -19,3 +19,4 @@ export 'report_model.dart';
 export 'schedule_model.dart';
 export 'student_model.dart';
 export 'user_model.dart';
+export 'whiteboard_model.dart';

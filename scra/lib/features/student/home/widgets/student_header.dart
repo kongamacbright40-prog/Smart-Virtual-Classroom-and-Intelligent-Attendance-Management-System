@@ -37,7 +37,9 @@ class StudentHeader extends StatelessWidget {
             children: [
               Text('My Classes', style: theme.textTheme.headlineSmall),
               Text(
-                'Welcome back, ${student.user.firstName} • Semester ${student.semester}',
+                student.semester == null
+                    ? 'Welcome back, ${student.user.firstName}'
+                    : 'Welcome back, ${student.user.firstName} • Semester ${student.semester}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyLarge?.copyWith(

@@ -119,28 +119,25 @@ class AuthProvider extends ChangeNotifier {
     await _startSession(session, rememberMe);
   });
 
-  Future<bool> activateStudent({
-    required String matricule,
+  Future<bool> register({
+    required UserRole role,
+    required String fullName,
     required String email,
+    String? phone,
+    required String identifier,
     required String password,
+    String? departmentId,
+    String? adminCode,
   }) => _run(() async {
-    final session = await _repository.activateStudent(
-      matricule: matricule.trim().toUpperCase(),
+    final session = await _repository.register(
+      role: role,
+      fullName: fullName.trim(),
       email: email.trim(),
+      phone: phone,
+      identifier: identifier.trim().toUpperCase(),
       password: password,
-    );
-    await _startSession(session, true);
-  });
-
-  Future<bool> registerLecturer({
-    required String staffId,
-    required String email,
-    required String password,
-  }) => _run(() async {
-    final session = await _repository.registerLecturer(
-      staffId: staffId.trim().toUpperCase(),
-      email: email.trim(),
-      password: password,
+      departmentId: departmentId,
+      adminCode: adminCode,
     );
     await _startSession(session, true);
   });

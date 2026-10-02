@@ -17,8 +17,8 @@ designs (screens 01–40; the design package has no screen 37).
 
 | Area | Highlights |
 | --- | --- |
-| Onboarding | Splash with session restore, 3-step introduction, portal (role) selection |
-| Authentication | Student / lecturer login, admin gateway, student activation, lecturer registration, password recovery (email → code → new password), remember-me session persistence, logout, role-based routing guards |
+| Launch | Splash with session restore, then straight to login |
+| Authentication | Student / lecturer login, admin gateway, student / lecturer / admin registration (name, email, optional phone, ID; admins also need the admin registration code), password recovery (email → code → new password), remember-me session persistence, logout, role-based routing guards |
 | Student | Home dashboard, courses & course details, weekly schedule, live classroom (participants, media controls, raise hand), classroom chat, live questions, attendance history & appeals, notifications, profile, settings (theme, notifications, classroom defaults) |
 | Lecturer | Teaching dashboard, courses & student roster, schedule class, live classroom controls, whiteboard / screen share, create & monitor live questions, live attendance management, attendance reports, profile |
 | Admin | Campus dashboard, user management, departments & faculties, academic terms, course management & lecturer assignment, reports & analytics with export, system policies, admin profile |
@@ -31,7 +31,7 @@ designs (screens 01–40; the design package has no screen 37).
 - Networking: `http` (REST), `web_socket_channel` (WebSocket)
 - Real-time media: `flutter_webrtc`
 - Persistence: `shared_preferences` behind a storage abstraction
-- Future backend: FastAPI · PostgreSQL · WebSockets · WebRTC signaling
+- Backend: FastAPI (`smart-classroom-api`) · REST · WebRTC signaling socket
 
 ## Architecture
 
@@ -49,8 +49,9 @@ Flutter UI ─▶ Repositories ─▶ ApiService (REST) ─▶ FastAPI ─▶ Po
 
 - Flutter SDK (stable channel) with Dart **3.13** or newer (`flutter --version`)
 - Android SDK / Android Studio with an emulator or a device (API 24+)
-- For the optional real media mode: camera + microphone permissions (already
-  declared in `AndroidManifest.xml`)
+- The FastAPI backend (`smart-classroom-api`) running on your PC
+- Camera + microphone permissions for live classes (declared in
+  `AndroidManifest.xml`, requested at runtime)
 
 ## Setup
 
@@ -62,19 +63,76 @@ flutter pub get
 
 ## Running
 
-The app has no built-in sample data: it needs the Smart Class FastAPI
-backend (REST + WebSocket + WebRTC signaling). Point it at your server:
+The app always talks to the Smart Class FastAPI backend (`smart-classroom-api`)
+— there is no built-in demo or sample data. Data you see comes from the
+server; fields the server does not provide are hidden or shown as "—".
+
+### 1. Start the backend
+
+From the `smart-classroom-api` folder:
 
 ```bash
-flutter run \
-  --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
-  --dart-define=WS_BASE_URL=ws://10.0.2.2:8000
+venv\Scripts\activate
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-`10.0.2.2` is the host machine as seen from the Android emulator. Without a
-reachable backend, screens show their connection error state with a retry
-action. Accounts are created by the backend (students activate with their
-matricule, lecturers register with their staff ID).
+`--host 0.0.0.0` lets phones on your Wi-Fi reach it (allow Python through the
+Windows firewall when asked). Open http://localhost:8000/docs to create data
+(faculties, departments, courses). The first admin can register from the app
+(Admin login → **Register as admin**) without a code; later admins need the
+`ADMIN_REGISTRATION_CODE` set in the backend `.env`.
+
+### 2. Run the app
+
+| Target | Command | VS Code launch configuration |
+| --- | --- | --- |
+| Android emulator | `flutter run` | **Smart Class (Android emulator)** |
+| Android phone (same Wi-Fi) | `flutter run --dart-define=API_BASE_URL=http://<PC-IP>:8000` | **Smart Class (Android phone on Wi-Fi)** (asks for the IP) |
+| Chrome | `flutter run -d chrome` | **Smart Class (Chrome)** |
+
+Defaults: `http://10.0.2.2:8000` on Android (the PC as seen from the
+emulator) and `http://127.0.0.1:8000` in the browser. Find `<PC-IP>` with
+`ipconfig` ("IPv4 Address", e.g. `192.168.1.10`). `WS_BASE_URL` defaults to
+the same host (`ws://…`) and `API_PREFIX` to empty; override them with
+`--dart-define` if needed. Do a full restart (not hot reload) after changing
+`--dart-define` values.
+
+**Web release build for testing on the laptop** (bundles the CanvasKit engine
+instead of downloading it from Google each time, and serves it compressed):
+
+```bash
+flutter build web --release --no-web-resources-cdn
+python tool/serve_web.py --port 8080      # http://localhost:8080
+```
+
+**Screen sharing:** from a browser (Chrome / Edge), choose *Entire screen* so
+switching windows is shared, and tick *Also share system / tab audio* to let
+students hear a video you play. Android phones share the screen picture only
+(no sound).
+
+Android notes: the manifest allows plain HTTP (`usesCleartextTraffic`) for the
+development server and declares camera/microphone permissions for live
+classes (requested at runtime when you join). Exported reports are saved to
+the app's downloads folder (`Android/data/com.example.scra/files/Download`).
+
+### 3. Sign in
+
+Sign in with the account's **email** (the backend login is email-based).
+Students can create their account from *Activate your account* and lecturers
+from *Register as lecturer*. Without a reachable backend, screens show their
+connection error state with a retry action.
+
+Every screen is backed by the API: accounts (activation, password change and
+reset — the reset code is printed in the backend console), profiles, courses
+with lecturer assignment and department-based enrolment, faculties and
+departments, scheduled and live classes, WebRTC signaling with automatic
+attendance (late after the configured threshold), raised hands, chat, live
+questions (drafts, launch, answers, results), attendance history, summaries
+and appeals, notifications, academic terms, system settings, the admin
+activity feed, dashboards/reports and PDF/Excel/CSV export. Live data is
+polled every 3 seconds. Typical first run: register the admin, create a
+faculty, department and course, assign a lecturer, and put students in the
+department. See [docs/api.md](docs/api.md) for the full mapping.
 
 ## Testing
 
@@ -100,22 +158,23 @@ scra/
 │   ├── main.dart · app.dart
 │   ├── core/          constants · theme · routing · di · utils · errors
 │   ├── models/        typed JSON models
-│   ├── repositories/  interfaces · api/
-│   ├── services/      api · auth · storage · notification · websocket · webrtc
+│   ├── repositories/  interfaces · api/ (backend repositories & mappers)
+│   ├── services/      api · auth · storage · notification · websocket · webrtc · file saver
 │   ├── providers/     settings · classroom controller & registry
 │   ├── widgets/       common · buttons · cards · inputs · dialogs · loading · navigation
 │   └── features/      onboarding · authentication · student · lecturer · admin
-└── test/              fakes (test-only fixtures) · helpers · core · models · services ·
-                       onboarding · authentication · student · lecturer · admin
+└── test/              fakes (in-memory test data) · helpers · core · models ·
+                       services · onboarding · authentication · student · lecturer · admin
 ```
 
-## Future backend architecture
+## Backend architecture
 
-The client is prepared for a FastAPI service backed by PostgreSQL:
+The client talks to the FastAPI service in `smart-classroom-api`:
 
 - REST contract: [docs/api.md](docs/api.md) (`lib/core/constants/api_endpoints.dart`)
 - Entities: [docs/database.md](docs/database.md)
-- Real-time: classroom events over `/ws/sessions/{id}/events`; WebRTC mesh
-  signaling over the existing `/ws/classroom/{room}/{user}` endpoint
+- Real-time: WebRTC mesh signaling (and automatic attendance) over
+  `/ws/signal/{class_id}?token=`; other live data is polled until the backend
+  adds a classroom event socket
 
 Screen documentation: [docs/screens.md](docs/screens.md).

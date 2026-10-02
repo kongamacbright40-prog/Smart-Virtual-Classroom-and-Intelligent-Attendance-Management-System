@@ -60,12 +60,12 @@ class UserDetailsScreen extends StatelessWidget {
                 initialUser: data.user,
                 departments: data.departments,
                 submitLabel: isCreate ? 'Create User' : 'Save Changes',
-                onSubmit: (user) async {
+                onSubmit: (user, password) async {
                   try {
                     final repo = context.read<AdminRepository>();
                     final auth = context.read<AuthProvider>();
                     final saved = isCreate
-                        ? await repo.createUser(user)
+                        ? await repo.createUser(user, password: password)
                         : await repo.updateUser(user);
                     if (auth.user?.id == saved.id) await auth.updateUser(saved);
                     if (context.mounted) {

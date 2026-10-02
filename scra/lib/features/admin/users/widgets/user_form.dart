@@ -18,7 +18,9 @@ class UserForm extends StatefulWidget {
 
   final UserModel? initialUser;
   final List<DepartmentModel> departments;
-  final Future<void> Function(UserModel user) onSubmit;
+
+  /// [password] is the optional initial password (create mode only).
+  final Future<void> Function(UserModel user, String? password) onSubmit;
   final String submitLabel;
 
   @override
@@ -36,17 +38,21 @@ class _UserFormState extends State<UserForm> {
   late final _phone = TextEditingController(
     text: widget.initialUser?.phone ?? '',
   );
+  final _password = TextEditingController();
   late UserRole _role = widget.initialUser?.role ?? UserRole.student;
   late String? _departmentId =
       widget.initialUser?.departmentId ??
       (widget.departments.isEmpty ? null : widget.departments.first.id);
   bool _saving = false;
 
+  bool get _isCreate => widget.initialUser == null;
+
   @override
   void dispose() {
     _name.dispose();
     _email.dispose();
     _phone.dispose();
+    _password.dispose();
     super.dispose();
   }
 
@@ -69,8 +75,11 @@ class _UserFormState extends State<UserForm> {
       createdAt: base?.createdAt,
       lastActiveAt: base?.lastActiveAt,
     );
+    final password = _isCreate && _password.text.isNotEmpty
+        ? _password.text
+        : null;
     try {
-      await widget.onSubmit(user);
+      await widget.onSubmit(user, password);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -133,6 +142,23 @@ class _UserFormState extends State<UserForm> {
             itemLabel: (d) => d.name,
             validator: (d) => d == null ? 'Department is required' : null,
           ),
+          if (_isCreate) ...[
+            const SizedBox(height: AppDimensions.spaceMd),
+            AppTextField(
+              fieldKey: const Key('user_password'),
+              controller: _password,
+              label: 'Initial password',
+              prefixIcon: Icons.lock_outline,
+              obscure: true,
+              helper: _role == UserRole.admin
+                  ? 'Recommended for admins: they can sign in right away. '
+                        'If left empty, they set one via "Forgot password".'
+                  : 'Optional. If left empty, they activate the account '
+                        'and choose their own password in the app.',
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? null : Validators.newPassword(v),
+            ),
+          ],
           const SizedBox(height: AppDimensions.spaceLg),
           PrimaryButton(
             key: const Key('save_user'),

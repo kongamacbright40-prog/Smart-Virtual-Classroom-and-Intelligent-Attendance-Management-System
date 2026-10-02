@@ -63,12 +63,11 @@ class AdminProfileScreen extends StatelessWidget {
           final adminRepository = context.read<AdminRepository>();
           return _AdminProfileData(
             await userRepository.getAdminProfile(userId),
-            await adminRepository.getSystemSettings(),
+            await loadSystemSettings(adminRepository),
           );
         },
         builder: (context, data, reload) {
           final admin = data.admin;
-          final settings = data.settings;
           return ListView(
             children: [
               AppCard(
@@ -85,16 +84,18 @@ class AdminProfileScreen extends StatelessWidget {
                       admin.user.fullName,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: StatusChip(
-                        label: admin.accessLevel.label,
-                        tone: StatusTone.primary,
-                        icon: Icons.shield_outlined,
+                    if (admin.accessLevel != null)
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: StatusChip(
+                          label: admin.accessLevel!.label,
+                          tone: StatusTone.primary,
+                          icon: Icons.shield_outlined,
+                        ),
                       ),
-                    ),
                     Text(admin.user.email),
-                    Text('Admin ID: ${admin.adminId}'),
+                    if (admin.adminId != null)
+                      Text('Admin ID: ${admin.adminId}'),
                     Text(
                       admin.lastLoginAt == null
                           ? 'Last session authenticated: Not available'
@@ -117,38 +118,8 @@ class AdminProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: AppDimensions.spaceMd),
                     _kv(context, 'Root Identifier', admin.user.id),
-                    _kv(context, 'Access Scope', admin.accessLevel.label),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppDimensions.spaceMd),
-              AppCard(
-                child: Column(
-                  children: [
-                    AdminSectionTitle(
-                      title: 'Security Enforcement',
-                      trailing: StatusChip(
-                        label: settings.enforceSso
-                            ? 'SSO enforced'
-                            : 'SSO optional',
-                        tone: StatusTone.neutral,
-                        dense: true,
-                      ),
-                    ),
-                    AdminInfoRow(
-                      icon: Icons.token_outlined,
-                      title: 'Two-Factor Authentication',
-                      subtitle: admin.twoFactorEnabled
-                          ? 'Enabled'
-                          : 'Not enabled',
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
-                    AdminInfoRow(
-                      icon: Icons.timer_outlined,
-                      title: 'Idle Session Timeout',
-                      subtitle: '${settings.sessionTimeoutMinutes} minutes',
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
+                    if (admin.accessLevel != null)
+                      _kv(context, 'Access Scope', admin.accessLevel!.label),
                   ],
                 ),
               ),
@@ -184,7 +155,7 @@ class AdminProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppDimensions.spaceSm),
               Text(
-                'Signing out will invalidate this device session token and require multi-factor re-authentication.',
+                'Signing out removes your session from this device.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -222,5 +193,5 @@ class AdminProfileScreen extends StatelessWidget {
 class _AdminProfileData {
   const _AdminProfileData(this.admin, this.settings);
   final AdminModel admin;
-  final SystemSettingsModel settings;
+  final SystemSettingsModel? settings;
 }

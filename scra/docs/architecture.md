@@ -76,12 +76,18 @@ Screen ──calls──▶ Repository interface ──▶ Api… implementation
 ```
 
 Real-time data (participants, chat, questions, attendance, notifications)
-is exposed as `Stream`s on the repositories. The API implementations
-re-fetch or map payloads when `WebSocketService` receives events
-(`participant.*`, `chat.message`, `question.*`, `attendance.*`,
-`notification.created`). Audio/video goes through `FlutterWebRTCService`,
-built on the existing mesh signaling. Tests use the in-memory fakes in
-`test/fakes/` (`FakeDependencies`).
+is exposed as `Stream`s on the repositories. The Smart Class backend has no
+classroom event socket yet, so the API implementations poll every 3 seconds
+(`ApiRepositoryBase.poll`) and `AppDependencies.api` wires a
+`DisabledWebSocketService`. Audio/video goes through `FlutterWebRTCService`,
+built on the backend's mesh signaling socket `/ws/signal/{class_id}?token=`
+(`SignalingService`), which also records attendance server-side. Backend
+payloads (integer ids, UTC timestamps, `Page` lists) are converted in
+`lib/repositories/api/backend_mappers.dart`. Screens hide values the backend
+does not report (nullable model fields, `ReportModel.metricOrNull`, "—" before
+any class has been held) instead of showing invented numbers;
+`UnsupportedFeatureException` remains for any future gap. Tests use the
+in-memory fakes in `test/fakes/` (`FakeDependencies`).
 
 Errors are normalized into `AppException` subtypes (`NetworkException`,
 `TimeoutAppException`, `AuthException`, `ValidationException`...). Global
@@ -93,7 +99,6 @@ instead of crashing the app.
 ```
 Splash ─ AuthProvider.bootstrap()
    ├─ session restored ─────────────▶ role home (/student, /lecturer, /admin)
-   ├─ onboarding not completed ────▶ Welcome ▶ Attendance ▶ Participation ▶ Role selection
    └─ otherwise ───────────────────▶ Login (student/lecturer) or Admin Login
 
 Login ─ AuthRepository.login(role, identifier, password)
@@ -101,7 +106,8 @@ Login ─ AuthRepository.login(role, identifier, password)
          └─ pushNamedAndRemoveUntil(AppRouter.homeFor(role))
 
 Logout ─ AuthProvider.logout() ─ AuthService.clear() ─ back to login
-401 from API ─ ApiService.onUnauthorized ─ AuthProvider.handleSessionExpired ─ login
+401 from API ─ ApiService.refreshSession (/auth/refresh, retry once)
+   └─ still 401 ─ ApiService.onUnauthorized ─ AuthProvider.handleSessionExpired ─ login
 ```
 
 `AppRouter.onGenerateRoute` guards every route: `/student/**` requires a
@@ -114,10 +120,13 @@ users opening another role's route get the *Access denied* page.
 All environment values live in `AppConfig` and are overridable at build time:
 
 ```
-flutter run \
-  --dart-define=API_BASE_URL=https://smartclass.example.edu \
-  --dart-define=WS_BASE_URL=wss://smartclass.example.edu
+flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8000
 ```
+
+`API_BASE_URL` defaults to `http://10.0.2.2:8000` on Android (the host PC as
+seen from the emulator) and `http://127.0.0.1:8000` on the web.
+`WS_BASE_URL` defaults to the same host with `ws://`/`wss://`, and
+`API_PREFIX` (default empty) is prepended to every REST path.
 
 ## Decisions
 

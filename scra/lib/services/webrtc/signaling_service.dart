@@ -1,77 +1,112 @@
-import 'dart:convert'; //this help json and dart to communicate together
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'package:web_socket_channel/web_socket_channel.dart'; // this contains the websocket channel thatbpemits live connection on a server
+import '../../core/constants/api_endpoints.dart';
 
-typedef SignalCallback = void Function(
-  Map<String, dynamic> data,
-); // any valid signalcallback muss accept one map
+typedef SignalCallback = void Function(Map<String, dynamic> data);
 
+/// WebRTC mesh signaling over the backend socket
+/// `/ws/signal/{class_id}?token=<access token>`.
+///
+/// Backend wire format:
+/// * sent: `{type: offer|answer|ice_candidate, target_peer_id: <int>, payload}`
+/// * received: the same message plus `from_peer_id`, and `room_state`,
+///   `peer_joined` / `peer_left` (`peer_id`), `session_ended`, `error`.
+///
+/// Callbacks receive a normalized `{type, from: <peer id>, payload}` map.
+/// Connecting also marks the user present in the class (server side).
 class SignalingService {
+  SignalingService({
+    required this.roomId,
+    required this.userId,
+    required this.serverUrl,
+    this.token,
+  });
+
   final String roomId;
   final String userId;
   final String serverUrl;
-  //the adress needed here for information to be transfered
+  final String? token;
 
-  WebSocketChannel?
-  _channel; // underscore in dart means the code belongs only to this file
-  bool _isConnected = false; // here a signalling service is been creatded but no connecion is been opened yet
+  WebSocketChannel? _channel;
+  bool _isConnected = false;
 
   SignalCallback? onOffer;
   SignalCallback? onAnswer;
   SignalCallback? onCandidate;
   SignalCallback? onUserJoined;
   SignalCallback? onUserLeft;
-  void Function()? onDisconnected;
-  // here are the
+  void Function(List<String> peerIds)? onRoomState;
 
-  SignalingService({
-    required this.roomId,
-    required this.userId,
-    required this.serverUrl,
-    //must be listed for for signalling to take place, if not it fails
-  });
+  /// Whiteboard messages (`board` / `board_state`) from the lecturer.
+  SignalCallback? onBoard;
+  void Function()? onSessionEnded;
+  void Function()? onDisconnected;
 
   bool get isConnected => _isConnected;
 
+  Uri get uri =>
+      Uri.parse('$serverUrl${ApiEndpoints.signaling(roomId)}')
+          .replace(queryParameters: {'token': ?token});
+
   Future<void> connect() async {
-    final uri = Uri.parse('$serverUrl/ws/classroom/$roomId/$userId');
-    _channel = WebSocketChannel.connect(uri);
+    final channel = WebSocketChannel.connect(uri);
+    await channel.ready;
+    _channel = channel;
     _isConnected = true;
 
-    _channel!.stream.listen(
-      (raw) => _handleMessage(raw),
+    channel.stream.listen(
+      (raw) => handleMessage(raw),
       onDone: () {
         _isConnected = false;
         onDisconnected?.call();
       },
-      onError: (error) {
+      onError: (Object error) {
         _isConnected = false;
         onDisconnected?.call();
       },
     );
   }
 
-  void _handleMessage(dynamic raw) {
+  static Map<String, dynamic> _normalize(Map<String, dynamic> data) => {
+    'type': data['type'],
+    'from': (data['from_peer_id'] ?? data['peer_id'])?.toString(),
+    'payload': data['payload'] is Map
+        ? Map<String, dynamic>.from(data['payload'] as Map)
+        : <String, dynamic>{},
+    if (data['full_name'] != null) 'full_name': data['full_name'],
+    if (data['role'] != null) 'role': data['role'],
+  };
+
+  @visibleForTesting
+  void handleMessage(dynamic raw) {
     try {
       final data = jsonDecode(raw as String) as Map<String, dynamic>;
       switch (data['type']) {
         case 'offer':
-          onOffer?.call(data);
-          break;
+          onOffer?.call(_normalize(data));
         case 'answer':
-          onAnswer?.call(data);
-          break;
-        case 'ice-candidate':
-          onCandidate?.call(data);
-          break;
-        case 'peer-joined':
-          onUserJoined?.call(data);
-          break;
-        case 'peer-left':
-          onUserLeft?.call(data);
-          break;
+          onAnswer?.call(_normalize(data));
+        case 'ice_candidate':
+          onCandidate?.call(_normalize(data));
+        case 'peer_joined':
+          onUserJoined?.call(_normalize(data));
+        case 'peer_left':
+          onUserLeft?.call(_normalize(data));
+        case 'room_state':
+          final peers = data['peers'] is List
+              ? data['peers'] as List
+              : const [];
+          onRoomState?.call(peers.map((p) => p.toString()).toList());
+        case 'session_ended':
+          onSessionEnded?.call();
+        case 'board':
+        case 'board_state':
+          onBoard?.call(data);
+        case 'error':
+          debugPrint('Signaling: server error: ${data['detail']}');
         default:
           break;
       }
@@ -80,21 +115,27 @@ class SignalingService {
     }
   }
 
-  void _send(Map<String, dynamic> data) {
+  void _send(String type, String targetId, Map<String, dynamic> payload) {
+    final target = int.tryParse(targetId);
+    if (!_isConnected || _channel == null || target == null) return;
+    _channel!.sink.add(
+      jsonEncode({'type': type, 'target_peer_id': target, 'payload': payload}),
+    );
+  }
+
+  void sendOffer(String targetId, Map<String, dynamic> sdp) =>
+      _send('offer', targetId, sdp);
+
+  void sendAnswer(String targetId, Map<String, dynamic> sdp) =>
+      _send('answer', targetId, sdp);
+
+  void sendCandidate(String targetId, Map<String, dynamic> candidate) =>
+      _send('ice_candidate', targetId, candidate);
+
+  /// Lecturer only: a whiteboard operation broadcast to the class.
+  void sendBoard(Map<String, dynamic> operation) {
     if (!_isConnected || _channel == null) return;
-    _channel!.sink.add(jsonEncode(data));
-  }
-
-  void sendOffer(String targetId, Map<String, dynamic> sdp) {
-    _send({'type': 'offer', 'target': targetId, 'payload': sdp});
-  }
-
-  void sendAnswer(String targetId, Map<String, dynamic> sdp) {
-    _send({'type': 'answer', 'target': targetId, 'payload': sdp});
-  }
-
-  void sendCandidate(String targetId, Map<String, dynamic> candidate) {
-    _send({'type': 'ice-candidate', 'target': targetId, 'payload': candidate});
+    _channel!.sink.add(jsonEncode({...operation, 'type': 'board'}));
   }
 
   void disconnect() {

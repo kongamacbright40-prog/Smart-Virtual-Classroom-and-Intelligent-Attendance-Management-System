@@ -13,7 +13,9 @@ class LecturerSummary extends StatelessWidget {
   });
 
   final int assignedCourses;
-  final double averageAttendance;
+
+  /// `null` until a class has been held.
+  final double? averageAttendance;
   final int pendingAppeals;
 
   @override
@@ -28,10 +30,14 @@ class LecturerSummary extends StatelessWidget {
           alignment: CrossAxisAlignment.start,
         ),
         StatisticCard(
-          value: Formatters.percent(averageAttendance),
+          value: averageAttendance == null
+              ? '—'
+              : Formatters.percent(averageAttendance!),
           label: 'Avg Attend',
           icon: Icons.trending_up,
-          valueColor: colorForAttendance(context, averageAttendance),
+          valueColor: averageAttendance == null
+              ? null
+              : colorForAttendance(context, averageAttendance!),
           alignment: CrossAxisAlignment.start,
         ),
         StatisticCard(

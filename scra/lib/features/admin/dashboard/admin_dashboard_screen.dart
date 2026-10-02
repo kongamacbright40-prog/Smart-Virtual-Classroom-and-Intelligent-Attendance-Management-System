@@ -40,12 +40,18 @@ class AdminDashboardScreen extends StatelessWidget {
         load: () async {
           final reports = context.read<ReportRepository>();
           final admin = context.read<AdminRepository>();
-          final terms = await admin.getAcademicTerms();
+          final results = await Future.wait<Object?>([
+            admin.getAcademicTerms(),
+            reports.getAdminDashboard(),
+            admin.getRecentActivity(limit: 5),
+            loadSystemSettings(admin),
+          ]);
+          final terms = results[0] as List<AcademicTermModel>;
           return _DashboardData(
-            await reports.getAdminDashboard(),
-            await admin.getRecentActivity(limit: 5),
+            results[1] as ReportModel,
+            results[2] as List<ActivityLogModel>,
             terms.where((t) => t.status == TermStatus.active).firstOrNull,
-            await admin.getSystemSettings(),
+            results[3] as SystemSettingsModel?,
           );
         },
         builder: (context, data, reload) => RefreshIndicator(
@@ -74,10 +80,13 @@ class AdminDashboardScreen extends StatelessWidget {
                 title: 'Administration Dashboard',
                 subtitle:
                     '${Formatters.compactNumber(data.report.metric('total_staff'))} Faculty Members currently deployed across active lecture modules.',
-                trailing: StatusChip(
-                  label: 'Term Wk ${data.report.metric('term_week').round()}',
-                  tone: StatusTone.primary,
-                ),
+                trailing: data.report.metricOrNull('term_week') == null
+                    ? null
+                    : StatusChip(
+                        label:
+                            'Term Wk ${data.report.metric('term_week').round()}',
+                        tone: StatusTone.primary,
+                      ),
               ),
               adminGap,
               AdminGrid(
@@ -88,9 +97,18 @@ class AdminDashboardScreen extends StatelessWidget {
                       data.report.metric('total_students'),
                     ),
                     label: 'Total Students',
-                    helper:
-                        '${data.report.metric('registered_rate').round()}% registered',
-                    badge: '+${data.report.metric('new_students').round()} new',
+                    helper: data.report.metricOrNull('registered_rate') == null
+                        ? 'Registered accounts'
+                        : '${data.report.metric('registered_rate').round()}% registered',
+                    badge: data.report.metricOrNull('new_students') == null
+                        ? null
+                        : '+${data.report.metric('new_students').round()} new',
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(
+                          RouteNames.adminUsers,
+                          arguments: UserRole.student,
+                        )
+                        .then((_) => reload()),
                   ),
                   AdminStatisticCard(
                     icon: Icons.sensors_outlined,
@@ -99,32 +117,72 @@ class AdminDashboardScreen extends StatelessWidget {
                         .round()
                         .toString(),
                     label: 'Active Classes',
-                    helper: 'Live classes from repository data',
+                    helper: 'Classes live right now',
                     badge: 'Live',
                     tone: StatusTone.live,
+                    onTap: () =>
+                        Navigator.of(context)
+                            .pushNamed(RouteNames.adminLiveClasses)
+                            .then((_) => reload()),
                   ),
-                  AdminStatisticCard(
-                    icon: Icons.badge_outlined,
-                    value: data.report
-                        .metric('on_campus_staff')
-                        .round()
-                        .toString(),
-                    label: 'On-Campus Staff',
-                    helper:
-                        '${data.report.metric('remote_staff').round()} virtual/remote',
-                    badge: '${data.report.metric('total_staff').round()} Staff',
-                  ),
+                  if (data.report.metricOrNull('on_campus_staff') != null)
+                    AdminStatisticCard(
+                      icon: Icons.badge_outlined,
+                      value: data.report
+                          .metric('on_campus_staff')
+                          .round()
+                          .toString(),
+                      label: 'On-Campus Staff',
+                      helper:
+                          '${data.report.metric('remote_staff').round()} virtual/remote',
+                      badge:
+                          '${data.report.metric('total_staff').round()} Staff',
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(
+                            RouteNames.adminUsers,
+                            arguments: UserRole.lecturer,
+                          )
+                          .then((_) => reload()),
+                    )
+                  else
+                    AdminStatisticCard(
+                      icon: Icons.badge_outlined,
+                      value: data.report
+                          .metric('total_staff')
+                          .round()
+                          .toString(),
+                      label: 'Lecturers',
+                      helper: 'Registered lecturers',
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(
+                            RouteNames.adminUsers,
+                            arguments: UserRole.lecturer,
+                          )
+                          .then((_) => reload()),
+                    ),
                   AdminStatisticCard(
                     icon: Icons.fact_check_outlined,
-                    value: Formatters.percent(
-                      data.report.metric('avg_attendance'),
-                      decimals: 1,
-                    ),
+                    value: data.report.metricOrNull('avg_attendance') == null
+                        ? '—'
+                        : Formatters.percent(
+                            data.report.metric('avg_attendance'),
+                            decimals: 1,
+                          ),
                     label: 'Avg Attendance',
-                    helper:
-                        'Target: >=${Formatters.percent(data.report.metric('attendance_target', data.settings.minimumAttendance), decimals: 1)}',
-                    badge:
-                        '+${data.report.metric('attendance_change').toStringAsFixed(1)}% w/w',
+                    helper: switch (data.report.metricOrNull(
+                          'attendance_target',
+                        ) ??
+                        data.settings?.minimumAttendance) {
+                      null => 'No target configured',
+                      final target =>
+                        'Target: >=${Formatters.percent(target, decimals: 1)}',
+                    },
+                    badge: data.report.metricOrNull('attendance_change') == null
+                        ? null
+                        : '+${data.report.metric('attendance_change').toStringAsFixed(1)}% w/w',
+                    onTap: () =>
+                        Navigator.of(context)
+                            .pushNamed(RouteNames.adminReports),
                   ),
                 ],
               ),
@@ -160,9 +218,16 @@ class AdminDashboardScreen extends StatelessWidget {
                             ?.selectTab(AdminTabs.courses),
                   ),
                   _ActionCard(
+                    icon: Icons.account_balance_outlined,
+                    title: 'Faculties',
+                    subtitle: 'Add & manage faculties',
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteNames.faculties),
+                  ),
+                  _ActionCard(
                     icon: Icons.domain_outlined,
                     title: 'Departments',
-                    subtitle: 'Campus structure',
+                    subtitle: 'Add & manage departments',
                     onTap: () =>
                         Navigator.of(context).pushNamed(RouteNames.departments),
                   ),
@@ -198,28 +263,30 @@ class AdminDashboardScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              adminGap,
-              AppCard(
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
-                child: Row(
-                  children: [
-                    const Icon(Icons.bluetooth_connected_outlined),
-                    const SizedBox(width: AppDimensions.spaceMd),
-                    Expanded(
-                      child: Text(
-                        'System policy\nMinimum attendance ${Formatters.percent(data.settings.minimumAttendance, decimals: 1)} • Session timeout ${data.settings.sessionTimeoutMinutes} mins',
+              if (data.settings != null) ...[
+                adminGap,
+                AppCard(
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.bluetooth_connected_outlined),
+                      const SizedBox(width: AppDimensions.spaceMd),
+                      Expanded(
+                        child: Text(
+                          'System policy\nMinimum attendance ${Formatters.percent(data.settings!.minimumAttendance, decimals: 1)} • Session timeout ${data.settings!.sessionTimeoutMinutes} mins',
+                        ),
                       ),
-                    ),
-                    SecondaryButton(
-                      label: 'View',
-                      expanded: false,
-                      onPressed: () =>
-                          Navigator.of(context)
-                              .pushNamed(RouteNames.adminReports),
-                    ),
-                  ],
+                      SecondaryButton(
+                        label: 'View',
+                        expanded: false,
+                        onPressed: () =>
+                            Navigator.of(context)
+                                .pushNamed(RouteNames.adminReports),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -238,7 +305,7 @@ class _DashboardData {
   final ReportModel report;
   final List<ActivityLogModel> activity;
   final AcademicTermModel? activeTerm;
-  final SystemSettingsModel settings;
+  final SystemSettingsModel? settings;
 }
 
 class _ActionCard extends StatelessWidget {

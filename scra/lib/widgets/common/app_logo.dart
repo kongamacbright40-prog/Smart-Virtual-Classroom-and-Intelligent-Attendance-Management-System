@@ -37,11 +37,11 @@ class AppLogo extends StatelessWidget {
   }
 }
 
-/// Logo + "Smart Class / EduVerse Suite" lockup used on onboarding/auth.
+/// Logo + "Smart Class" title with a subtitle line (e.g. the user's name).
 class BrandHeader extends StatelessWidget {
   const BrandHeader({
     super.key,
-    this.subtitle = AppStrings.suiteName,
+    required this.subtitle,
     this.logoSize = 44,
     this.trailing,
     this.badge,

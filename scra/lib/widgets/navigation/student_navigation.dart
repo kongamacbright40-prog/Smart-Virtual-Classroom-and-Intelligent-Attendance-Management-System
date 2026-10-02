@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../features/student/attendance/student_attendance_screen.dart';
+import '../../features/student/courses/student_courses_screen.dart';
 import '../../features/student/home/student_home_screen.dart';
 import '../../features/student/profile/student_profile_screen.dart';
 import '../../features/student/schedule/student_schedule_screen.dart';
 import 'role_shell.dart';
 
-/// Student bottom navigation: Home • Schedule • Attendance • Profile
-/// (matches the Stitch student screens).
+/// Student bottom navigation: Home • Courses • Schedule • Attendance • Profile.
 class StudentNavigation extends StatelessWidget {
   const StudentNavigation({super.key, this.initialIndex = 0});
 
@@ -23,6 +23,12 @@ class StudentNavigation extends StatelessWidget {
           icon: Icons.dashboard_outlined,
           selectedIcon: Icons.dashboard,
           builder: (_) => const StudentHomeScreen(),
+        ),
+        ShellDestination(
+          label: 'Courses',
+          icon: Icons.menu_book_outlined,
+          selectedIcon: Icons.menu_book,
+          builder: (_) => const StudentCoursesScreen(),
         ),
         ShellDestination(
           label: 'Schedule',
