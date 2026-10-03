@@ -106,6 +106,9 @@ class ClassroomController extends ChangeNotifier {
   RealtimeConnectionState get connectionState => _connection;
   MediaState get mediaState => _mediaState;
   bool get micEnabled => _mediaState.microphoneEnabled;
+
+  /// Audio/video problem to show in the classroom (e.g. no network path).
+  String? get mediaNotice => _mediaState.notice;
   bool get cameraEnabled => _mediaState.cameraEnabled;
   bool get screenSharing => _mediaState.screenSharing;
   bool get handRaised => me?.isHandRaised ?? false;

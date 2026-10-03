@@ -6,6 +6,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../core/constants/app_constants.dart';
 import '../core/errors/error_handler.dart';
 import 'screen_capture_service.dart';
+import 'webrtc/ice_config.dart';
 import 'webrtc/peer_connection_manager.dart';
 import 'webrtc/signaling_service.dart';
 
@@ -29,6 +30,8 @@ class MediaState {
     this.cameraEnabled = false,
     this.screenSharing = false,
     this.remotePeerIds = const [],
+    this.failedPeerIds = const [],
+    this.relayAvailable = true,
     this.errorMessage,
   });
 
@@ -37,7 +40,26 @@ class MediaState {
   final bool cameraEnabled;
   final bool screenSharing;
   final List<String> remotePeerIds;
+
+  /// Participants whose audio/video could not connect (no network path).
+  final List<String> failedPeerIds;
+
+  /// Whether a TURN relay is configured (needed across different networks).
+  final bool relayAvailable;
   final String? errorMessage;
+
+  /// A problem with audio/video worth showing in the classroom, if any.
+  String? get notice {
+    if (connection == MediaConnectionState.failed) return errorMessage;
+    if (failedPeerIds.isEmpty) return null;
+    final who = failedPeerIds.length == 1
+        ? 'a participant'
+        : '${failedPeerIds.length} participants';
+    return relayAvailable
+        ? 'Audio/video with $who could not connect. Retrying…'
+        : 'Audio/video with $who could not connect: your networks block '
+              'direct calls and the server has no TURN relay configured.';
+  }
 
   MediaState copyWith({
     MediaConnectionState? connection,
@@ -45,6 +67,8 @@ class MediaState {
     bool? cameraEnabled,
     bool? screenSharing,
     List<String>? remotePeerIds,
+    List<String>? failedPeerIds,
+    bool? relayAvailable,
     String? errorMessage,
   }) => MediaState(
     connection: connection ?? this.connection,
@@ -52,6 +76,8 @@ class MediaState {
     cameraEnabled: cameraEnabled ?? this.cameraEnabled,
     screenSharing: screenSharing ?? this.screenSharing,
     remotePeerIds: remotePeerIds ?? this.remotePeerIds,
+    failedPeerIds: failedPeerIds ?? this.failedPeerIds,
+    relayAvailable: relayAvailable ?? this.relayAvailable,
     errorMessage: errorMessage,
   );
 }
@@ -100,6 +126,8 @@ class FlutterWebRTCService implements WebRTCService {
   SignalingService? _signaling;
   MediaStream? _localStream;
   MediaStream? _screenStream;
+  Map<String, dynamic> _iceConfiguration = IceConfig.configuration();
+  final Set<String> _failedPeers = {};
   final RTCVideoRenderer localRenderer = RTCVideoRenderer();
   final Map<String, Future<PeerConnectionManager>> _peerFutures = {};
 
@@ -168,18 +196,32 @@ class FlutterWebRTCService implements WebRTCService {
         await localRenderer.initialize();
         _rendererReady = true;
       }
-      final local = await _openLocalMedia();
+      final token = await tokenProvider?.call();
+      // Ask the server for its STUN/TURN relay while the camera opens.
+      final (local, ice) = await (
+        _openLocalMedia(),
+        IceConfig.fetch(token: token),
+      ).wait;
+      _iceConfiguration = IceConfig.configuration(ice?.servers);
+      _failedPeers.clear();
       _localStream = local;
       localRenderer.srcObject = local;
       _applyTrackState(audio: audio, video: video);
       final hasCamera = local.getVideoTracks().isNotEmpty;
       final hasMic = local.getAudioTracks().isNotEmpty;
+      _set(
+        _state.copyWith(
+          failedPeerIds: const [],
+          relayAvailable:
+              (ice?.turnConfigured ?? false) || IceConfig.hasBuiltInTurn,
+        ),
+      );
 
       final signaling = SignalingService(
         roomId: roomId,
         userId: userId,
         serverUrl: _serverUrl,
-        token: await tokenProvider?.call(),
+        token: token,
       );
       _signaling = signaling;
 
@@ -188,7 +230,9 @@ class FlutterWebRTCService implements WebRTCService {
         final peerId = data['from'] as String;
         // A rejoin (e.g. after a network drop) replaces the old connection.
         if (_peerFutures.containsKey(peerId)) await _removePeer(peerId);
-        await (await _peerFor(peerId)).createOffer();
+        final peer = await _peerFor(peerId);
+        peer.initiator = true;
+        await peer.createOffer();
       });
       signaling.onOffer = (data) => _guard(() async {
         final manager = await _peerFor(data['from'] as String);
@@ -291,7 +335,16 @@ class FlutterWebRTCService implements WebRTCService {
       signaling: _signaling!,
       remoteUserId: peerId,
       localStream: _localStream!,
+      iceConfiguration: _iceConfiguration,
     );
+    manager.onLinkState = (link) {
+      final changed = link == PeerLinkState.failed
+          ? _failedPeers.add(peerId)
+          : link == PeerLinkState.connected && _failedPeers.remove(peerId);
+      if (changed) {
+        _set(_state.copyWith(failedPeerIds: _failedPeers.toList()));
+      }
+    };
     manager.onRemoteStream = (stream) {
       // Set again for every track, so a later audio track is played too.
       renderer.srcObject = stream;
@@ -328,7 +381,13 @@ class FlutterWebRTCService implements WebRTCService {
     await renderer?.dispose();
     screenRenderer?.srcObject = null;
     await screenRenderer?.dispose();
-    _set(_state.copyWith(remotePeerIds: remoteRenderers.keys.toList()));
+    _failedPeers.remove(peerId);
+    _set(
+      _state.copyWith(
+        remotePeerIds: remoteRenderers.keys.toList(),
+        failedPeerIds: _failedPeers.toList(),
+      ),
+    );
   }
 
   MediaStreamTrack? get _screenVideoTrack {

@@ -15,6 +15,7 @@ import '../../../widgets/common/loading_state.dart';
 import '../../../widgets/common/status_chip.dart';
 import '../../../widgets/common/user_avatar.dart';
 import '../../../widgets/dialogs/confirmation_dialog.dart';
+import '../../../widgets/media/media_notice_banner.dart';
 import '../../../widgets/media/video_tile.dart';
 import '../../../widgets/media/whiteboard_view.dart';
 import 'widgets/classroom_controls.dart';
@@ -70,6 +71,10 @@ class _StudentLiveClassroomBody extends StatelessWidget {
           const SizedBox(height: AppDimensions.spaceMd),
           if (controller.myAttendance != null)
             _AttendanceBanner(record: controller.myAttendance!),
+          if (controller.mediaNotice != null) ...[
+            const SizedBox(height: AppDimensions.spaceSm),
+            MediaNoticeBanner(message: controller.mediaNotice!),
+          ],
           const SizedBox(height: AppDimensions.spaceMd),
           Expanded(
             child: ListView(
