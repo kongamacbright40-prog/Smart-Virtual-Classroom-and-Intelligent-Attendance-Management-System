@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'ice_config.dart';
 import 'signaling_service.dart';
+
+/// Whether audio/video with one remote participant is flowing.
+enum PeerLinkState { connecting, connected, failed }
 
 /// One WebRTC connection to one remote participant.
 ///
@@ -16,6 +21,15 @@ class PeerConnectionManager {
   final String remoteUserId;
   final MediaStream localStream; // shared camera stream, owned by the caller
 
+  /// STUN/TURN configuration (see [IceConfig.configuration]).
+  final Map<String, dynamic> iceConfiguration;
+
+  /// Whether we made the first offer to this peer. Only that side restarts
+  /// ICE after a failure, so both sides don't send offers at the same time.
+  bool initiator = false;
+  int _iceRestarts = 0;
+  static const _maxIceRestarts = 3;
+
   RTCPeerConnection? _peerConnection;
   MediaStream? remoteStream;
   MediaStream? remoteScreenStream;
@@ -27,6 +41,7 @@ class PeerConnectionManager {
 
   void Function(MediaStream stream)? onRemoteStream;
   void Function(MediaStream stream)? onRemoteScreen;
+  void Function(PeerLinkState state)? onLinkState;
 
   /// Sender of our camera video. It exists even without a camera.
   RTCRtpSender? _videoSender;
@@ -44,10 +59,11 @@ class PeerConnectionManager {
     required this.signaling,
     required this.remoteUserId,
     required this.localStream,
-  });
+    Map<String, dynamic>? iceConfiguration,
+  }) : iceConfiguration = iceConfiguration ?? IceConfig.configuration();
 
   Future<void> init() async {
-    _peerConnection = await createPeerConnection(IceConfig.configuration);
+    _peerConnection = await createPeerConnection(iceConfiguration);
 
     // The SHARED local tracks (one camera stream, many peers).
     for (final track in localStream.getTracks()) {
@@ -101,13 +117,45 @@ class PeerConnectionManager {
     _peerConnection!.onIceCandidate = (RTCIceCandidate candidate) {
       signaling.sendCandidate(remoteUserId, candidate.toMap());
     };
+
+    _peerConnection!.onIceConnectionState = _onIceState;
+  }
+
+  void _onIceState(RTCIceConnectionState state) {
+    switch (state) {
+      case RTCIceConnectionState.RTCIceConnectionStateConnected:
+      case RTCIceConnectionState.RTCIceConnectionStateCompleted:
+        _iceRestarts = 0;
+        onLinkState?.call(PeerLinkState.connected);
+      case RTCIceConnectionState.RTCIceConnectionStateFailed:
+        onLinkState?.call(PeerLinkState.failed);
+        unawaited(_restartIce());
+      case RTCIceConnectionState.RTCIceConnectionStateChecking:
+        onLinkState?.call(PeerLinkState.connecting);
+      default:
+        break;
+    }
+  }
+
+  /// No network path was found (or it broke): look for a new one, e.g. after
+  /// switching from Wi-Fi to mobile data.
+  Future<void> _restartIce() async {
+    if (!initiator || _iceRestarts >= _maxIceRestarts) return;
+    _iceRestarts++;
+    try {
+      if (await _isStable()) await createOffer(iceRestart: true);
+    } on Object catch (e) {
+      debugPrint('ICE restart failed: $e');
+    }
   }
 
   // Called by whoever initiates the call with this specific peer, and to
   // renegotiate (e.g. when a screen share is added).
-  Future<void> createOffer() async {
+  Future<void> createOffer({bool iceRestart = false}) async {
     _needsOffer = false;
-    final offer = await _peerConnection!.createOffer();
+    final offer = await _peerConnection!.createOffer({
+      if (iceRestart) 'iceRestart': true,
+    });
     await _peerConnection!.setLocalDescription(offer);
     signaling.sendOffer(remoteUserId, offer.toMap());
   }

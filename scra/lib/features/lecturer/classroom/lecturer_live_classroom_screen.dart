@@ -16,6 +16,7 @@ import '../../../widgets/common/error_state.dart';
 import '../../../widgets/common/loading_state.dart';
 import '../../../widgets/common/status_chip.dart';
 import '../../../widgets/dialogs/confirmation_dialog.dart';
+import '../../../widgets/media/media_notice_banner.dart';
 import '../../../widgets/media/video_tile.dart';
 import 'widgets/classroom_toolbar.dart';
 import 'widgets/lecturer_controls.dart';
@@ -155,6 +156,10 @@ class _LecturerLiveClassroomBodyState
               ],
             ),
             const SizedBox(height: AppDimensions.spaceLg),
+            if (controller.mediaNotice != null) ...[
+              MediaNoticeBanner(message: controller.mediaNotice!),
+              const SizedBox(height: AppDimensions.spaceMd),
+            ],
             _Stage(controller: controller, session: session),
             const SizedBox(height: AppDimensions.spaceMd),
             LecturerControls(
