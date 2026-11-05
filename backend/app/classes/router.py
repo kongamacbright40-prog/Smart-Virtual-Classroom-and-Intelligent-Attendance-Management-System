@@ -25,6 +25,7 @@ from app.courses.service import can_teach, course_students
 from app.database import get_db
 from app.participation.models import Question
 from app.signaling.connection_manager import manager
+from app.common.timeutils import utcnow
 
 router = APIRouter(prefix="/classes", tags=["classes"])
 
@@ -66,7 +67,7 @@ def start_session(
 ):
     """Creates a class and starts it immediately."""
     course = _teachable_course(db, payload.course_id, lecturer)
-    now = datetime.utcnow()
+    now = utcnow()
     session = models.ClassSession(
         course_id=course.id,
         lecturer_id=lecturer.id,
@@ -91,7 +92,7 @@ def schedule_session(
 ):
     course = _teachable_course(db, payload.course_id, lecturer)
     start = to_naive_utc(payload.scheduled_start)
-    if start < datetime.utcnow() - timedelta(minutes=5):
+    if start < utcnow() - timedelta(minutes=5):
         raise HTTPException(status_code=400, detail="The class must start in the future")
     session = models.ClassSession(
         course_id=course.id,
@@ -172,7 +173,7 @@ def start_scheduled_session(
     if session.ended_at is not None:
         raise HTTPException(status_code=400, detail="Session already ended")
     if session.started_at is None:
-        session.started_at = datetime.utcnow()
+        session.started_at = utcnow()
         _announce_start(db, session)
         db.commit()
         db.refresh(session)
@@ -191,7 +192,7 @@ def end_session(
     if session.ended_at is not None:
         raise HTTPException(status_code=400, detail="Session already ended")
 
-    now = datetime.utcnow()
+    now = utcnow()
     if session.started_at is None:
         session.started_at = now
     session.ended_at = now
@@ -229,7 +230,7 @@ def list_participants(
         .filter(AttendanceRecord.session_id == session_id, AttendanceRecord.profile_id.in_(peer_ids))
         .all()
     }
-    now = datetime.utcnow()
+    now = utcnow()
     return [
         schemas.ParticipantOut(
             user_id=pid,

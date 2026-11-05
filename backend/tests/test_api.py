@@ -1,6 +1,7 @@
 import re
 from datetime import datetime, timedelta, timezone
 
+from app.common.timeutils import utcnow
 from tests.conftest import PASSWORD, auth
 
 
@@ -518,7 +519,7 @@ def test_stale_live_classes_are_closed_and_admin_can_end_a_class(client, world):
     ).json()
     stale = client.post("/classes", json={"course_id": course["id"], "title": "Forgotten"}, headers=lecturer).json()
     with SessionLocal() as db:
-        db.get(ClassSession, stale["id"]).started_at = datetime.utcnow() - timedelta(days=2)
+        db.get(ClassSession, stale["id"]).started_at = utcnow() - timedelta(days=2)
         db.commit()
     live_ids = [s["id"] for s in client.get("/admin/sessions?live_only=true", headers=admin).json()["items"]]
     assert stale["id"] not in live_ids
@@ -656,12 +657,12 @@ def test_class_everyone_left_is_ended_after_15_minutes(client, world):
     live = [s["id"] for s in client.get("/admin/sessions?live_only=true", headers=admin).json()["items"]]
     assert sid in live
 
-    left = datetime.utcnow() - timedelta(minutes=20)
+    left = utcnow() - timedelta(minutes=20)
     from app.classes.models import ClassSession
     from app.database import SessionLocal
 
     with SessionLocal() as db:
-        db.get(ClassSession, sid).started_at = datetime.utcnow() - timedelta(minutes=40)
+        db.get(ClassSession, sid).started_at = utcnow() - timedelta(minutes=40)
         db.commit()
     manager.emptied_at[sid] = left
     live = [s["id"] for s in client.get("/admin/sessions?live_only=true", headers=admin).json()["items"]]
@@ -730,3 +731,14 @@ def test_ice_servers_include_configured_turn_relay(client, world, monkeypatch):
     ice.reset_cache()
     assert client.get("/signaling/ice-servers", headers=student).status_code == 200
     ice.reset_cache()
+
+
+def test_database_url_from_hosting_providers_is_accepted():
+    """Render/Heroku give "postgres://" URLs; SQLAlchemy 2 needs "postgresql://"."""
+    from app.config import Settings
+
+    secret = "k" * 40
+    hosted = Settings(database_url=" postgres://u:p@db.example:5432/app ", jwt_secret_key=secret)
+    assert hosted.database_url == "postgresql://u:p@db.example:5432/app"
+    local = Settings(database_url="postgresql+psycopg2://u:p@localhost/app", jwt_secret_key=secret)
+    assert local.database_url == "postgresql+psycopg2://u:p@localhost/app"

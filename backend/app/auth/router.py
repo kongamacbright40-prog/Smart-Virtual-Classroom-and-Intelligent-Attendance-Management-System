@@ -1,6 +1,6 @@
 from sqlalchemy import func
 import secrets
-from datetime import datetime
+
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from jose import JWTError, jwt
@@ -24,6 +24,7 @@ from app.auth.service import create_profile, find_valid_code, issue_reset_code
 from app.common.deps import get_current_user
 from app.config import settings
 from app.database import get_db
+from app.common.timeutils import utcnow
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -81,7 +82,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     if needs_rehash(user.hashed_password):
         user.hashed_password = hash_password(payload.password)
 
-    user.last_login_at = datetime.utcnow()
+    user.last_login_at = utcnow()
     db.commit()
     return TokenPair(
         access_token=create_access_token(str(user.id), {"role": user.role.value}),

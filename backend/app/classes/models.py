@@ -1,9 +1,8 @@
-from datetime import datetime
-
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.common.timeutils import utcnow
 
 
 class ClassSession(Base):
@@ -31,6 +30,6 @@ class ChatMessage(Base):
     profile_id = Column(Integer, ForeignKey("profiles.id"), nullable=False)
     message = Column(Text, nullable=False)
     is_question = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
 
     profile = relationship("Profile")

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -7,6 +7,7 @@ from app.auth.models import Profile, Role
 from app.classes import models, schemas
 from app.courses.service import can_teach, course_students, is_enrolled, student_course_ids
 from app.signaling.connection_manager import manager
+from app.common.timeutils import utcnow
 
 # A class without a planned duration is assumed to last this long.
 DEFAULT_CLASS_LENGTH = timedelta(hours=2)
@@ -49,7 +50,7 @@ def close_stale_sessions(db: Session) -> int:
     Classes with someone still connected are left alone."""
     from app.participation.models import Question
 
-    now = datetime.utcnow()
+    now = utcnow()
     live = (
         db.query(models.ClassSession)
         .filter(models.ClassSession.started_at.isnot(None), models.ClassSession.ended_at.is_(None))

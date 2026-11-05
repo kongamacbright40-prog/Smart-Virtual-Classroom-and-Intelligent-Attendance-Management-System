@@ -1,11 +1,12 @@
 import enum
-from datetime import datetime
+
 
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, Enum, String, Text
 from sqlalchemy.orm import relationship
 
 from app.database import Base
 from app.auth.models import Role
+from app.common.timeutils import utcnow
 
 
 class AttendanceStatus(str, enum.Enum):
@@ -46,7 +47,7 @@ class AttendanceAppeal(Base):
     reason = Column(Text, nullable=False)
     document_name = Column(String, nullable=True)
     status = Column(Enum(AppealStatus), nullable=False, default=AppealStatus.pending)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
 
     session = relationship("ClassSession")
     profile = relationship("Profile")

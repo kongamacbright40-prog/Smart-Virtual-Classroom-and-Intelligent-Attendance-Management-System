@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import WebSocket
 
 from app.signaling.whiteboard import Whiteboard
+from app.common.timeutils import utcnow
 
 
 class ConnectionManager:
@@ -50,7 +51,7 @@ class ConnectionManager:
         if not room:
             del self.rooms[session_id]
             self.hands.pop(session_id, None)
-            self.emptied_at[session_id] = datetime.utcnow()
+            self.emptied_at[session_id] = utcnow()
         return True
 
     def peers(self, session_id: int) -> list[int]:

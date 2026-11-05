@@ -1,10 +1,11 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Optional
 
 from jose import jwt
 from passlib.context import CryptContext
 
 from app.config import settings
+from app.common.timeutils import utcnow
 
 # One-way password hashing. Cost 10 takes ~0.1 s per hash/verify on a laptop
 # (cost 12, the passlib default, took ~0.5 s and made register + login slow).
@@ -35,12 +36,12 @@ def create_access_token(subject: str, extra_claims: dict = None) -> str:
     to_encode = {"sub": subject, "type": "access"}
     if extra_claims:
         to_encode.update(extra_claims)
-    expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes) 
+    expire = utcnow() + timedelta(minutes=settings.access_token_expire_minutes) 
     to_encode["exp"] = expire
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm) 
 
 def create_refresh_token(subject: str) -> str:
     to_encode = {"sub": subject, "type": "refresh"} 
-    expire = datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days)
+    expire = utcnow() + timedelta(days=settings.refresh_token_expire_days)
     to_encode["exp"] = expire
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)

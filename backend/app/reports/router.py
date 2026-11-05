@@ -18,6 +18,7 @@ from app.reports.analytics import at_risk_students, course_stats, finished_sessi
 from app.reports.csv_export import build_attendance_csv
 from app.reports.excel_export import build_attendance_xlsx
 from app.reports.pdf_export import build_attendance_pdf
+from app.common.timeutils import utcnow
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -29,7 +30,7 @@ def _iso(value: datetime) -> str:
 
 
 def _report(report_id: str, title: str, type_: str, metrics: dict, trend=None, breakdown=None, scope_id=None):
-    now = datetime.utcnow()
+    now = utcnow()
     return {
         "id": report_id,
         "title": title,
@@ -75,7 +76,7 @@ def admin_overview(db: Session = Depends(get_db), _admin: Profile = Depends(requ
     minimum = get_settings(db).minimum_attendance
     sessions = finished_sessions(db)
     stats = course_stats(db, sessions)
-    week_ago = datetime.utcnow() - timedelta(days=7)
+    week_ago = utcnow() - timedelta(days=7)
     students = db.query(Profile).filter(Profile.role == Role.student)
     close_stale_sessions(db)
     live = (

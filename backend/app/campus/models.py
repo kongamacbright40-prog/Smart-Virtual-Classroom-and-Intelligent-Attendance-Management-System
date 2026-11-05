@@ -1,9 +1,8 @@
-from datetime import datetime
-
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.common.timeutils import utcnow
 
 
 class Notification(Base):
@@ -18,7 +17,7 @@ class Notification(Base):
     reference_id = Column(String, nullable=True)
     action_label = Column(String, nullable=True)
     is_read = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
 
     profile = relationship("Profile")
 
@@ -32,7 +31,7 @@ class ActivityLog(Base):
     actor_name = Column(String, nullable=True)
     severity = Column(String, nullable=False, default="info")  # info | success | warning | critical
     category = Column(String, nullable=True)  # users | courses | attendance | system
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
 
 
 class AcademicTerm(Base):

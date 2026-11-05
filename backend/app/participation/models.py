@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+
 from sqlalchemy import (
     Column, Integer, String, Text, Boolean, DateTime, Enum,
     ForeignKey, UniqueConstraint,
@@ -7,6 +7,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.common.timeutils import utcnow
 
 
 class QuestionType(str, enum.Enum):
@@ -23,7 +24,7 @@ class Question(Base):
     prompt = Column(Text, nullable=False)
     correct_answer = Column(String, nullable=True)  # only used for text questions
     is_open = Column(Boolean, nullable=False, default=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
 
     session = relationship("ClassSession")
     options = relationship("QuestionOption", back_populates="question")
@@ -62,7 +63,7 @@ class QuestionResponse(Base):
     selected_option_id = Column(Integer, ForeignKey("question_options.id"), nullable=True)
     answer_text = Column(String, nullable=True)
     is_correct = Column(Boolean, nullable=True)
-    responded_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    responded_at = Column(DateTime, nullable=False, default=utcnow)
 
     question = relationship("Question", back_populates="responses")
     profile = relationship("Profile")

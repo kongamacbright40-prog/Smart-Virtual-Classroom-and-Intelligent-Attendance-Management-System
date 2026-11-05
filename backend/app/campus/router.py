@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
@@ -12,6 +10,7 @@ from app.common.timeutils import to_naive_utc
 from app.courses.models import Course
 from app.database import get_db
 from app.reports.analytics import course_stats, finished_sessions, overall_rate
+from app.common.timeutils import utcnow
 
 router = APIRouter(tags=["campus"])
 
@@ -232,7 +231,7 @@ def update_settings(
     settings = get_settings(db)
     for field, value in payload.model_dump().items():
         setattr(settings, field, value)
-    settings.updated_at = datetime.utcnow()
+    settings.updated_at = utcnow()
     log_activity(db, "System settings updated", "", admin.full_name, "warning", "system")
     db.commit()
     db.refresh(settings)

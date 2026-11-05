@@ -4,8 +4,16 @@ from typing import Annotated, Optional
 from pydantic import PlainSerializer
 
 
+def utcnow() -> datetime:
+    """Current time as naive UTC, the format the database stores.
+
+    Replaces the deprecated ``datetime.utcnow()`` with identical values.
+    """
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 def to_naive_utc(value: Optional[datetime]) -> Optional[datetime]:
-    """The database stores naive UTC timestamps (``datetime.utcnow``)."""
+    """The database stores naive UTC timestamps (see ``utcnow``)."""
     if value is None or value.tzinfo is None:
         return value
     return value.astimezone(timezone.utc).replace(tzinfo=None)

@@ -1,7 +1,7 @@
 from sqlalchemy import func
 import logging
 import secrets
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -10,6 +10,7 @@ from app.auth.models import PasswordResetCode, Profile
 from app.auth.schemas import ProfileCreate
 from app.auth.security import hash_password
 from app.courses.models import Department
+from app.common.timeutils import utcnow
 
 logger = logging.getLogger("smart_class.auth")
 
@@ -98,7 +99,7 @@ def issue_reset_code(db: Session, email: str) -> None:
         PasswordResetCode(
             profile_id=user.id,
             code=code,
-            expires_at=datetime.utcnow() + RESET_CODE_TTL,
+            expires_at=utcnow() + RESET_CODE_TTL,
         )
     )
     db.commit()
@@ -123,7 +124,7 @@ def find_valid_code(db: Session, email: str, code: str) -> PasswordResetCode:
         .order_by(PasswordResetCode.id.desc())
         .first()
     )
-    if record is None or record.expires_at < datetime.utcnow():
+    if record is None or record.expires_at < utcnow():
         raise invalid
     if not secrets.compare_digest(record.code, code.strip()):
         record.attempts = (record.attempts or 0) + 1

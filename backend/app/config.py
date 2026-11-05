@@ -5,7 +5,7 @@ provided by the environment. Locally they live in .env (git-ignored, see
 .env.example); in production set them as environment variables.
 """
 
-from pydantic import Field, ValidationError
+from pydantic import Field, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -50,6 +50,16 @@ class Settings(BaseSettings):
     cloudflare_turn_api_token: str = ""
     # STUN servers (free, no relay), comma separated.
     stun_urls: str = "stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302"
+
+    @field_validator("database_url")
+    @classmethod
+    def _sqlalchemy_scheme(cls, value: str) -> str:
+        # Hosts such as Render/Heroku hand out "postgres://..." URLs, which
+        # SQLAlchemy 2 rejects; it needs "postgresql://".
+        value = value.strip()
+        if value.startswith("postgres://"):
+            return "postgresql://" + value[len("postgres://"):]
+        return value
 
     @property
     def cors_origin_list(self) -> list[str]:

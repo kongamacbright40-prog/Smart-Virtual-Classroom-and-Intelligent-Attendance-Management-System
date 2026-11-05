@@ -1,10 +1,11 @@
 import enum
-from datetime import datetime
+
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, false, text, true
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.common.timeutils import utcnow
 
 
 class Role(str, enum.Enum):
@@ -28,7 +29,7 @@ class Profile(Base):
     # Accounts created by an admin without a password; the owner sets one
     # through student activation / lecturer registration.
     pending_activation = Column(Boolean, nullable=False, default=False, server_default=false())
-    created_at = Column(DateTime, nullable=True, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=True, default=utcnow)
     last_login_at = Column(DateTime, nullable=True)
 
     department = relationship("Department", back_populates="members")

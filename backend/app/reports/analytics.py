@@ -17,6 +17,7 @@ from app.auth.models import Role
 from app.classes.models import ClassSession
 from app.courses.models import Course
 from app.courses.service import course_students
+from app.common.timeutils import utcnow
 
 ATTENDED = (AttendanceStatus.present, AttendanceStatus.partial)
 
@@ -110,7 +111,7 @@ def at_risk_students(stats: Iterable[CourseStats], minimum: float) -> set[int]:
 
 def weekly_trend(db: Session, sessions: list[ClassSession], weeks: int = 8) -> list[dict]:
     """Attendance rate per week (oldest first) for the last ``weeks`` weeks."""
-    now = datetime.utcnow()
+    now = utcnow()
     start_of_week = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
     points = []
     for i in range(weeks - 1, -1, -1):

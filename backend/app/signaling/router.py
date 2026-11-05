@@ -13,6 +13,7 @@ from app.courses.service import is_enrolled
 from app.attendance.models import AttendanceRecord, AttendanceStatus
 from app.signaling import ice
 from app.signaling.connection_manager import manager
+from app.common.timeutils import utcnow
 
 router = APIRouter(tags=["signaling"])
 
@@ -67,7 +68,7 @@ def auto_recording_enabled() -> bool:
 
 
 def record_join(class_id: int, profile_id: int, role: Role) -> datetime:
-    now = datetime.utcnow()
+    now = utcnow()
     db = SessionLocal()
     try:
         record = (
@@ -99,7 +100,7 @@ def record_join(class_id: int, profile_id: int, role: Role) -> datetime:
 
 
 def record_leave(class_id: int, profile_id: int, connected_at: datetime, mark_left: bool) -> None:
-    now = datetime.utcnow()
+    now = utcnow()
     db = SessionLocal()
     try:
         record = (
@@ -127,7 +128,7 @@ async def signal(websocket: WebSocket, class_id: int, token: str = Query(...)):
 
     await manager.connect(class_id, peer_id, websocket)
     auto_record = auto_recording_enabled()
-    connected_at = record_join(class_id, peer_id, role) if auto_record else datetime.utcnow()
+    connected_at = record_join(class_id, peer_id, role) if auto_record else utcnow()
 
     existing = [p for p in manager.peers(class_id) if p != peer_id]
     await manager.send_to(class_id, peer_id, {"type": "room_state", "peers": existing})
