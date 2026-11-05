@@ -45,14 +45,18 @@ void main() {
       expect(Validators.fullName('Jean -Paul'), isNotNull);
     });
 
-    test('identifier accepts emails and ICTU matricules', () {
+    test('identifier accepts emails and any existing ID format', () {
       expect(Validators.identifier(''), isNotNull);
-      expect(Validators.identifier('abc'), isNotNull);
-      expect(Validators.identifier('ICT20251181'), isNotNull);
+      expect(Validators.identifier('ab'), isNotNull);
+      expect(Validators.identifier('bad id'), isNotNull);
+      expect(Validators.identifier('x@'), isNotNull);
       expect(Validators.identifier('ICTU20251181'), isNull);
       expect(Validators.identifier('ictu20251181'), isNull);
       expect(Validators.identifier('x@y.edu'), isNull);
-      expect(Validators.identifier('x@'), isNotNull);
+      // Accounts created before the ICTU format can still sign in.
+      expect(Validators.identifier('ICT20251181'), isNull);
+      expect(Validators.identifier('UNI12345'), isNull);
+      expect(Validators.identifier('ADM-001'), isNull);
     });
 
     test('password and new password rules', () {

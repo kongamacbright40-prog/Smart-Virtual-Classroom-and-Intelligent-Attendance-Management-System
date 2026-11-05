@@ -194,6 +194,44 @@ void main() {
       );
     });
 
+    test('registration that cannot sign in says the account exists', () async {
+      final repo = ApiAuthRepository(
+        service((r) async {
+          if (r.url.path.endsWith('/auth/register')) {
+            return http.Response(jsonEncode({'id': 1}), 201);
+          }
+          return http.Response(
+            jsonEncode({
+              'detail': [
+                {
+                  'loc': ['body', 'email'],
+                  'msg': 'Field required',
+                },
+              ],
+            }),
+            422,
+          );
+        }, token: null),
+        ApiContext(),
+      );
+      await expectLater(
+        repo.register(
+          role: UserRole.student,
+          fullName: 'Konga Mac Bright',
+          email: 'konga@ictuniversity.edu.cm',
+          identifier: 'ICTU20231577',
+          password: 'Secure123!',
+        ),
+        throwsA(
+          isA<AccountCreatedException>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('account was created'), contains('sign in')),
+          ),
+        ),
+      );
+    });
+
     test('maps 403, 404 and 5xx', () async {
       Future<void> expectStatus(int code, Matcher matcher) async {
         final api = service((_) async => http.Response('{}', code));

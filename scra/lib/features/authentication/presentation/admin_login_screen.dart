@@ -90,9 +90,7 @@ class AdminLoginScreen extends StatelessWidget {
                             showRequired: true,
                             identifierLabel: 'Administrator email / ID',
                             identifierHint: 'Your email or admin ID (ADM-001)',
-                            identifierValidator: (v) => (v ?? '').contains('@')
-                                ? Validators.email(v)
-                                : Validators.adminId(v),
+                            identifierValidator: Validators.identifier,
                             fieldFill: theme.colorScheme.surfaceContainerLow,
                             rememberLabel: 'Remember credentials',
                             onLink: () =>

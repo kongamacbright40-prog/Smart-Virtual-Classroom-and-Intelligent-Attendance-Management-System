@@ -24,11 +24,17 @@ def create_profile(db: Session, payload: ProfileCreate) -> Profile:
     if existing is not None:
         if existing.pending_activation:
             return activate_profile(db, existing, payload)
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(
+            status_code=400,
+            detail="An account with this email already exists. Sign in instead (or use Forgot password).",
+        )
 
     if payload.matricule_number:
         if db.query(Profile).filter(func.upper(Profile.matricule_number) == payload.matricule_number).first():
-            raise HTTPException(status_code=400, detail="Matricule number already registered")
+            raise HTTPException(
+                status_code=400,
+                detail="An account with this matricule already exists. Sign in instead (or use Forgot password).",
+            )
 
     if payload.department_id is not None:
         if db.query(Department).filter(Department.id == payload.department_id).first() is None:
@@ -66,7 +72,7 @@ def activate_profile(db: Session, user: Profile, payload: ProfileCreate) -> Prof
                 .first()
             )
             if taken:
-                raise HTTPException(status_code=400, detail="Matricule number already registered")
+                raise HTTPException(status_code=400, detail="This matricule already belongs to another account.")
             user.matricule_number = payload.matricule_number
     if payload.department_id is not None and user.department_id is None:
         if db.query(Department).filter(Department.id == payload.department_id).first() is None:

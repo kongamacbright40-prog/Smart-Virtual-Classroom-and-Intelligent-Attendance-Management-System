@@ -13,6 +13,9 @@ abstract final class Validators {
   /// Student / lecturer matricule: ICTU + 4-digit year + 4 digits.
   static final RegExp _matricule = RegExp(r'^ICTU(19|20)\d{6}$');
 
+  /// Any ID accepted at sign-in (new and older formats).
+  static final RegExp _loginId = RegExp(r'^[A-Za-z0-9][A-Za-z0-9\-_/]{2,29}$');
+
   /// One name: letters (any alphabet), optionally joined by `-` or `'`.
   static final RegExp _nameWord = RegExp(
     r"^\p{L}+(?:['’\-]\p{L}+)*$",
@@ -70,14 +73,16 @@ abstract final class Validators {
         '(${allowed.map((d) => 'name@$d').join(' or ')})';
   }
 
-  /// Sign-in identifier: an email or an ICTU matricule.
+  /// Sign-in identifier: an email or a matricule / staff / admin ID. Only the
+  /// shape is checked: accounts created before the ICTU matricule format
+  /// (e.g. `UNI12345`, `LEC0000`) must still be able to sign in.
   static String? identifier(String? value) {
     final v = value?.trim() ?? '';
     if (v.isEmpty) return 'Email or matricule is required';
     if (v.contains('@')) return email(v);
-    if (!_matricule.hasMatch(v.toUpperCase())) {
-      return 'Enter your email or a matricule like '
-          '${AppConstants.matriculeExample}';
+    if (!_loginId.hasMatch(v)) {
+      return 'Enter your email or your matricule '
+          '(e.g. ${AppConstants.matriculeExample})';
     }
     return null;
   }

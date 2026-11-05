@@ -206,6 +206,7 @@ def test_email_is_case_and_space_insensitive(client, world, capsys):
         json={"full_name": "Dup User", "email": "STUDENT@uni.edu", "password": PASSWORD, "role": "student", "matricule_number": "ICTU20230099"},
     )
     assert dup.status_code == 400
+    assert "already exists" in dup.json()["detail"] and "Sign in" in dup.json()["detail"]
     assert client.post("/auth/password-reset/request", json={"email": "Student@Uni.edu"}).status_code == 204
     assert "student@uni.edu" in capsys.readouterr().out
 

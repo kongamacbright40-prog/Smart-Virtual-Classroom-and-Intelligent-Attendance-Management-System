@@ -83,7 +83,11 @@ class ApiAuthRepository extends ApiRepositoryBase implements AuthRepository {
       },
       authenticated: false,
     );
-    return login(role: role, identifier: email, password: password);
+    try {
+      return await login(role: role, identifier: email, password: password);
+    } on AppException catch (e) {
+      throw AccountCreatedException(e.message);
+    }
   }
 
   @override

@@ -81,6 +81,17 @@ final class UnsupportedFeatureException extends AppException {
   ]);
 }
 
+/// Registration succeeded but the automatic sign-in that follows failed.
+/// The account exists: the user must sign in instead of registering again.
+final class AccountCreatedException extends AppException {
+  const AccountCreatedException(String reason)
+    : super(
+        'Your account was created, but signing you in failed ($reason). '
+        'Go back and sign in with your email and password; do not register '
+        'again.',
+      );
+}
+
 /// Anything else.
 final class UnknownException extends AppException {
   const UnknownException([
