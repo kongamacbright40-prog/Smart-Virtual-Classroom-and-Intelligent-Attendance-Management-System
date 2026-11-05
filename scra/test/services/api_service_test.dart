@@ -255,7 +255,7 @@ void main() {
         );
         expect(requests.first.url.path, '/api/v1/auth/login');
         expect(jsonDecode(requests.first.body), {
-          'email': 'a@b.edu',
+          'identifier': 'a@b.edu',
           'password': 'pw123456',
         });
         expect(requests.last.url.path, '/api/v1/auth/me');
@@ -268,12 +268,12 @@ void main() {
       },
     );
 
-    test('login requires an email and the matching role', () async {
-      var calls = 0;
+    test('login accepts a matricule and requires the matching role', () async {
+      final bodies = <Object?>[];
       final repo = ApiAuthRepository(
         service((r) async {
-          calls++;
           if (r.url.path.endsWith('/auth/login')) {
+            bodies.add(jsonDecode(r.body));
             return http.Response(jsonEncode({'access_token': 'jwt'}), 200);
           }
           return http.Response(jsonEncode(profile(role: 'lecturer')), 200);
@@ -283,20 +283,18 @@ void main() {
       await expectLater(
         repo.login(
           role: UserRole.student,
-          identifier: 'ICT2024001',
-          password: 'x',
-        ),
-        throwsA(isA<ValidationException>()),
-      );
-      expect(calls, 0);
-      await expectLater(
-        repo.login(
-          role: UserRole.student,
-          identifier: 'a@b.edu',
+          identifier: ' ictu20233736 ',
           password: 'x',
         ),
         throwsA(isA<ForbiddenException>()),
       );
+      expect(bodies.single, {'identifier': 'ICTU20233736', 'password': 'x'});
+      final session = await repo.login(
+        role: UserRole.lecturer,
+        identifier: 'a@b.edu',
+        password: 'x',
+      );
+      expect(session.role, UserRole.lecturer);
     });
 
     test(

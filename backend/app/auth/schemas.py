@@ -6,18 +6,25 @@ from app.common.emails import Email
 
 from app.auth.models import Role
 from app.common.timeutils import UTCDateTime
+from app.common.validation import (
+    MIN_PASSWORD_LENGTH,
+    FullName,
+    InstitutionalEmail,
+    Matricule,
+    StrongPassword,
+    check_matricule_for_role,
+)
 from app.courses.schemas import DepartmentOut
 
-# Shortest password accepted (the app's AppConstants.minPasswordLength).
-MIN_PASSWORD_LENGTH = 4
+__all__ = ["MIN_PASSWORD_LENGTH"]
 
 
 class ProfileCreate(BaseModel):
-    full_name: str
-    email: Email
+    full_name: FullName
+    email: InstitutionalEmail
     phone_number: Optional[str] = None
-    matricule_number: Optional[str] = None
-    password: str = Field(min_length=MIN_PASSWORD_LENGTH)
+    matricule_number: Matricule = None
+    password: StrongPassword
     role: Role = Role.student
     department_id: Optional[int] = None
     # Required to register as admin once an admin exists (ADMIN_REGISTRATION_CODE).
@@ -27,7 +34,9 @@ class ProfileCreate(BaseModel):
     def matricule_required_for_students_and_lecturers(self):
         if self.role in (Role.student, Role.lecturer) and not self.matricule_number:
             raise ValueError("matricule_number is required for students and lecturers")
+        check_matricule_for_role(self.matricule_number, self.role)
         return self
+
 
 
 class ProfileOut(BaseModel):
@@ -49,13 +58,25 @@ class ProfileOut(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
-    full_name: Optional[str] = Field(default=None, min_length=2)
+    full_name: Optional[FullName] = None
     phone_number: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
-    email: Email
-    password: str
+    """Sign in with an email or a matricule / admin ID (``identifier``).
+    ``email`` is still accepted for older app versions."""
+
+    identifier: Optional[str] = None
+    email: Optional[str] = None
+    password: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _identifier(self):
+        value = (self.identifier or self.email or "").strip()
+        if not value:
+            raise ValueError("Enter your email or matricule")
+        self.identifier = value.lower() if "@" in value else value.upper()
+        return self
 
 
 class TokenPair(BaseModel):
@@ -70,7 +91,7 @@ class RefreshRequest(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
-    new_password: str = Field(min_length=MIN_PASSWORD_LENGTH)
+    new_password: StrongPassword
 
 
 class PasswordResetRequest(BaseModel):
@@ -85,4 +106,4 @@ class PasswordResetVerify(BaseModel):
 class PasswordResetConfirm(BaseModel):
     email: Email
     code: str
-    new_password: str = Field(min_length=MIN_PASSWORD_LENGTH)
+    new_password: StrongPassword

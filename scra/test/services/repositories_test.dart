@@ -286,7 +286,7 @@ void main() {
       final lecturers = await repo.getUsers(role: UserRole.lecturer);
       expect(lecturers.every((u) => u.role == UserRole.lecturer), isTrue);
       expect(
-        (await repo.getUsers(query: 'ICT20251181')).single.id,
+        (await repo.getUsers(query: 'ICTU20251181')).single.id,
         MockDataStore.currentStudentId,
       );
       final created = await repo.createUser(

@@ -53,7 +53,7 @@ void main() {
     await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
     await tester.tap(find.byKey(const Key('login_submit')));
     await tester.pump();
-    expect(find.text('Institutional ID or email is required'), findsOneWidget);
+    expect(find.text('Email or matricule is required'), findsOneWidget);
     expect(find.text('Password is required'), findsOneWidget);
   });
 
@@ -127,10 +127,10 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const Key('setup_name')), 'Alex Rivers');
-    await tester.enterText(find.byKey(const Key('setup_id')), 'MAT-2024-9148');
+    await tester.enterText(find.byKey(const Key('setup_id')), 'ICTU20249148');
     await tester.enterText(
       find.byKey(const Key('setup_email')),
-      'alex.rivers@campus.edu',
+      'alex.rivers@ictuniversity.edu.cm',
     );
     await tester.enterText(
       find.byKey(const Key('setup_password')),
@@ -167,7 +167,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('setup_id')), 'ADM-777');
     await tester.enterText(
       find.byKey(const Key('setup_email')),
-      'new.admin@smartclass.edu',
+      'new.admin@ictuniversity.edu.cm',
     );
     await tester.enterText(
       find.byKey(const Key('setup_admin_code')),

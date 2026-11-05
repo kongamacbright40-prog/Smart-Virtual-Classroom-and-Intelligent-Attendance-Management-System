@@ -14,17 +14,14 @@ class ApiAuthRepository extends ApiRepositoryBase implements AuthRepository {
     required String identifier,
     required String password,
   }) async {
-    final email = identifier.trim();
-    if (!email.contains('@')) {
-      throw const ValidationException(
-        'Sign in with your email address.',
-        fieldErrors: {'identifier': 'Enter your email address.'},
-      );
-    }
+    final value = identifier.trim();
     final tokens = asJson(
       await api.post(
         ApiEndpoints.login,
-        body: {'email': email, 'password': password},
+        body: {
+          'identifier': value.contains('@') ? value : value.toUpperCase(),
+          'password': password,
+        },
         authenticated: false,
       ),
     );
@@ -61,11 +58,11 @@ class ApiAuthRepository extends ApiRepositoryBase implements AuthRepository {
     await api.post(
       ApiEndpoints.register,
       body: {
-        'full_name': fullName.trim(),
+        'full_name': fullName.trim().split(RegExp(r'\s+')).join(' '),
         'email': email.trim(),
         'password': password,
         'role': role.value,
-        'matricule_number': identifier.trim(),
+        'matricule_number': identifier.trim().toUpperCase(),
         if (phoneNumber.isNotEmpty) 'phone_number': phoneNumber,
         if (departmentId != null && departmentId.isNotEmpty)
           'department_id': BackendMappers.id(departmentId),

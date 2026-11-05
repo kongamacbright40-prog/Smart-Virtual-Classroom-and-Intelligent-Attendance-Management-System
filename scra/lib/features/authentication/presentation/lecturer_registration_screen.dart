@@ -43,15 +43,16 @@ class LecturerRegistrationScreen extends StatelessWidget {
                 AccountSetupForm(
                   role: UserRole.lecturer,
                   idLabel: 'Staff / Lecturer ID',
-                  idHint: 'Your staff / lecturer ID',
-                  idHelper: 'Found on your academic employment smartcard or faculty portal.',
+                  idHint: 'e.g. ICTU20183736',
+                  idHelper:
+                      'ICTU + year + 4 digits, as on your staff smartcard.',
                   idValidator: Validators.staffId,
                   idBadge: StatusChip(
                     label: 'FACULTY ID',
                     tone: StatusTone.primary,
                     dense: true,
                   ),
-                  emailHint: 'name@faculty.edu',
+                  emailHint: 'name@ictuniversity.edu.cm',
                   submitLabel: 'Complete Lecturer Setup',
                 ),
                 SizedBox(height: AppDimensions.spaceMd),

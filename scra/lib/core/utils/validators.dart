@@ -9,16 +9,42 @@ abstract final class Validators {
   );
   static final RegExp _phone = RegExp(r'^\+?[0-9]{7,15}$');
   static final RegExp _adminId = RegExp(r'^[A-Z]{3}-\d{3,6}(-[A-Z]{2,5})?$');
+
+  /// Student / lecturer matricule: ICTU + 4-digit year + 4 digits.
+  static final RegExp _matricule = RegExp(r'^ICTU(19|20)\d{6}$');
+
+  /// One name: letters (any alphabet), optionally joined by `-` or `'`.
+  static final RegExp _nameWord = RegExp(
+    r"^\p{L}+(?:['’\-]\p{L}+)*$",
+    unicode: true,
+  );
   static final RegExp _courseCode = RegExp(r'^[A-Z]{2,5}-?\d{3,4}[A-Z]?$');
   static final RegExp _time24h = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
   static final RegExp _upper = RegExp(r'[A-Z]');
+  static final RegExp _lower = RegExp(r'[a-z]');
   static final RegExp _digit = RegExp(r'\d');
-  static final RegExp _special = RegExp(
-    r'[!@#$%^&*(),.?":{}|<>_\-+=~`\[\]\\/;]',
-  );
+  static final RegExp _special = RegExp(r'[^A-Za-z0-9\s]');
 
   static String? required(String? value, {String field = 'This field'}) {
     if (value == null || value.trim().isEmpty) return '$field is required';
+    return null;
+  }
+
+  /// At least two names (first and last), each of 2+ letters. Only letters,
+  /// hyphens and apostrophes are allowed.
+  static String? fullName(String? value) {
+    final v = (value ?? '').trim();
+    if (v.isEmpty) return 'Full name is required';
+    final words = v.split(RegExp(r'\s+'));
+    if (words.length < 2) return 'Enter at least two names (first and last)';
+    for (final w in words) {
+      if (!_nameWord.hasMatch(w)) {
+        return 'Names may only contain letters, hyphens and apostrophes';
+      }
+      if (w.replaceAll(RegExp(r"['’\-]"), '').length < 2) {
+        return 'Each name must have at least 2 letters';
+      }
+    }
     return null;
   }
 
@@ -29,36 +55,57 @@ abstract final class Validators {
     return null;
   }
 
-  /// Email that must belong to one of the institution's [domains].
-  static String? institutionalEmail(String? value, List<String> domains) {
+  /// Email that must belong to one of the institution's [domains]
+  /// (defaults to [AppConstants.institutionEmailDomains]).
+  static String? institutionalEmail(
+    String? value, [
+    List<String> domains = AppConstants.institutionEmailDomains,
+  ]) {
     final base = email(value);
     if (base != null) return base;
-    final v = value!.trim().toLowerCase();
-    final ok = domains.any((d) => v.endsWith(d.toLowerCase()));
-    return ok ? null : 'Use your institutional email (${domains.join(' or ')})';
+    final host = value!.trim().toLowerCase().split('@').last;
+    final allowed = domains.map((d) => d.toLowerCase().replaceFirst('@', ''));
+    if (allowed.contains(host)) return null;
+    return 'Use your institutional email '
+        '(${allowed.map((d) => 'name@$d').join(' or ')})';
   }
 
-  /// Accepts either an institutional email or an institutional ID.
+  /// Sign-in identifier: an email or an ICTU matricule.
   static String? identifier(String? value) {
     final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Institutional ID or email is required';
+    if (v.isEmpty) return 'Email or matricule is required';
     if (v.contains('@')) return email(v);
-    if (v.length < 4) return 'Enter a valid institutional ID';
-    return null;
-  }
-
-  static String? password(String? value) {
-    final v = value ?? '';
-    if (v.isEmpty) return 'Password is required';
-    if (v.length < AppConstants.minPasswordLength) {
-      return 'Password must be at least ${AppConstants.minPasswordLength} characters';
+    if (!_matricule.hasMatch(v.toUpperCase())) {
+      return 'Enter your email or a matricule like '
+          '${AppConstants.matriculeExample}';
     }
     return null;
   }
 
-  /// Password used when creating credentials. Only the minimum length is
-  /// enforced; the strength meter suggests (but does not require) more.
-  static String? newPassword(String? value) => password(value);
+  /// Password typed to sign in (or as the current password): only required,
+  /// so accounts created under older, shorter rules can still sign in.
+  static String? password(String? value) {
+    if (value == null || value.isEmpty) return 'Password is required';
+    return null;
+  }
+
+  /// Password used when creating credentials: at least
+  /// [AppConstants.minPasswordLength] characters with an uppercase letter, a
+  /// lowercase letter, a digit and a special character.
+  static String? newPassword(String? value) {
+    final v = value ?? '';
+    if (v.isEmpty) return 'Password is required';
+    final missing = [
+      if (v.length < AppConstants.minPasswordLength)
+        '${AppConstants.minPasswordLength}+ characters',
+      if (!_upper.hasMatch(v)) 'an uppercase letter',
+      if (!_lower.hasMatch(v)) 'a lowercase letter',
+      if (!_digit.hasMatch(v)) 'a number',
+      if (!_special.hasMatch(v)) 'a special character',
+    ];
+    if (missing.isEmpty) return null;
+    return 'Password needs ${missing.join(', ')}';
+  }
 
   static String? confirmPassword(String? value, String original) {
     if (value == null || value.isEmpty) return 'Please confirm your password';
@@ -73,17 +120,21 @@ abstract final class Validators {
     return null;
   }
 
-  /// Any non-empty matricule (short ones such as `LEC002` included).
-  static String? studentId(String? value) {
-    final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Student matricule is required';
-    return null;
-  }
+  /// Student matricule: ICTU + 4-digit year + 4 digits (e.g. ICTU20233736).
+  static String? studentId(String? value) =>
+      _matriculeOf(value, field: 'Student matricule');
 
-  /// Any non-empty staff / lecturer matricule.
-  static String? staffId(String? value) {
-    final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Staff ID is required';
+  /// Lecturer staff ID: same format as student matricules.
+  static String? staffId(String? value) =>
+      _matriculeOf(value, field: 'Staff ID');
+
+  static String? _matriculeOf(String? value, {required String field}) {
+    final v = value?.trim().toUpperCase() ?? '';
+    if (v.isEmpty) return '$field is required';
+    if (!_matricule.hasMatch(v)) {
+      return '$field must look like ${AppConstants.matriculeExample} '
+          '(ICTU + year + 4 digits)';
+    }
     return null;
   }
 
@@ -185,10 +236,12 @@ abstract final class Validators {
   }
 
   /// Returns the rules satisfied by [password], used by strength meters.
+  /// All of them are required for a new password ([newPassword]).
   static PasswordStrength passwordStrength(String password) {
     return PasswordStrength(
-      hasMinLength: password.length >= AppConstants.recommendedPasswordLength,
+      hasMinLength: password.length >= AppConstants.minPasswordLength,
       hasUppercase: _upper.hasMatch(password),
+      hasLowercase: _lower.hasMatch(password),
       hasDigit: _digit.hasMatch(password),
       hasSpecial: _special.hasMatch(password),
     );
@@ -199,22 +252,33 @@ class PasswordStrength {
   const PasswordStrength({
     required this.hasMinLength,
     required this.hasUppercase,
+    required this.hasLowercase,
     required this.hasDigit,
     required this.hasSpecial,
   });
 
+  static const int total = 5;
+
   final bool hasMinLength;
   final bool hasUppercase;
+  final bool hasLowercase;
   final bool hasDigit;
   final bool hasSpecial;
 
-  int get score =>
-      [hasMinLength, hasUppercase, hasDigit, hasSpecial].where((r) => r).length;
+  int get score => [
+    hasMinLength,
+    hasUppercase,
+    hasLowercase,
+    hasDigit,
+    hasSpecial,
+  ].where((r) => r).length;
+
+  /// Whether every required rule is met.
+  bool get isValid => score == total;
 
   String get label => switch (score) {
-    0 || 1 => 'Weak',
-    2 => 'Fair',
-    3 => 'Strong',
-    _ => 'Very Strong',
+    0 || 1 || 2 => 'Weak',
+    3 || 4 => 'Fair',
+    _ => 'Strong',
   };
 }

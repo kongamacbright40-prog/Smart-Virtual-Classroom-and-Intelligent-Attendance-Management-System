@@ -26,7 +26,7 @@ def create_profile(db: Session, payload: ProfileCreate) -> Profile:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     if payload.matricule_number:
-        if db.query(Profile).filter(Profile.matricule_number == payload.matricule_number).first():
+        if db.query(Profile).filter(func.upper(Profile.matricule_number) == payload.matricule_number).first():
             raise HTTPException(status_code=400, detail="Matricule number already registered")
 
     if payload.department_id is not None:
@@ -56,12 +56,12 @@ def activate_profile(db: Session, user: Profile, payload: ProfileCreate) -> Prof
             detail=f"This email belongs to a {user.role.value} account",
         )
     if payload.matricule_number:
-        if user.matricule_number and user.matricule_number != payload.matricule_number:
+        if user.matricule_number and user.matricule_number.upper() != payload.matricule_number:
             raise HTTPException(status_code=400, detail="The ID does not match this account")
         if not user.matricule_number:
             taken = (
                 db.query(Profile)
-                .filter(Profile.matricule_number == payload.matricule_number, Profile.id != user.id)
+                .filter(func.upper(Profile.matricule_number) == payload.matricule_number, Profile.id != user.id)
                 .first()
             )
             if taken:

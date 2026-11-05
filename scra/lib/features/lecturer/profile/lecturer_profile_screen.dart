@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../core/utils/input_formatters.dart';
 import '../../../core/utils/validators.dart';
 import '../../../models/models.dart';
 import '../../../providers/settings_provider.dart';
@@ -97,7 +98,8 @@ class LecturerProfileScreen extends StatelessWidget {
               AppTextField(
                 controller: name,
                 label: 'Full Name',
-                validator: (v) => Validators.required(v, field: 'Full name'),
+                inputFormatters: AppInputFormatters.fullName,
+                validator: Validators.fullName,
               ),
               const SizedBox(height: AppDimensions.spaceMd),
               AppTextField(

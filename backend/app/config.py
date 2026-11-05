@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     cors_origins: str = ""
     # Also allow http://localhost:* / 127.0.0.1:* (local web development).
     cors_allow_localhost: bool = True
+    # Email domains accepted for new accounts, comma separated. Empty = any.
+    allowed_email_domains: str = "ictuniversity.edu.cm"
 
     # --- WebRTC network relay (TURN) for live classes -----------------------
     # Without a TURN server, audio/video only connects when both sides can

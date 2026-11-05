@@ -20,24 +20,53 @@ void main() {
         Validators.institutionalEmail('a@campus.edu', ['@campus.edu']),
         isNull,
       );
+      // Defaults to the ICT University domain.
+      expect(
+        Validators.institutionalEmail(' Ngono.Marie@ICTUniversity.edu.cm '),
+        isNull,
+      );
+      expect(Validators.institutionalEmail('a@ictuniversity.com'), isNotNull);
+      expect(
+        Validators.institutionalEmail('a@sub.ictuniversity.edu.cm'),
+        isNotNull,
+      );
     });
 
-    test('identifier accepts ids and emails', () {
+    test('full name needs two names of letters only', () {
+      expect(Validators.fullName(''), 'Full name is required');
+      expect(Validators.fullName('Ngono'), isNotNull);
+      expect(Validators.fullName('Ngono M'), isNotNull);
+      expect(Validators.fullName('Ngono 2'), isNotNull);
+      expect(Validators.fullName('Ngono M@rie'), isNotNull);
+      expect(Validators.fullName('Ngono Marie.'), isNotNull);
+      expect(Validators.fullName('Ngono Marie'), isNull);
+      expect(Validators.fullName('  Konga   Mac-Bright '), isNull);
+      expect(Validators.fullName("Chloé O'Neil Éboué"), isNull);
+      expect(Validators.fullName('Jean -Paul'), isNotNull);
+    });
+
+    test('identifier accepts emails and ICTU matricules', () {
       expect(Validators.identifier(''), isNotNull);
       expect(Validators.identifier('abc'), isNotNull);
-      expect(Validators.identifier('ICT20251181'), isNull);
+      expect(Validators.identifier('ICT20251181'), isNotNull);
+      expect(Validators.identifier('ICTU20251181'), isNull);
+      expect(Validators.identifier('ictu20251181'), isNull);
       expect(Validators.identifier('x@y.edu'), isNull);
       expect(Validators.identifier('x@'), isNotNull);
     });
 
     test('password and new password rules', () {
+      // Signing in only needs a password, so older accounts keep working.
       expect(Validators.password(''), isNotNull);
-      expect(Validators.password('abc'), isNotNull);
-      expect(Validators.password('abcd'), isNull);
-      // Only the minimum length is enforced for new passwords.
-      expect(Validators.newPassword('abc'), isNotNull);
-      expect(Validators.newPassword('abcd'), isNull);
-      expect(Validators.newPassword('alllowercase'), isNull);
+      expect(Validators.password('abc'), isNull);
+      // New passwords: 8+ chars with upper, lower, digit and special.
+      expect(Validators.newPassword(''), isNotNull);
+      expect(Validators.newPassword('Ab1!'), isNotNull);
+      expect(Validators.newPassword('alllowercase1!'), isNotNull);
+      expect(Validators.newPassword('ALLUPPERCASE1!'), isNotNull);
+      expect(Validators.newPassword('NoDigits!!'), isNotNull);
+      expect(Validators.newPassword('NoSpecial123'), isNotNull);
+      expect(Validators.newPassword('Secure123!'), isNull);
       expect(Validators.confirmPassword('a', 'b'), isNotNull);
       expect(Validators.confirmPassword('Secure123', 'Secure123'), isNull);
     });
@@ -45,9 +74,11 @@ void main() {
     test('password strength scoring', () {
       expect(Validators.passwordStrength('').score, 0);
       final strong = Validators.passwordStrength('Secure123!');
-      expect(strong.score, 4);
-      expect(strong.label, 'Very Strong');
-      expect(Validators.passwordStrength('Secure123').label, 'Strong');
+      expect(strong.score, PasswordStrength.total);
+      expect(strong.isValid, isTrue);
+      expect(strong.label, 'Strong');
+      expect(Validators.passwordStrength('Secure123').label, 'Fair');
+      expect(Validators.passwordStrength('abc').label, 'Weak');
     });
 
     test('phone', () {
@@ -58,12 +89,18 @@ void main() {
     });
 
     test('institutional IDs', () {
-      expect(Validators.studentId('MAT-2024-9148'), isNull);
-      expect(Validators.studentId('ict20251181'), isNull);
-      expect(Validators.studentId('123'), isNull);
-      expect(Validators.studentId('  '), isNotNull);
-      expect(Validators.staffId('FAC-2018-042'), isNull);
-      expect(Validators.staffId('LEC002'), isNull);
+      expect(Validators.studentId('ICTU20249148'), isNull);
+      expect(Validators.studentId('ictu20251181'), isNull);
+      expect(Validators.studentId(' ICTU20233736 '), isNull);
+      expect(Validators.studentId('123'), isNotNull);
+      expect(Validators.studentId('ICTU2023373'), isNotNull);
+      expect(Validators.studentId('ICTU202337361'), isNotNull);
+      expect(Validators.studentId('ICTU30233736'), isNotNull);
+      expect(Validators.studentId('ICT-1'), isNotNull);
+      expect(Validators.studentId('  '), 'Student matricule is required');
+      expect(Validators.staffId('ICTU20183736'), isNull);
+      expect(Validators.staffId('FAC-2018-042'), isNotNull);
+      expect(Validators.staffId('LEC002'), isNotNull);
       expect(Validators.staffId(''), isNotNull);
       expect(Validators.adminId('ADM-001'), isNull);
       expect(Validators.adminId('ADM-9021-SYS'), isNull);

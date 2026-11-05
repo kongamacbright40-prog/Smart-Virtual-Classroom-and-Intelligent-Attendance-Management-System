@@ -45,11 +45,12 @@ class StudentActivationScreen extends StatelessWidget {
                 AccountSetupForm(
                   role: UserRole.student,
                   idLabel: 'Student Matricule',
-                  idHint: 'Your student matricule',
-                  idHelper: 'Found on your student smartcard or formal admission letter',
+                  idHint: 'e.g. ICTU20233736',
+                  idHelper:
+                      'ICTU + year + 4 digits, as on your student smartcard',
                   idValidator: Validators.studentId,
                   idSuffixLabel: 'SIS ID',
-                  emailHint: 'name@campus.edu',
+                  emailHint: 'name@ictuniversity.edu.cm',
                   submitLabel: 'Create Student Account',
                   acknowledgement: 'I acknowledge institutional terms of academic integrity, identity verification protocols, and automatic biometric attendance logging.',
                 ),

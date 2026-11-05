@@ -88,8 +88,8 @@ class AdminLoginScreen extends StatelessWidget {
                         children: [
                           LoginForm(
                             showRequired: true,
-                            identifierLabel: 'Administrator email',
-                            identifierHint: 'Your registered email address',
+                            identifierLabel: 'Administrator email / ID',
+                            identifierHint: 'Your email or admin ID (ADM-001)',
                             identifierValidator: (v) => (v ?? '').contains('@')
                                 ? Validators.email(v)
                                 : Validators.adminId(v),

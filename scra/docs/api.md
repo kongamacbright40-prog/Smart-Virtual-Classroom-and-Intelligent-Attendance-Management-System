@@ -37,12 +37,25 @@ routers in `smart-classroom-api/app/*/router.py` (interactive docs at
 
 | Method | Path | Body / notes |
 | --- | --- | --- |
-| POST | `/auth/register` | `{full_name, email, password, role, matricule_number, phone_number?, department_id?, admin_code?}`. `admin_code` (= backend `ADMIN_REGISTRATION_CODE`) is required for `role: admin` once an admin exists. Also **activates** an account an admin created without a password (same email + role; no code needed). |
-| POST | `/auth/login` | `{email, password}` → `{access_token, refresh_token}`; the app then loads `/auth/me` and checks the role matches the portal |
+| POST | `/auth/register` | `{full_name, email, password, role, matricule_number, phone_number?, department_id?, admin_code?}`. `admin_code` (= backend `ADMIN_REGISTRATION_CODE`) is required for `role: admin` once an admin exists. Also **activates** an account an admin created without a password (same email + role; no code needed). Input rules below. |
+| POST | `/auth/login` | `{identifier, password}` — `identifier` is the email **or** the matricule / admin ID (case-insensitive; older clients may still send `email`) → `{access_token, refresh_token}`; the app then loads `/auth/me` and checks the role matches the portal |
 | GET / PATCH | `/auth/me` | Profile (`department`, `is_active`, `created_at`, `last_login_at`); PATCH `{full_name?, phone_number?}` |
 | POST | `/auth/refresh` | `{refresh_token}` |
 | POST | `/auth/change-password` | `{current_password, new_password}` |
 | POST | `/auth/password-reset/request` · `/verify` · `/confirm` | `{email}` · `{email, code}` · `{email, code, new_password}`. The 4-digit code is printed in the **backend console** (no e-mail service yet). |
+
+**Input rules** (422 when broken; mirrored by the app's `Validators`):
+
+- `full_name`: at least two names of 2+ letters each; letters (any alphabet),
+  hyphens and apostrophes only; extra spaces are collapsed.
+- `email` (new accounts, admin-created users, changed emails): must use an
+  allowed domain — backend `ALLOWED_EMAIL_DOMAINS`, default
+  `ictuniversity.edu.cm`.
+- `matricule_number`: students and lecturers `ICTU` + 4-digit year + 4 digits
+  (e.g. `ICTU20233736`, stored upper-case); admins `ADM-001` style.
+- `password` / `new_password`: 8+ characters with an uppercase letter, a
+  lowercase letter, a digit and a special character. Signing in only needs
+  the password (older accounts keep working).
 
 ## Catalogue
 
@@ -170,6 +183,7 @@ Students may connect once the class has started and only for their courses.
 | client → server | `{type: offer \| answer \| ice_candidate, target_peer_id: <int>, payload}` |
 | server → client | same message plus `from_peer_id` |
 | server → client | `room_state {peers}`, `peer_joined {peer_id, full_name, role}`, `peer_left {peer_id}`, `session_ended`, `error {detail}` |
+| client → server → same client | `{type: ping}` → `{type: pong}`: heartbeat every 20 s. The app reconnects (fresh token, backoff) when the socket drops or pongs stop; after reconnecting the others receive `peer_joined` and send fresh offers. Close codes 1000/1008 are final (no reconnect). |
 | lecturer → server → others | `{type: board, op: show \| hide \| clear \| undo}`, `{type: board, op: begin, id, color (ARGB int), width, points}`, `{type: board, op: extend, id, points}`; points are `[[x, y], ...]` and width a fraction of the board size (0..1). Messages from students are ignored |
 | server → client (on join) | `board_state {active, strokes}`: the current whiteboard, so late joiners see it |
 

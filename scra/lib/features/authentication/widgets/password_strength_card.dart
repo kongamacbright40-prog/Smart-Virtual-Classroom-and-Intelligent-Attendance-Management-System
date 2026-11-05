@@ -29,25 +29,28 @@ class PasswordStrengthCard extends StatelessWidget {
     final strength = Validators.passwordStrength(password);
     final rules = [
       (
-        '${AppConstants.recommendedPasswordLength}+ characters',
+        'At least ${AppConstants.minPasswordLength} characters',
         strength.hasMinLength,
       ),
       ('An uppercase letter (A–Z)', strength.hasUppercase),
+      ('A lowercase letter (a–z)', strength.hasLowercase),
       ('A number (0–9)', strength.hasDigit),
       (r'A special symbol (!@#$%^&*)', strength.hasSpecial),
     ];
     final color = switch (strength.score) {
-      0 || 1 => AppColors.error,
-      2 => AppColors.warning,
+      0 || 1 || 2 => AppColors.error,
+      3 || 4 => AppColors.warning,
       _ => theme.colorScheme.secondary,
     };
 
     if (compact) {
       final chips = [
         (
-          '${AppConstants.recommendedPasswordLength}+ characters',
+          '${AppConstants.minPasswordLength}+ characters',
           strength.hasMinLength,
         ),
+        ('A–Z', strength.hasUppercase),
+        ('a–z', strength.hasLowercase),
         ('1 number', strength.hasDigit),
         ('1 special char', strength.hasSpecial),
       ];
@@ -148,15 +151,21 @@ class PasswordStrengthCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              Text('${strength.score}/4', style: theme.textTheme.labelMedium),
+              Text(
+                '${strength.score}/${PasswordStrength.total}',
+                style: theme.textTheme.labelMedium,
+              ),
             ],
           ),
           const SizedBox(height: AppDimensions.spaceSm),
-          SegmentedProgress(total: 4, filled: strength.score, color: color),
+          SegmentedProgress(
+            total: PasswordStrength.total,
+            filled: strength.score,
+            color: color,
+          ),
           const SizedBox(height: AppDimensions.spaceSm),
           Text(
-            'Only ${AppConstants.minPasswordLength} characters are required. '
-            'These make your password stronger:',
+            'Your password must have all of the following:',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

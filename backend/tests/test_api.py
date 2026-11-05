@@ -10,8 +10,8 @@ def test_profile_update_and_password_change(client, world):
     assert me["department"]["name"] == "Computer Science"
     assert me["created_at"].endswith("Z")
 
-    r = client.patch("/auth/me", json={"full_name": "Amina B. Bello", "phone_number": "+237600"}, headers=student)
-    assert r.status_code == 200 and r.json()["full_name"] == "Amina B. Bello"
+    r = client.patch("/auth/me", json={"full_name": "Amina Binta Bello", "phone_number": "+237600"}, headers=student)
+    assert r.status_code == 200 and r.json()["full_name"] == "Amina Binta Bello"
 
     bad = client.post("/auth/change-password", json={"current_password": "nope", "new_password": "NewPass123!"}, headers=student)
     assert bad.status_code == 400
@@ -99,13 +99,79 @@ def test_admin_registration_requires_the_code_once_an_admin_exists(client, world
     auth(client, "admin3@uni.edu")
 
 
-def test_short_matricule_and_short_password_are_accepted(client, world):
-    body = {"full_name": "Short Id", "email": "short.id@uni.edu", "role": "lecturer", "matricule_number": "L2"}
-    assert client.post("/auth/register", json={**body, "password": "abc"}).status_code == 422
-    r = client.post("/auth/register", json={**body, "password": "abcd"})
+def test_registration_enforces_name_email_matricule_and_password_rules(client, world):
+    body = {
+        "full_name": "Ngono Marie-Claire",
+        "email": "ngono.marie@uni.edu",
+        "role": "student",
+        "matricule_number": "ictu20233736",
+        "password": PASSWORD,
+    }
+    bad = [
+        {"full_name": "Ngono"},  # one name
+        {"full_name": "Ngono M"},  # 1-letter name
+        {"full_name": "Ngono 123"},  # digits
+        {"full_name": "Ngono M@rie"},  # symbols
+        {"email": "ngono@gmail.com"},  # not institutional
+        {"email": "not-an-email"},
+        {"matricule_number": "ICT-1"},
+        {"matricule_number": "ICTU2023373"},  # 7 digits
+        {"matricule_number": "ICTU30233736"},  # bad year
+        {"password": "abcd"},
+        {"password": "password123!"},  # no uppercase
+        {"password": "PASSWORD123!"},  # no lowercase
+        {"password": "Password!!"},  # no digit
+        {"password": "Password123"},  # no special
+        {"password": "Pa1!"},  # too short
+    ]
+    for override in bad:
+        r = client.post("/auth/register", json={**body, **override})
+        assert r.status_code == 422, (override, r.text)
+
+    r = client.post("/auth/register", json={**body, "full_name": "  Ngono   Marie-Claire  "})
     assert r.status_code == 201, r.text
-    assert r.json()["matricule_number"] == "L2"
-    auth(client, "short.id@uni.edu", "abcd")
+    assert r.json()["full_name"] == "Ngono Marie-Claire"
+    assert r.json()["matricule_number"] == "ICTU20233736"
+
+    # Admin IDs keep the ADM-001 style; lecturers use the ICTU format.
+    lecturer = {**body, "email": "fac.x@uni.edu", "role": "lecturer", "matricule_number": "LEC002"}
+    assert client.post("/auth/register", json=lecturer).status_code == 422
+
+
+def test_login_with_email_or_matricule(client, world):
+    for identifier in ("student@uni.edu", "ICTU20230001", "ictu20230001"):
+        r = client.post("/auth/login", json={"identifier": identifier, "password": PASSWORD})
+        assert r.status_code == 200, (identifier, r.text)
+    # Older app versions still send "email".
+    assert client.post("/auth/login", json={"email": "student@uni.edu", "password": PASSWORD}).status_code == 200
+    assert client.post("/auth/login", json={"identifier": "ICTU20230001", "password": "wrong"}).status_code == 401
+    assert client.post("/auth/login", json={"identifier": " ", "password": PASSWORD}).status_code == 422
+
+
+def test_admin_user_rules(client, world):
+    admin = world["admin"]
+    bad = client.post(
+        "/admin/users",
+        json={"full_name": "Solo", "email": "solo@uni.edu", "role": "student"},
+        headers=admin,
+    )
+    assert bad.status_code == 422
+    weak = client.post(
+        "/admin/users",
+        json={"full_name": "Weak Pass", "email": "weak@uni.edu", "role": "lecturer", "password": "abcd"},
+        headers=admin,
+    )
+    assert weak.status_code == 422
+    r = client.post(
+        "/admin/users",
+        json={"full_name": "Rule Check", "email": "rule.check@uni.edu", "role": "lecturer", "password": PASSWORD},
+        headers=admin,
+    )
+    assert r.status_code == 201, r.text
+    uid = r.json()["id"]
+    assert client.patch(f"/admin/users/{uid}", json={"matricule_number": "FAC-1"}, headers=admin).status_code == 422
+    ok = client.patch(f"/admin/users/{uid}", json={"matricule_number": "ICTU20190042"}, headers=admin)
+    assert ok.status_code == 200 and ok.json()["matricule_number"] == "ICTU20190042"
 
 
 def test_login_upgrades_slow_password_hashes(client, world):
@@ -117,7 +183,7 @@ def test_login_upgrades_slow_password_hashes(client, world):
 
     client.post(
         "/auth/register",
-        json={"full_name": "Old Hash", "email": "old.hash@uni.edu", "password": PASSWORD, "role": "lecturer", "matricule_number": "OLD-1"},
+        json={"full_name": "Old Hash", "email": "old.hash@uni.edu", "password": PASSWORD, "role": "lecturer", "matricule_number": "ICTU20180002"},
     )
     with SessionLocal() as db:
         user = db.query(Profile).filter(Profile.email == "old.hash@uni.edu").one()
@@ -136,7 +202,7 @@ def test_email_is_case_and_space_insensitive(client, world, capsys):
     # Registering the same address with different capitals is a duplicate.
     dup = client.post(
         "/auth/register",
-        json={"full_name": "Dup", "email": "STUDENT@uni.edu", "password": PASSWORD, "role": "student", "matricule_number": "DUP-1"},
+        json={"full_name": "Dup User", "email": "STUDENT@uni.edu", "password": PASSWORD, "role": "student", "matricule_number": "ICTU20230099"},
     )
     assert dup.status_code == 400
     assert client.post("/auth/password-reset/request", json={"email": "Student@Uni.edu"}).status_code == 204
@@ -174,18 +240,18 @@ def test_admin_created_account_is_activated_by_owner(client, world):
     activated = client.post(
         "/auth/register",
         json={
-            "full_name": "Chidi",
+            "full_name": "Chidi Junior",
             "email": "chidi@uni.edu",
             "password": PASSWORD,
             "role": "student",
-            "matricule_number": "ICT-2",
+            "matricule_number": "ICTU20230002",
         },
     )
     assert activated.status_code == 201, activated.text
     body = activated.json()
     assert body["pending_activation"] is False
     assert body["full_name"] == "Chidi Okafor"  # admin-provided name is kept
-    assert body["matricule_number"] == "ICT-2"
+    assert body["matricule_number"] == "ICTU20230002"
     auth(client, "chidi@uni.edu")
 
 
@@ -193,7 +259,7 @@ def test_admin_user_management(client, world):
     admin = world["admin"]
     created = client.post(
         "/admin/users",
-        json={"full_name": "Temp User", "email": "temp@uni.edu", "role": "lecturer", "password": PASSWORD, "matricule_number": "FAC-9"},
+        json={"full_name": "Temp User", "email": "temp@uni.edu", "role": "lecturer", "password": PASSWORD, "matricule_number": "ICTU20180009"},
         headers=admin,
     ).json()
     uid = created["id"]
@@ -231,12 +297,12 @@ def test_course_management_and_enrollment(client, world):
     assert patched["description"] == "Trees and graphs" and patched["credits"] == 4
 
     roster = client.get(f"/courses/{course_id}/roster", headers=lecturer).json()
-    assert {s["full_name"] for s in roster} >= {"Amina B. Bello"}
+    assert {s["full_name"] for s in roster} >= {"Amina Binta Bello"}
 
     # Explicit enrolment for a student from another department.
     other = client.post(
         "/admin/users",
-        json={"full_name": "Visiting Student", "email": "visit@uni.edu", "role": "student", "password": PASSWORD, "matricule_number": "VIS-1"},
+        json={"full_name": "Visiting Student", "email": "visit@uni.edu", "role": "student", "password": PASSWORD, "matricule_number": "ICTU20230003"},
         headers=admin,
     ).json()
     assert client.get("/courses/mine", headers=auth(client, "visit@uni.edu")).json()["total"] == 0
@@ -297,17 +363,20 @@ def test_schedule_start_participate_and_report(client, world):
         with client.websocket_connect(f"/ws/signal/{sid}?token={student_token}") as sws:
             assert sws.receive_json()["type"] == "room_state"
             assert lws.receive_json()["type"] == "peer_joined"
+            # Heartbeat: the server answers pings (only to the sender).
+            sws.send_json({"type": "ping"})
+            assert sws.receive_json() == {"type": "pong"}
 
             participants = client.get(f"/classes/{sid}/participants", headers=lecturer).json()
-            assert {p["name"] for p in participants} == {"Kofi Mensah", "Amina B. Bello"}
+            assert {p["name"] for p in participants} == {"Kofi Mensah", "Amina Binta Bello"}
 
             hands = client.put(f"/classes/{sid}/hand", json={"raised": True}, headers=student).json()
-            assert [p["is_hand_raised"] for p in hands if p["name"] == "Amina B. Bello"] == [True]
+            assert [p["is_hand_raised"] for p in hands if p["name"] == "Amina Binta Bello"] == [True]
 
             msg = client.post(f"/classes/{sid}/messages", json={"message": "Hello!", "is_question": True}, headers=student)
             assert msg.status_code == 201
             messages = client.get(f"/classes/{sid}/messages", headers=lecturer).json()
-            assert messages[0]["sender_name"] == "Amina B. Bello" and messages[0]["is_question"] is True
+            assert messages[0]["sender_name"] == "Amina Binta Bello" and messages[0]["is_question"] is True
             assert client.get(f"/classes/{sid}/messages", params={"after_id": messages[0]["id"]}, headers=lecturer).json() == []
 
             question = client.post(
@@ -344,7 +413,7 @@ def test_schedule_start_participate_and_report(client, world):
     assert mine[0]["session"]["course"]["code"] == "CS-301"
 
     summary = client.get(f"/attendance/courses/{course_id}/summary", headers=lecturer).json()
-    amina = next(s for s in summary if s["profile"]["full_name"] == "Amina B. Bello")
+    amina = next(s for s in summary if s["profile"]["full_name"] == "Amina Binta Bello")
     assert (amina["total_sessions"], amina["present_count"], amina["absent_count"]) == (1, 1, 0)
 
     appeal = client.post(f"/attendance/sessions/{sid}/appeals", json={"reason": "Network dropped"}, headers=student)
@@ -375,12 +444,12 @@ def test_schedule_start_participate_and_report(client, world):
     headers = [c.value for c in details[3]]
     assert headers[5] == "Joined (UTC+01:00)" and headers[6] == "Left (UTC+01:00)"
     rows = [[c.value for c in row] for row in details.iter_rows(min_row=4)]
-    student_row = next(r for r in rows if r[2] == "Amina B. Bello")
+    student_row = next(r for r in rows if r[2] == "Amina Binta Bello")
     assert re.fullmatch(r"\d\d:\d\d:\d\d", student_row[5]) and re.fullmatch(r"\d\d:\d\d:\d\d", student_row[6])
     summary_headers = [c.value for c in workbook["Summary"][3]]
     assert summary_headers == ["Matricule", "Full name", "Role", "Attendance", "Total minutes"]
     csv = client.get("/reports/attendance.csv", params={"session_id": sid}, headers=lecturer)
-    assert csv.status_code == 200 and "Amina B. Bello" in csv.content.decode("utf-8-sig")
+    assert csv.status_code == 200 and "Amina Binta Bello" in csv.content.decode("utf-8-sig")
     course_csv = client.get("/reports/attendance.csv", params={"course_id": course_id}, headers=lecturer).content.decode("utf-8-sig")
     assert "Class details" in course_csv and "Joined (UTC+00:00)" in course_csv
 
@@ -391,7 +460,7 @@ def test_schedule_start_participate_and_report(client, world):
     )
     assert excused.status_code == 200, excused.text
     summary = client.get(f"/attendance/courses/{course_id}/summary", headers=lecturer).json()
-    amina = next(s for s in summary if s["profile"]["full_name"] == "Amina B. Bello")
+    amina = next(s for s in summary if s["profile"]["full_name"] == "Amina Binta Bello")
     assert (amina["present_count"], amina["excused_count"], amina["absent_count"]) == (0, 1, 0)
 
 
@@ -474,7 +543,7 @@ def test_registration_departments_and_student_self_enrollment(client, world):
 
     reg = client.post(
         "/auth/register",
-        json={"full_name": "Dept Student", "email": "dept.student@uni.edu", "password": PASSWORD, "role": "student", "matricule_number": "DS-1", "department_id": other_dept["id"]},
+        json={"full_name": "Dept Student", "email": "dept.student@uni.edu", "password": PASSWORD, "role": "student", "matricule_number": "ICTU20230004", "department_id": other_dept["id"]},
     )
     assert reg.status_code == 201 and reg.json()["department"]["id"] == other_dept["id"]
 

@@ -6,6 +6,7 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/errors/error_handler.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/routing/route_names.dart';
+import '../../../core/utils/input_formatters.dart';
 import '../../../core/utils/validators.dart';
 import '../../../models/department_model.dart';
 import '../../../models/user_model.dart';
@@ -203,7 +204,7 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
 
   String? get _emailDomain {
     final v = _email.text.trim();
-    if (Validators.email(v) != null) return null;
+    if (Validators.institutionalEmail(v) != null) return null;
     return '@${v.split('@').last}';
   }
 
@@ -229,7 +230,9 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
             textCapitalization: TextCapitalization.words,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.name],
-            validator: (v) => Validators.required(v, field: 'Full name'),
+            inputFormatters: AppInputFormatters.fullName,
+            helper: 'First and last name, letters only',
+            validator: Validators.fullName,
           ),
           const SizedBox(height: AppDimensions.spaceMd),
           AppTextField(
@@ -262,6 +265,9 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
                     ),
                   ),
             helper: widget.idHelper,
+            inputFormatters: _isAdmin
+                ? AppInputFormatters.adminId
+                : AppInputFormatters.matricule,
             validator: widget.idValidator,
           ),
           const SizedBox(height: AppDimensions.spaceMd),
@@ -275,6 +281,7 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.email],
+            inputFormatters: AppInputFormatters.email,
             suffix: domain == null
                 ? null
                 : Container(
@@ -311,7 +318,7 @@ class _AccountSetupFormState extends State<AccountSetupForm> {
                       ],
                     ),
                   ),
-            validator: Validators.email,
+            validator: Validators.institutionalEmail,
           ),
           const SizedBox(height: AppDimensions.spaceMd),
           AppTextField(

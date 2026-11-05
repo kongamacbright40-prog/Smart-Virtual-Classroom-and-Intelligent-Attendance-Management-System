@@ -1,12 +1,17 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, model_validator
 
 from app.common.emails import Email
-
 from app.auth.models import Role
-from app.auth.schemas import MIN_PASSWORD_LENGTH
 from app.common.timeutils import UTCDateTime
+from app.common.validation import (
+    FullName,
+    InstitutionalEmail,
+    Matricule,
+    StrongPassword,
+    check_matricule_for_role,
+)
 from app.courses.schemas import DepartmentOut
 
 
@@ -31,20 +36,28 @@ class AdminUserCreate(BaseModel):
     """Without a password the account is created pending activation: the
     owner sets a password via student activation / lecturer registration."""
 
-    full_name: str = Field(min_length=2)
-    email: Email
+    full_name: FullName
+    email: InstitutionalEmail
     role: Role = Role.student
     phone_number: Optional[str] = None
-    matricule_number: Optional[str] = None
+    matricule_number: Matricule = None
     department_id: Optional[int] = None
-    password: Optional[str] = Field(default=None, min_length=MIN_PASSWORD_LENGTH)
+    password: Optional[StrongPassword] = None
+
+    @model_validator(mode="after")
+    def _matricule_format(self):
+        check_matricule_for_role(self.matricule_number, self.role)
+        return self
 
 
 class AdminUserUpdate(BaseModel):
-    full_name: Optional[str] = Field(default=None, min_length=2)
+    """The matricule format depends on the user's role and the email domain is
+    only enforced when the email changes; the router checks both."""
+
+    full_name: Optional[FullName] = None
     email: Optional[Email] = None
     phone_number: Optional[str] = None
-    matricule_number: Optional[str] = None
+    matricule_number: Matricule = None
     department_id: Optional[int] = None
 
 

@@ -272,7 +272,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     tone: StatusTone.info,
                   )
                 : null,
-            hint: 'name@campus.edu',
+            hint: 'name@ictuniversity.edu.cm',
             prefixIcon: Icons.alternate_email,
             readOnly: sent,
             fillColor: theme.colorScheme.surfaceContainerLow,

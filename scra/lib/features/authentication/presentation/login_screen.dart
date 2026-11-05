@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/routing/app_router.dart';
@@ -114,7 +115,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   LoginForm(
                     key: ValueKey(_role),
                     onSubmit: _login,
-                    identifierHint: 'Your registered email address',
+                    identifierHint:
+                        'Email or matricule (e.g. ${AppConstants.matriculeExample})',
                     onLink: () =>
                         Navigator.of(context)
                             .pushNamed(RouteNames.forgotPassword),

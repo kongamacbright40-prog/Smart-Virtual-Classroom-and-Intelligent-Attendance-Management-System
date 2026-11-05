@@ -142,7 +142,7 @@ void main() {
         fullName: 'Alex Rivers',
         email: 'alex.rivers@campus.edu',
         phone: '+237600000001',
-        identifier: 'mat-2024-9148',
+        identifier: 'ictu20249148',
         password: 'Secure123!',
       );
       expect(ok, isTrue);
@@ -171,7 +171,7 @@ void main() {
         role: UserRole.lecturer,
         fullName: 'New Lecturer',
         email: 'new.lecturer@faculty.edu',
-        identifier: 'FAC-2025-0001',
+        identifier: 'ICTU20250001',
         password: 'Secure123!',
       );
       expect(ok, isTrue);

@@ -7,9 +7,9 @@ import 'package:smart_class/models/models.dart';
 abstract final class DemoAccounts {
   static const String password = 'Password123!';
 
-  static const String studentId = 'ICT20251181';
+  static const String studentId = 'ICTU20251181';
   static const String studentEmail = 'konga.macbright@student.univ.edu';
-  static const String lecturerId = 'FAC-2024-8192';
+  static const String lecturerId = 'ICTU20248192';
   static const String lecturerEmail = 'k.mensah@smartclass.edu.ac';
   static const String adminId = 'ADM-001';
   static const String adminEmail = 'admin.root@smartclass.edu';
@@ -381,7 +381,7 @@ class MockDataStore {
         'lec-001',
         'Prof. Kwame Mensah',
         DemoAccounts.lecturerEmail,
-        'FAC-2024-8192',
+        'ICTU20248192',
         'Prof.',
         'dep-cs',
         'Algorithms & Distributed Systems',
@@ -787,7 +787,7 @@ class MockDataStore {
         currentStudentId,
         'Konga Mac-Bright',
         DemoAccounts.studentEmail,
-        'ICT20251181',
+        'ICTU20251181',
         'B.Sc. Software Engineering & Systems',
       ),
       (

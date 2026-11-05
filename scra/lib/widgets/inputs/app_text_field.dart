@@ -140,6 +140,7 @@ class _AppTextFieldState extends State<AppTextField> {
           style: theme.textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: widget.hint,
+            errorMaxLines: 3,
             fillColor: widget.fillColor,
             prefixIcon: widget.prefixIcon == null
                 ? null

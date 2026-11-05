@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/utils/input_formatters.dart';
 import '../../../core/utils/validators.dart';
 import '../../../widgets/buttons/primary_button.dart';
 import '../../../widgets/inputs/app_text_field.dart';
@@ -22,8 +23,8 @@ class LoginForm extends StatefulWidget {
   const LoginForm({
     super.key,
     required this.onSubmit,
-    this.identifierLabel = 'Institutional ID / Email',
-    this.identifierHint = 'Institutional ID or email',
+    this.identifierLabel = 'Email / Matricule',
+    this.identifierHint = 'Your email or matricule',
     this.identifierValidator = Validators.identifier,
     this.identifierBadge,
     this.identifierSuffix,
@@ -102,6 +103,7 @@ class _LoginFormState extends State<LoginForm> {
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.username],
+              inputFormatters: AppInputFormatters.email,
               validator: widget.identifierValidator,
               onChanged: (_) => auth.clearError(),
             ),

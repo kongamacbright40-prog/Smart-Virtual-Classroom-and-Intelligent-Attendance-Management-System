@@ -39,11 +39,16 @@ abstract final class AppConstants {
   static const String appName = 'Smart Class';
   static const String appVersion = '1.0.0';
 
-  /// Shortest password accepted (must match the backend's MIN_PASSWORD_LENGTH).
-  static const int minPasswordLength = 4;
+  /// Shortest password accepted when creating one (must match the backend's
+  /// MIN_PASSWORD_LENGTH). New passwords also need an uppercase letter, a
+  /// lowercase letter, a digit and a special character.
+  static const int minPasswordLength = 8;
 
-  /// Length the strength meter treats as "strong"; advice only, not enforced.
-  static const int recommendedPasswordLength = 8;
+  /// Institutional email domain(s) accepted for new accounts.
+  static const List<String> institutionEmailDomains = ['ictuniversity.edu.cm'];
+
+  /// Example student / lecturer matricule (ICTU + year + 4 digits).
+  static const String matriculeExample = 'ICTU20233736';
   static const int recoveryCodeLength = 4;
   static const int minQuestionOptions = 2;
   static const int maxQuestionOptions = 6;

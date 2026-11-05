@@ -9,6 +9,8 @@ import pytest
 _DB_DIR = tempfile.mkdtemp(prefix="smart_class_tests_")
 os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{_DB_DIR}/test.db"
 os.environ["JWT_SECRET_KEY"] = "test-secret-key-that-is-long-enough-for-hs256-0123456789"
+# Tests use @uni.edu addresses.
+os.environ["ALLOWED_EMAIL_DOMAINS"] = "uni.edu"
 os.environ["CORS_ORIGINS"] = "https://smartclass.example.edu, https://admin.example.edu/"
 
 from fastapi.testclient import TestClient  # noqa: E402
@@ -55,7 +57,7 @@ def world(client):
             "email": "lecturer@uni.edu",
             "password": PASSWORD,
             "role": "lecturer",
-            "matricule_number": "FAC-1",
+            "matricule_number": "ICTU20180001",
         },
     ).json()
     student = client.post(
@@ -65,7 +67,7 @@ def world(client):
             "email": "student@uni.edu",
             "password": PASSWORD,
             "role": "student",
-            "matricule_number": "ICT-1",
+            "matricule_number": "ICTU20230001",
             "department_id": dept["id"],
         },
     ).json()

@@ -10,6 +10,7 @@ from app.campus.service import log_activity
 from app.database import get_db
 from app.common.deps import require_role
 from app.common.pagination import PageParams, Page
+from app.common.validation import check_email_domain, check_matricule_for_role
 from app.auth.models import Role, Profile
 from app.courses.models import Course, Department, Enrollment
 from app.classes.models import ChatMessage, ClassSession
@@ -168,7 +169,7 @@ def _check_unique(db: Session, email: Optional[str], matricule: Optional[str], e
     if email and db.query(Profile).filter(func.lower(Profile.email) == email, Profile.id != exclude_id).first():
         raise HTTPException(status_code=400, detail="Email already registered")
     if matricule and db.query(Profile).filter(
-        Profile.matricule_number == matricule, Profile.id != exclude_id
+        func.upper(Profile.matricule_number) == matricule.upper(), Profile.id != exclude_id
     ).first():
         raise HTTPException(status_code=400, detail="Matricule number already registered")
 
@@ -221,6 +222,12 @@ def update_user(
     user = _get_user(db, user_id)
     data = payload.model_dump(exclude_unset=True)
     matricule = (data.get("matricule_number") or "").strip() or None if "matricule_number" in data else None
+    try:
+        check_matricule_for_role(matricule, user.role)
+        if data.get("email") and data["email"] != (user.email or "").lower():
+            check_email_domain(data["email"])
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from None
     _check_unique(db, data.get("email"), matricule, exclude_id=user.id)
     if "department_id" in data:
         _check_department(db, data["department_id"])

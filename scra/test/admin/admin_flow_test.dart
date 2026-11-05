@@ -60,7 +60,7 @@ void main() {
     );
     await tester.enterText(
       find.byKey(const Key('user_email')),
-      'test.admin.student@smartclass.edu.ac',
+      'test.admin.student@ictuniversity.edu.cm',
     );
     await tester.enterText(
       find.byKey(const Key('user_phone')),
@@ -226,11 +226,24 @@ void main() {
     expect(find.text('Full name is required'), findsOneWidget);
     expect(find.text('Email is required'), findsOneWidget);
     // The initial password is optional, but validated when given.
-    expect(find.textContaining('Password must be'), findsNothing);
+    expect(find.textContaining('Password needs'), findsNothing);
     await tester.enterText(find.byKey(const Key('user_password')), 'abc');
     await tapVisible(tester, find.byKey(const Key('save_user')));
     await pumpFrames(tester, 4);
-    expect(find.text('Password must be at least 4 characters'), findsOneWidget);
+    expect(find.textContaining('Password needs 8+ characters'), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('user_full_name')), 'Solo');
+    await tester.enterText(
+      find.byKey(const Key('user_email')),
+      'solo@gmail.com',
+    );
+    await tapVisible(tester, find.byKey(const Key('save_user')));
+    await pumpFrames(tester, 4);
+    expect(
+      find.text('Enter at least two names (first and last)'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Use your institutional email'), findsOneWidget);
 
     navigator.pushNamedAndRemoveUntil(
       RouteNames.adminDashboard,

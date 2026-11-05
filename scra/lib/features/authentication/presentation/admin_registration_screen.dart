@@ -46,15 +46,16 @@ class AdminRegistrationScreen extends StatelessWidget {
                 AccountSetupForm(
                   role: UserRole.admin,
                   idLabel: 'Staff / Admin ID',
-                  idHint: 'Your staff or administrator ID',
-                  idHelper: 'Your institutional staff ID.',
-                  idValidator: (v) => Validators.required(v, field: 'Admin ID'),
+                  idHint: 'e.g. ADM-001',
+                  idHelper:
+                      'Your administrator ID (3 letters, a dash, digits).',
+                  idValidator: Validators.adminId,
                   idBadge: const StatusChip(
                     label: 'ADMIN',
                     tone: StatusTone.info,
                     dense: true,
                   ),
-                  emailHint: 'name@institution.edu',
+                  emailHint: 'name@ictuniversity.edu.cm',
                   submitLabel: 'Create Admin Account',
                   loginRoute: RouteNames.adminLogin,
                 ),

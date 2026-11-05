@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:smart_class/core/constants/app_dimensions.dart';
+import 'package:smart_class/core/utils/input_formatters.dart';
 import 'package:smart_class/core/utils/validators.dart';
 import 'package:smart_class/models/models.dart';
 import 'package:smart_class/widgets/buttons/primary_button.dart';
@@ -98,7 +99,9 @@ class _UserFormState extends State<UserForm> {
             label: 'Full name',
             isRequired: true,
             prefixIcon: Icons.person_outline,
-            validator: (v) => Validators.required(v, field: 'Full name'),
+            inputFormatters: AppInputFormatters.fullName,
+            textCapitalization: TextCapitalization.words,
+            validator: Validators.fullName,
             textInputAction: TextInputAction.next,
           ),
           const SizedBox(height: AppDimensions.spaceMd),
@@ -107,9 +110,15 @@ class _UserFormState extends State<UserForm> {
             controller: _email,
             label: 'Email',
             isRequired: true,
+            hint: 'name@ictuniversity.edu.cm',
             prefixIcon: Icons.mail_outline,
             keyboardType: TextInputType.emailAddress,
-            validator: Validators.email,
+            inputFormatters: AppInputFormatters.email,
+            // Existing accounts may predate the institutional-domain rule.
+            validator: (v) =>
+                _isCreate || v?.trim() != widget.initialUser?.email
+                ? Validators.institutionalEmail(v)
+                : Validators.email(v),
             textInputAction: TextInputAction.next,
           ),
           const SizedBox(height: AppDimensions.spaceMd),

@@ -57,13 +57,13 @@ void main() {
 
     const lecturer = LecturerModel(
       user: user,
-      staffId: 'FAC-2024-8192',
+      staffId: 'ICTU20248192',
       title: 'Prof.',
       courseIds: ['c1'],
       rating: 4.8,
     );
     final l = roundTrip(lecturer, (m) => m.toJson(), LecturerModel.fromJson);
-    expect(l.staffId, 'FAC-2024-8192');
+    expect(l.staffId, 'ICTU20248192');
     expect(l.courseIds, ['c1']);
 
     final admin = AdminModel(

@@ -9,6 +9,7 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../core/utils/input_formatters.dart';
 import '../../../core/utils/validators.dart';
 import '../../../models/models.dart';
 import '../../../repositories/repositories.dart';
@@ -527,7 +528,8 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
             AppTextField(
               controller: _name,
               label: 'Full Name',
-              validator: (v) => Validators.required(v, field: 'Full name'),
+              inputFormatters: AppInputFormatters.fullName,
+              validator: Validators.fullName,
             ),
             const SizedBox(height: AppDimensions.spaceMd),
             AppTextField(

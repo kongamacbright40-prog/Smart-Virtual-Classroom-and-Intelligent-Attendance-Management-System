@@ -60,14 +60,19 @@ def _check_admin_registration(db: Session, payload: ProfileCreate) -> None:
 
 @router.post("/login", response_model=TokenPair)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(Profile).filter(func.lower(Profile.email) == payload.email).first()
+    identifier = payload.identifier
+    if "@" in identifier:
+        lookup = func.lower(Profile.email) == identifier
+    else:
+        lookup = func.upper(Profile.matricule_number) == identifier
+    user = db.query(Profile).filter(lookup).first()
     if user is not None and user.pending_activation:
         raise HTTPException(
             status_code=403,
             detail="Activate your account first (Activate your account / Register as lecturer)",
         )
     if not user or not verify_password(payload.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="Invalid email/matricule or password")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="This account has been deactivated")
 
