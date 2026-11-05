@@ -150,6 +150,12 @@ async def signal(websocket: WebSocket, class_id: int, token: str = Query(...)):
             if not isinstance(data, dict):
                 continue
 
+            # Heartbeat: keeps the socket open through proxies/NAT and lets
+            # the app notice a dead connection and reconnect.
+            if data.get("type") == "ping":
+                await manager.send_to(class_id, peer_id, {"type": "pong"})
+                continue
+
             # Whiteboard: only the lecturer draws; everyone else receives.
             if data.get("type") == "board":
                 if role != Role.lecturer:

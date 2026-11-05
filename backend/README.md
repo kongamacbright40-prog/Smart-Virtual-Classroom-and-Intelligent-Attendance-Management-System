@@ -17,6 +17,7 @@ git-ignored; see `.env.example`). Nothing secret is written in the code.
 | `ADMIN_REGISTRATION_CODE` | no | Needed to register further admins |
 | `CORS_ORIGINS` | in production | Web app address(es) allowed to call the API, comma separated (e.g. `https://smartclass.example.edu`) |
 | `CORS_ALLOW_LOCALHOST` | no | `true` (default) also allows `http://localhost:*` for development |
+| `ALLOWED_EMAIL_DOMAINS` | no | Email domains accepted for new accounts, comma separated (default `ictuniversity.edu.cm`; empty = any) |
 
 The app refuses to start, with a clear message, if a required value is missing.
 
@@ -121,6 +122,19 @@ Restart the server, then check (with a logged-in token) that
 `GET /signaling/ice-servers` returns `"turn_configured": true`. The server
 logs a warning at start-up while no relay is configured, and the app shows a
 banner when audio/video with a participant cannot connect.
+
+**Symptom checklist — "everyone joins but there is no audio/video":**
+
+1. Same Wi-Fi works but different networks don't → no TURN relay (above).
+   Look for the start-up warning in the deployed server's logs.
+2. Works for a while, then new joiners get nothing → the signaling socket
+   was dropped (proxy idle timeout / network switch). The app now sends a
+   heartbeat and reconnects automatically; deploy this backend version too
+   (it answers the `ping`).
+3. Video but no sound on a phone → the sound went to the earpiece; the app
+   now routes call audio to the loudspeaker (or a Bluetooth headset).
+4. Camera/microphone permission denied → the app joins in watch-only mode
+   and says so; allow the permissions in the phone settings.
 
 ## First setup
 

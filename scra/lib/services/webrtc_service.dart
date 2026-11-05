@@ -32,6 +32,7 @@ class MediaState {
     this.remotePeerIds = const [],
     this.failedPeerIds = const [],
     this.relayAvailable = true,
+    this.reconnecting = false,
     this.errorMessage,
   });
 
@@ -46,11 +47,15 @@ class MediaState {
 
   /// Whether a TURN relay is configured (needed across different networks).
   final bool relayAvailable;
+
+  /// The classroom connection dropped and is being reopened.
+  final bool reconnecting;
   final String? errorMessage;
 
   /// A problem with audio/video worth showing in the classroom, if any.
   String? get notice {
     if (connection == MediaConnectionState.failed) return errorMessage;
+    if (reconnecting) return 'Connection lost. Reconnecting to the class…';
     if (failedPeerIds.isEmpty) return null;
     final who = failedPeerIds.length == 1
         ? 'a participant'
@@ -69,6 +74,7 @@ class MediaState {
     List<String>? remotePeerIds,
     List<String>? failedPeerIds,
     bool? relayAvailable,
+    bool? reconnecting,
     String? errorMessage,
   }) => MediaState(
     connection: connection ?? this.connection,
@@ -78,6 +84,7 @@ class MediaState {
     remotePeerIds: remotePeerIds ?? this.remotePeerIds,
     failedPeerIds: failedPeerIds ?? this.failedPeerIds,
     relayAvailable: relayAvailable ?? this.relayAvailable,
+    reconnecting: reconnecting ?? this.reconnecting,
     errorMessage: errorMessage,
   );
 }
@@ -207,6 +214,7 @@ class FlutterWebRTCService implements WebRTCService {
       _localStream = local;
       localRenderer.srcObject = local;
       _applyTrackState(audio: audio, video: video);
+      await _routeAudioToSpeaker();
       final hasCamera = local.getVideoTracks().isNotEmpty;
       final hasMic = local.getAudioTracks().isNotEmpty;
       _set(
@@ -222,6 +230,7 @@ class FlutterWebRTCService implements WebRTCService {
         userId: userId,
         serverUrl: _serverUrl,
         token: token,
+        tokenProvider: tokenProvider,
       );
       _signaling = signaling;
 
@@ -272,10 +281,36 @@ class FlutterWebRTCService implements WebRTCService {
         _set(
           _state.copyWith(
             connection: MediaConnectionState.failed,
-            errorMessage: 'Disconnected from the media server.',
+            reconnecting: false,
+            errorMessage:
+                'Disconnected from the class. Leave and join again to '
+                'restore audio and video.',
           ),
         );
       };
+      // Media can keep flowing while the socket is down; nothing to tear
+      // down until the socket is back.
+      signaling.onReconnecting = () {
+        if (_state.connection == MediaConnectionState.closed) return;
+        _set(
+          _state.copyWith(
+            reconnecting: true,
+            errorMessage: _state.errorMessage,
+          ),
+        );
+      };
+      // The others were told we (re)joined and send fresh offers: drop the
+      // old connections so those offers start clean ones.
+      signaling.onReconnected = () => _guard(() async {
+        await _removeAllPeers();
+        _set(
+          _state.copyWith(
+            connection: MediaConnectionState.connected,
+            reconnecting: false,
+            errorMessage: _state.errorMessage,
+          ),
+        );
+      });
 
       try {
         await signaling.connect();
@@ -320,6 +355,18 @@ class FlutterWebRTCService implements WebRTCService {
     } on Object catch (e) {
       ErrorHandler.log(e);
     }
+  }
+
+  /// Phones play call audio through the earpiece by default, which sounds
+  /// like "no audio" in a class. Use the loudspeaker, or a Bluetooth headset
+  /// when one is connected.
+  Future<void> _routeAudioToSpeaker() async {
+    if (kIsWeb) return;
+    if (defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS) {
+      return;
+    }
+    await _guard(Helper.setSpeakerphoneOnButPreferBluetooth);
   }
 
   /// One connection per remote peer, created at most once even when several
@@ -389,6 +436,10 @@ class FlutterWebRTCService implements WebRTCService {
       ),
     );
   }
+
+  Future<void> _removeAllPeers() =>
+      // Each removal unregisters the peer synchronously before awaiting.
+      Future.wait(_peerFutures.keys.toList().map(_removePeer));
 
   MediaStreamTrack? get _screenVideoTrack {
     final tracks = _screenStream?.getVideoTracks() ?? const [];

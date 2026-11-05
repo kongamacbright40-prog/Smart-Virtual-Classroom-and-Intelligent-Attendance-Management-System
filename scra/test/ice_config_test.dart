@@ -109,5 +109,14 @@ void main() {
       );
       expect(state.notice, 'Could not connect to the classroom server.');
     });
+
+    test('says so while the classroom connection is being restored', () {
+      const state = MediaState(
+        connection: MediaConnectionState.connected,
+        reconnecting: true,
+      );
+      expect(state.notice, contains('Reconnecting'));
+      expect(state.copyWith(reconnecting: false).notice, isNull);
+    });
   });
 }
