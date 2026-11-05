@@ -15,16 +15,29 @@ class ApiAuthRepository extends ApiRepositoryBase implements AuthRepository {
     required String password,
   }) async {
     final value = identifier.trim();
-    final tokens = asJson(
-      await api.post(
+    final isEmail = value.contains('@');
+    final Object? response;
+    try {
+      response = await api.post(
         ApiEndpoints.login,
         body: {
-          'identifier': value.contains('@') ? value : value.toUpperCase(),
+          'identifier': isEmail ? value : value.toUpperCase(),
+          // Older backends only read `email` (and ignore `identifier`).
+          if (isEmail) 'email': value,
           'password': password,
         },
         authenticated: false,
-      ),
-    );
+      );
+    } on ValidationException catch (e) {
+      if (!isEmail && e.fieldErrors.containsKey('email')) {
+        throw const ValidationException(
+          'This server only accepts sign-in with your email address.',
+          fieldErrors: {'identifier': 'Sign in with your email address.'},
+        );
+      }
+      rethrow;
+    }
+    final tokens = asJson(response);
     final accessToken = tokens['access_token'] as String;
     final user = BackendMappers.user(
       asJson(await api.getWithToken(ApiEndpoints.me, accessToken)),

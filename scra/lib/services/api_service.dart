@@ -276,7 +276,7 @@ class ApiService {
       final detail = decoded['detail'] ?? decoded['message'];
       if (detail is String) return detail;
       if (detail is List && detail.isNotEmpty && detail.first is Map) {
-        return (detail.first as Map)['msg']?.toString();
+        return _describe(detail.first as Map);
       }
     }
     if (decoded is String && decoded.isNotEmpty && decoded.length < 200) {
@@ -292,11 +292,27 @@ class ApiService {
       if (item is Map &&
           item['loc'] is List &&
           (item['loc'] as List).isNotEmpty) {
-        result[(item['loc'] as List).last.toString()] =
-            item['msg']?.toString() ?? 'Invalid value';
+        result[(item['loc'] as List).last.toString()] = _describe(item);
       }
     }
     return result;
+  }
+
+  /// Readable text for one FastAPI/pydantic error: "Field required" becomes
+  /// "Email is required." and the "Value error, " prefix is dropped.
+  static String _describe(Map<dynamic, dynamic> item) {
+    final msg = (item['msg']?.toString() ?? 'Invalid value').replaceFirst(
+      RegExp(r'^(Value|Assertion) error, '),
+      '',
+    );
+    if (msg != 'Field required') return msg;
+    final loc = item['loc'];
+    final field = loc is List && loc.isNotEmpty ? loc.last : null;
+    if (field is! String || field == 'body') {
+      return 'A required field is missing.';
+    }
+    final label = field.replaceAll('_', ' ');
+    return '${label[0].toUpperCase()}${label.substring(1)} is required.';
   }
 
   void dispose() => _client.close();

@@ -127,6 +127,73 @@ void main() {
       );
     });
 
+    test('turns pydantic messages into readable text', () async {
+      final api = service(
+        (_) async => http.Response(
+          jsonEncode({
+            'detail': [
+              {
+                'type': 'missing',
+                'loc': ['body', 'full_name'],
+                'msg': 'Field required',
+              },
+              {
+                'loc': ['body', 'password'],
+                'msg': 'Value error, Password needs 8+ characters',
+              },
+            ],
+          }),
+          422,
+        ),
+      );
+      await expectLater(
+        api.post('/auth/register', body: {}),
+        throwsA(
+          isA<ValidationException>()
+              .having((e) => e.message, 'message', 'Full name is required.')
+              .having(
+                (e) => e.fieldErrors['password'],
+                'password',
+                'Password needs 8+ characters',
+              ),
+        ),
+      );
+    });
+
+    test('matricule sign-in on an email-only backend explains why', () async {
+      final repo = ApiAuthRepository(
+        service(
+          (_) async => http.Response(
+            jsonEncode({
+              'detail': [
+                {
+                  'loc': ['body', 'email'],
+                  'msg': 'Field required',
+                },
+              ],
+            }),
+            422,
+          ),
+          token: null,
+        ),
+        ApiContext(),
+      );
+      await expectLater(
+        repo.login(
+          role: UserRole.student,
+          identifier: 'ICTU20233736',
+          password: 'x',
+        ),
+        throwsA(
+          isA<ValidationException>().having(
+            (e) => e.message,
+            'message',
+            contains('email address'),
+          ),
+        ),
+      );
+    });
+
     test('maps 403, 404 and 5xx', () async {
       Future<void> expectStatus(int code, Matcher matcher) async {
         final api = service((_) async => http.Response('{}', code));
@@ -256,6 +323,7 @@ void main() {
         expect(requests.first.url.path, '/api/v1/auth/login');
         expect(jsonDecode(requests.first.body), {
           'identifier': 'a@b.edu',
+          'email': 'a@b.edu',
           'password': 'pw123456',
         });
         expect(requests.last.url.path, '/api/v1/auth/me');
