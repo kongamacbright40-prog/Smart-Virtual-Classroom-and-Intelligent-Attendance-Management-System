@@ -19,7 +19,7 @@ from app.classes.service import (
 )
 from app.common.deps import get_current_user, require_role
 from app.common.pagination import Page, PageParams
-from app.common.timeutils import to_naive_utc
+from app.common.timeutils import campus_time_label, to_naive_utc
 from app.courses.models import Course
 from app.courses.service import can_teach, course_students
 from app.database import get_db
@@ -107,7 +107,7 @@ def schedule_session(
         db,
         [s.id for s in course_students(db, course)],
         f"New class for {course.code}",
-        f"{payload.title or course.title} is scheduled for {start:%Y-%m-%d %H:%M} UTC.",
+        f"{payload.title or course.title} is scheduled for {campus_time_label(start)}.",
         type="class_reminder",
         reference_id=str(session.id),
     )

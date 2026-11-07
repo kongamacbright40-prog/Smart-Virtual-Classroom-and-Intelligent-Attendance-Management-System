@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/routing/route_names.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../models/models.dart';
 import '../../../../widgets/buttons/primary_button.dart';
 import '../../../../widgets/common/app_card.dart';
@@ -19,8 +20,10 @@ class UpcomingClassCard extends StatelessWidget {
     final starts = session.startTime.difference(DateTime.now()).inMinutes;
     final label = isLive
         ? 'LIVE NOW'
-        : starts > 0
+        : starts > 0 && starts < 60
         ? 'Starts in $starts min'
+        : starts >= 60
+        ? Formatters.relativeDay(session.startTime)
         : 'Ready to start';
     return AppCard(
       color: AppColors.primary,

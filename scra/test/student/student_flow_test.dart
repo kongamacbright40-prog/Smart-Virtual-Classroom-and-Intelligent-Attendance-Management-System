@@ -58,10 +58,12 @@ Future<void> _pumpStudentApp(
   WidgetTester tester, {
   Widget? home,
   Size size = kPhoneSize,
+  void Function(MockDataStore store)? seed,
 }) async {
   _setViewport(tester, size);
   final fake = FakeDependencies(simulateResponses: true);
   addTearDown(fake.dispose);
+  seed?.call(fake.store);
   final deps = fake.dependencies;
   final auth = AuthProvider(
     repository: deps.authRepository,
@@ -239,6 +241,47 @@ void main() {
       home: const StudentAttendanceScreen(),
       size: kSmallPhoneSize,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('schedule shows weekends and lets students open next week', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final nextWeek = DateTime(now.year, now.month, now.day + 7, 10);
+    await _pumpStudentApp(
+      tester,
+      home: const StudentScheduleScreen(),
+      size: kSmallPhoneSize,
+      seed: (store) {
+        final student = store.students.values.firstWhere(
+          (s) => s.matricule == DemoAccounts.studentId,
+        );
+        final course = store.courses[student.enrolledCourseIds.first]!;
+        store.sessions['ses-next-week'] = ClassSessionModel(
+          id: 'ses-next-week',
+          courseId: course.id,
+          courseCode: course.code,
+          courseTitle: course.title,
+          title: 'Scheduled next week',
+          startTime: nextWeek,
+          endTime: nextWeek.add(const Duration(hours: 1)),
+        );
+      },
+    );
+    expect(tester.takeException(), isNull);
+
+    // All seven days of the week are shown, starting on Monday.
+    for (final day in ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']) {
+      expect(find.text(day), findsOneWidget);
+    }
+    expect(find.text('Scheduled next week'), findsNothing);
+
+    await tester.tap(find.byTooltip('Next week'));
+    await _pumpFrames(tester, 8);
+    await tester.tap(find.text('${nextWeek.day}'));
+    await _pumpFrames(tester, 8);
+    expect(find.text('Scheduled next week'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

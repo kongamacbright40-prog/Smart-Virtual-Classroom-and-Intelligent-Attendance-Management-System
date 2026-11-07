@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/errors/error_handler.dart';
@@ -25,9 +27,14 @@ class AsyncView<T> extends StatefulWidget {
     this.empty,
     this.loading,
     this.errorCompact = false,
+    this.refreshInterval,
   });
 
   final Future<T> Function() load;
+
+  /// When set, [load] re-runs silently at this interval (the current data
+  /// stays on screen), so lists pick up changes made on other devices.
+  final Duration? refreshInterval;
 
   /// `reload` re-runs [load]; returns a future suitable for RefreshIndicator.
   final Widget Function(
@@ -50,14 +57,29 @@ class AsyncViewState<T> extends State<AsyncView<T>> {
   Object? _error;
   bool _loading = true;
   bool _hasData = false;
+  bool _reloading = false;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     reload();
+    final interval = widget.refreshInterval;
+    if (interval != null) {
+      _timer = Timer.periodic(interval, (_) {
+        if (!_reloading) reload();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> reload() async {
+    _reloading = true;
     setState(() {
       _loading = !_hasData;
       _error = null;
@@ -77,6 +99,8 @@ class AsyncViewState<T> extends State<AsyncView<T>> {
         _error = e;
         _loading = false;
       });
+    } finally {
+      _reloading = false;
     }
   }
 

@@ -84,6 +84,18 @@ class ScheduleCard extends StatelessWidget {
                   color: isLive ? Colors.white : null,
                 ),
               ),
+              // The topic the lecturer gave this class, if any.
+              if (session.title.trim().isNotEmpty &&
+                  session.title.trim() != session.courseTitle.trim())
+                Text(
+                  session.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isLive ? Colors.white : null,
+                  ),
+                ),
               if (session.lecturerName != null)
                 Text(
                   session.lecturerName!,

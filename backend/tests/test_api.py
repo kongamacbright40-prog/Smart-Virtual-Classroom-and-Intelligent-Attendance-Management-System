@@ -743,3 +743,42 @@ def test_database_url_from_hosting_providers_is_accepted():
     assert hosted.database_url == "postgresql://u:p@db.example:5432/app"
     local = Settings(database_url="postgresql+psycopg2://u:p@localhost/app", jwt_secret_key=secret)
     assert local.database_url == "postgresql+psycopg2://u:p@localhost/app"
+
+
+def test_scheduled_class_is_listed_for_students_and_announced_in_campus_time(client, world):
+    """What the app does: the lecturer schedules a class next week; students
+    query /classes with the app's date range and get a notification written
+    in campus time (Cameroon, UTC+1), not UTC."""
+    lecturer, student = world["lecturer"], world["student"]
+    now = datetime.now(timezone.utc)
+    start = (now + timedelta(days=6)).replace(hour=9, minute=0, second=0, microsecond=0)
+    r = client.post(
+        "/classes/schedule",
+        json={
+            "course_id": world["course"]["id"],
+            "title": "Graph algorithms",
+            "scheduled_start": start.isoformat().replace("+00:00", "Z"),
+            "duration_minutes": 60,
+        },
+        headers=lecturer,
+    )
+    assert r.status_code == 201, r.text
+    sid = r.json()["id"]
+    assert r.json()["status"] == "scheduled"
+    assert r.json()["scheduled_start"] == start.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    window = {
+        "from": (now - timedelta(hours=3)).isoformat().replace("+00:00", "Z"),
+        "to": (now + timedelta(days=30)).isoformat().replace("+00:00", "Z"),
+        "page_size": 100,
+    }
+    for who in (student, lecturer):
+        items = client.get("/classes", params=window, headers=who).json()["items"]
+        assert sid in [c["id"] for c in items]
+
+    notes = client.get("/notifications", headers=student).json()["items"]
+    body = next(n["body"] for n in notes if n["title"].startswith("New class") and "Graph algorithms" in n["body"])
+    assert "at 10:00 (UTC+01:00)" in body and "UTC." not in body
+
+    client.post(f"/classes/{sid}/end", headers=lecturer)
+

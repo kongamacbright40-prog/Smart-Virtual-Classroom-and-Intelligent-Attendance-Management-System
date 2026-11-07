@@ -20,6 +20,7 @@ class LecturerCoursesScreen extends StatefulWidget {
 }
 
 class _LecturerCoursesScreenState extends State<LecturerCoursesScreen> {
+  final _view = GlobalKey<AsyncViewState<_CoursesData>>();
   String _query = '';
   String _filter = 'All';
 
@@ -54,14 +55,18 @@ class _LecturerCoursesScreenState extends State<LecturerCoursesScreen> {
         actions: [
           IconButton(
             tooltip: 'Schedule class',
-            onPressed: () =>
-                Navigator.of(context).pushNamed(RouteNames.scheduleClass),
+            onPressed: () async {
+              await Navigator.of(context).pushNamed(RouteNames.scheduleClass);
+              await _view.currentState?.reload();
+            },
             icon: const Icon(Icons.add),
           ),
         ],
       ),
       body: AsyncView<_CoursesData>(
+        key: _view,
         load: () => _load(context),
+        refreshInterval: const Duration(seconds: 30),
         builder: (context, data, reload) {
           final q = _query.toLowerCase();
           final courses = data.courses.where((course) {

@@ -18,8 +18,22 @@ import '../lecturer_shared.dart';
 import 'widgets/lecturer_summary.dart';
 import 'widgets/upcoming_class_card.dart';
 
-class LecturerDashboardScreen extends StatelessWidget {
+class LecturerDashboardScreen extends StatefulWidget {
   const LecturerDashboardScreen({super.key});
+
+  @override
+  State<LecturerDashboardScreen> createState() =>
+      _LecturerDashboardScreenState();
+}
+
+class _LecturerDashboardScreenState extends State<LecturerDashboardScreen> {
+  final _view = GlobalKey<AsyncViewState<_DashboardData>>();
+
+  /// Opens Schedule Class and shows the new class when coming back.
+  Future<void> _scheduleClass() async {
+    await Navigator.of(context).pushNamed(RouteNames.scheduleClass);
+    await _view.currentState?.reload();
+  }
 
   Future<_DashboardData> _load(BuildContext context) async {
     final lecturerId = lecturerIdOf(context);
@@ -35,7 +49,7 @@ class LecturerDashboardScreen extends StatelessWidget {
       scheduleRepository.getLecturerSessions(
         lecturerId,
         from: now.subtract(const Duration(days: 7)),
-        to: now.add(const Duration(days: 7)),
+        to: now.add(const Duration(days: 30)),
       ),
       reportRepository.getLecturerReport(lecturerId),
       notificationRepository.getNotifications(lecturerId),
@@ -99,30 +113,30 @@ class LecturerDashboardScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () =>
-            Navigator.of(context).pushNamed(RouteNames.scheduleClass),
+        onPressed: _scheduleClass,
         icon: const Icon(Icons.add),
         label: const Text('Create Class'),
       ),
       body: AsyncView<_DashboardData>(
+        key: _view,
         load: () => _load(context),
+        refreshInterval: const Duration(seconds: 30),
         builder: (context, data, reload) {
           final live = data.sessions
               .where((s) => s.status == SessionStatus.live)
               .cast<ClassSessionModel?>()
               .firstOrNull;
-          final upcoming =
-              live ??
-              (data.sessions
-                      .where(
-                        (s) =>
-                            s.status == SessionStatus.scheduled &&
-                            s.startTime.isAfter(DateTime.now()),
-                      )
-                      .toList()
-                    ..sort((a, b) => a.startTime.compareTo(b.startTime)))
-                  .cast<ClassSessionModel?>()
-                  .firstOrNull;
+          final scheduled =
+              data.sessions
+                  .where(
+                    (s) =>
+                        s.status == SessionStatus.scheduled &&
+                        s.startTime.isAfter(DateTime.now()),
+                  )
+                  .toList()
+                ..sort((a, b) => a.startTime.compareTo(b.startTime));
+          final upcoming = live ?? scheduled.firstOrNull;
+          final later = scheduled.where((s) => s.id != upcoming?.id).toList();
           final recent = data.attendance.keys
               .map((id) => data.sessions.firstWhere((s) => s.id == id))
               .toList();
@@ -210,6 +224,14 @@ class LecturerDashboardScreen extends StatelessWidget {
                     title: 'No classes scheduled',
                     message: 'Create a class to open a new room.',
                   ),
+                if (later.isNotEmpty) ...[
+                  const SectionHeader(
+                    title: 'Scheduled Classes',
+                    subtitle: 'Next 30 days',
+                  ),
+                  for (final session in later)
+                    _ScheduledClassTile(session: session),
+                ],
                 SectionHeader(
                   title: 'Recent Sessions',
                   subtitle: 'This Week',
@@ -228,6 +250,47 @@ class LecturerDashboardScreen extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _ScheduledClassTile extends StatelessWidget {
+  const _ScheduledClassTile({required this.session});
+
+  final ClassSessionModel session;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: AppDimensions.spaceSm),
+      child: Row(
+        children: [
+          Icon(Icons.event_outlined, color: theme.colorScheme.primary),
+          const SizedBox(width: AppDimensions.spaceMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${session.courseCode} • ${session.title}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall,
+                ),
+                Text(
+                  '${Formatters.relativeDay(session.startTime)} • '
+                  '${Formatters.duration(session.duration)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const StatusChip(label: 'Scheduled', tone: StatusTone.info),
+        ],
       ),
     );
   }

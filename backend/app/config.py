@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     cors_allow_localhost: bool = True
     # Email domains accepted for new accounts, comma separated. Empty = any.
     allowed_email_domains: str = "ictuniversity.edu.cm"
+    # Campus time zone as minutes from UTC (Cameroon, WAT = UTC+1, no DST);
+    # used for times written in notifications.
+    campus_utc_offset_minutes: int = 60
 
     # --- WebRTC network relay (TURN) for live classes -----------------------
     # Without a TURN server, audio/video only connects when both sides can

@@ -117,6 +117,40 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a newly scheduled class shows on the dashboard right away', (
+    tester,
+  ) async {
+    await pumpLecturerApp(tester);
+    expect(find.textContaining('Dashboard refresh check'), findsNothing);
+
+    await tester.tap(find.text('Create Class'));
+    await pumpFrames(tester, 8);
+    await tester.enterText(
+      find.byKey(const Key('schedule_topic')),
+      'Dashboard refresh check',
+    );
+    await tapVisible(tester, find.byKey(const Key('schedule_submit')));
+    await pumpFrames(tester, 10);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -900));
+    await pumpFrames(tester, 4);
+    expect(find.text('Class Scheduled!'), findsOneWidget);
+    // Let the "Class scheduled successfully." snack bar go away first.
+    await tester.pump(const Duration(seconds: 5));
+    await pumpFrames(tester, 6);
+    await tapVisible(tester, find.text('Done'));
+    await pumpFrames(tester, 12);
+
+    expect(find.text('Lecturer Dashboard'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.textContaining('Dashboard refresh check'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.textContaining('Dashboard refresh check'), findsOneWidget);
+    expect(find.text('Scheduled Classes'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('schedule form shows required topic validation', (tester) async {
     await pumpLecturerApp(tester);
     final navigator = tester.state<NavigatorState>(

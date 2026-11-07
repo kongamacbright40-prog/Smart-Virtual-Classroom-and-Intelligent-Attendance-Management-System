@@ -32,6 +32,7 @@ class StudentHomeScreen extends StatelessWidget {
     final user = context.watch<AuthProvider>().user!;
     return AsyncView<_HomeData>(
       load: () => _HomeData.load(context, user.id),
+      refreshInterval: const Duration(seconds: 30),
       builder: (context, data, reload) {
         final unread = data.notifications.where((n) => !n.isRead).length;
         return AppScaffold(
@@ -319,7 +320,7 @@ class _HomeData {
       scheduleRepo.getStudentSessions(
         studentId,
         from: now.subtract(const Duration(hours: 3)),
-        to: now.add(const Duration(days: 7)),
+        to: now.add(const Duration(days: 30)),
       ),
       notificationRepo.getNotifications(studentId),
     ]);
