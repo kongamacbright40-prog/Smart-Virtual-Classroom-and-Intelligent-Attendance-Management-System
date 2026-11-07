@@ -138,15 +138,18 @@ banner when audio/video with a participant cannot connect.
 
 ### Testing on a local network (PC + phones on the same Wi-Fi)
 
-Without a TURN provider, start everything with **`scra/tool/start_smart_class.bat`**
-(or `python scra/tool/run_local.py` with the backend's virtualenv). It starts a
-small TURN relay on this PC (`scripts/local_turn_server.py`, UDP + TCP port
-3478, random password per start), the backend on port 8000 configured to hand
-that relay to the app, and the web app on http://127.0.0.1:5500. The phone APK
-must be built for this PC's LAN address
+Without a TURN provider, set **`LOCAL_TURN_RELAY=true`** in `.env`: the backend
+then runs its own small TURN relay (`app/signaling/local_relay.py`, UDP + TCP
+port 3478, random password per start) and hands it to the app, however it is
+started. Or start everything with **`scra/tool/start_smart_class.bat`** (or
+`python scra/tool/run_local.py` with the backend's virtualenv): it stops an
+older backend on port 8000, starts this backend with the relay, and serves
+the web app on http://127.0.0.1:5500. The phone APK must be built for this
+PC's LAN address
 (`flutter build apk --dart-define=API_BASE_URL=http://<LAN IP>:8000`); the
 launcher prints it. Windows Firewall must allow Python on the network (it asks
-the first time). In production use Metered/Cloudflare instead (above).
+the first time). Never enable the local relay on Render; use
+Metered/Cloudflare there (above).
 
 ## First setup
 
