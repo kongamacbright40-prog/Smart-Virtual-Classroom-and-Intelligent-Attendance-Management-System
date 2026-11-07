@@ -46,23 +46,30 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final created = _created;
     return Scaffold(
-      appBar: const SmartAppBar(title: 'Schedule Class'),
+      appBar: SmartAppBar(
+        title: created == null ? 'Schedule Class' : 'Class Scheduled',
+      ),
       body: AsyncView<List<CourseModel>>(
         load: () => _load(context),
         isEmpty: (courses) => courses.isEmpty,
         builder: (context, courses, reload) => ListView(
           padding: const EdgeInsets.all(AppDimensions.pageMargin),
           children: [
-            ClassForm(
-              courses: courses,
-              initialCourseId: widget.courseId,
-              onSubmit: _submit,
-            ),
-            if (_created != null) ...[
-              const SizedBox(height: AppDimensions.spaceLg),
-              _SuccessPanel(schedule: _created!),
-            ],
+            // After scheduling, the confirmation replaces the form so the
+            // lecturer sees exactly what was saved.
+            if (created != null)
+              _SuccessPanel(
+                schedule: created,
+                onScheduleAnother: () => setState(() => _created = null),
+              )
+            else
+              ClassForm(
+                courses: courses,
+                initialCourseId: widget.courseId,
+                onSubmit: _submit,
+              ),
           ],
         ),
       ),
@@ -71,9 +78,13 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
 }
 
 class _SuccessPanel extends StatelessWidget {
-  const _SuccessPanel({required this.schedule});
+  const _SuccessPanel({
+    required this.schedule,
+    required this.onScheduleAnother,
+  });
 
   final ScheduleModel schedule;
+  final VoidCallback onScheduleAnother;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +124,26 @@ class _SuccessPanel extends StatelessWidget {
             ),
             child: Column(
               children: [
+                LecturerInfoRow(
+                  icon: Icons.menu_book_outlined,
+                  label: 'Course',
+                  value: '${schedule.courseCode} • ${schedule.courseTitle}',
+                ),
+                const Divider(),
+                LecturerInfoRow(
+                  icon: Icons.event_outlined,
+                  label: 'Date',
+                  value: Formatters.shortDate(schedule.startTime),
+                ),
+                const Divider(),
+                LecturerInfoRow(
+                  icon: Icons.schedule,
+                  label: 'Time',
+                  value:
+                      '${Formatters.time(schedule.startTime)} – '
+                      '${Formatters.time(schedule.startTime.add(Duration(minutes: schedule.durationMinutes)))}',
+                ),
+                const Divider(),
                 if (schedule.roomCode != null) ...[
                   LecturerInfoRow(
                     icon: Icons.key,
@@ -151,7 +182,12 @@ class _SuccessPanel extends StatelessWidget {
           const SizedBox(height: AppDimensions.spaceSm),
           SecondaryButton(
             label: 'Done',
-            onPressed: () => Navigator.of(context).maybePop(),
+            onPressed: () => Navigator.of(context).maybePop(true),
+          ),
+          TextButton.icon(
+            onPressed: onScheduleAnother,
+            icon: const Icon(Icons.add),
+            label: const Text('Schedule another class'),
           ),
         ],
       ),

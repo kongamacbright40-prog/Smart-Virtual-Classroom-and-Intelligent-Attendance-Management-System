@@ -3,12 +3,13 @@
     python tool/run_local.py            (use the backend's virtualenv Python)
 
 Starts, and stops together when this window is closed (or Ctrl+C):
-  * a local TURN relay (backend/scripts/local_turn_server.py) on port 3478, so
-    live-class audio/video works between this PC and phones even when they
-    cannot connect directly;
-  * the backend on port 8000 (all network interfaces), told to hand the relay
-    to the app (TURN_URLS / TURN_USERNAME / TURN_CREDENTIAL);
+  * the backend on port 8000 (all network interfaces) with its built-in TURN
+    relay (LOCAL_TURN_RELAY, port 3478), so live-class audio/video works
+    between this PC and phones even when they cannot connect directly;
   * the web app (build/web) on http://127.0.0.1:5500, opened in the browser.
+
+An older backend already running on port 8000 (e.g. started by hand with
+uvicorn) is stopped first, so the phones always reach this one.
 
 Phones use the APK built with --dart-define=API_BASE_URL=http://<this PC's
 LAN address>:8000; the address is printed at start-up.
@@ -16,7 +17,6 @@ LAN address>:8000; the address is printed at start-up.
 
 import argparse
 import os
-import secrets
 import socket
 import subprocess
 import sys
@@ -34,7 +34,6 @@ from serve_web import Handler  # noqa: E402
 APP_DIR = Path(__file__).resolve().parent.parent
 REPO = APP_DIR.parent
 BACKEND = REPO / "backend"
-TURN_SCRIPT = BACKEND / "scripts" / "local_turn_server.py"
 
 
 def lan_ip() -> str:
@@ -61,6 +60,43 @@ def backend_healthy() -> bool:
         return False
 
 
+_STOP_SERVER = r"""
+$line = netstat -ano | Select-String '^\s*TCP\s+\S+:{port}\s+\S+:0\s+\S+\s+(\d+)' | Select-Object -First 1
+if (-not $line) {{ exit 0 }}
+$id = [int]$line.Matches[0].Groups[1].Value
+$p = Get-CimInstance Win32_Process -Filter "ProcessId=$id"
+if (-not $p -or $p.CommandLine -notmatch 'python|uvicorn') {{ Write-Output "OTHER $($p.Name)"; exit 0 }}
+# uvicorn --reload runs a supervisor process: stop the topmost one.
+while ($true) {{
+  $parent = Get-CimInstance Win32_Process -Filter "ProcessId=$($p.ParentProcessId)"
+  if ($parent -and $parent.CommandLine -match 'uvicorn') {{ $p = $parent }} else {{ break }}
+}}
+Write-Output "STOPPED $($p.CommandLine)"
+taskkill /PID $p.ProcessId /T /F | Out-Null
+"""
+
+
+def stop_server_on(port: int) -> bool:
+    """Stops a Python/uvicorn server listening on [port] (Windows). Returns
+    False when the port is used by another kind of program."""
+    if os.name != "nt":
+        return False
+    out = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", _STOP_SERVER.format(port=port)],
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    if out.startswith("OTHER"):
+        return False
+    if out.startswith("STOPPED"):
+        print(f"Stopped the backend that was already running on port {port}:\n  {out[8:].strip()}")
+    for _ in range(20):
+        if not port_open(port):
+            return True
+        time.sleep(0.5)
+    return not port_open(port)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--ip", help="LAN address to announce (default: detected)")
@@ -73,50 +109,38 @@ def main() -> int:
     if not (web / "index.html").exists():
         print(f"App files not found in {web}.\nBuild them first: flutter build web --release --no-web-resources-cdn")
         return 1
-    if port_open(8000):
-        print(
-            "Port 8000 is already in use (a backend started separately?).\n"
-            "Close it, then start Smart Class again: the backend must be started\n"
-            "from here so live classes get the audio/video relay."
-        )
+    if port_open(8000) and not stop_server_on(8000):
+        print("Port 8000 is used by another program. Close it, then start Smart Class again.")
         return 1
 
     ip = args.ip or lan_ip()
-    password = secrets.token_urlsafe(12)
-    children: list[subprocess.Popen] = []
+    env = dict(os.environ)
+    env["LOCAL_TURN_RELAY"] = "true"
+    env["LOCAL_TURN_IP"] = ip
+    print("Starting the backend (with the live-class relay) on port 8000 ...")
+    backend = subprocess.Popen(
+        [python, "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"],
+        cwd=BACKEND,
+        env=env,
+    )
     try:
-        print(f"Starting the live-class relay (TURN) on {ip}:3478 ...")
-        turn = subprocess.Popen(
-            [python, str(TURN_SCRIPT), "--public-ip", ip, "--user", "smartclass", "--password", password]
-        )
-        children.append(turn)
-
-        env = dict(os.environ)
-        env["TURN_URLS"] = f"turn:{ip}:3478?transport=udp,turn:{ip}:3478?transport=tcp"
-        env["TURN_USERNAME"] = "smartclass"
-        env["TURN_CREDENTIAL"] = password
-        print("Starting the backend on port 8000 ...")
-        backend = subprocess.Popen(
-            [python, "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"],
-            cwd=BACKEND,
-            env=env,
-        )
-        children.append(backend)
         for _ in range(60):
             if backend_healthy():
                 break
-            for child in children:
-                if child.poll() is not None:
-                    print("A service stopped with an error (see above). Is PostgreSQL running?")
-                    return 1
+            if backend.poll() is not None:
+                print("The backend stopped with an error (see above). Is PostgreSQL running?")
+                return 1
             time.sleep(1)
         else:
             print("The backend did not start within 60 s.")
             return 1
 
         app_url = f"http://127.0.0.1:{args.web_port}/"
-        server = ThreadingHTTPServer(("127.0.0.1", args.web_port), partial(Handler, directory=str(web)))
-        threading.Thread(target=server.serve_forever, daemon=True).start()
+        if port_open(args.web_port):
+            print(f"Port {args.web_port} is in use; the app may already be open at {app_url}")
+        else:
+            server = ThreadingHTTPServer(("127.0.0.1", args.web_port), partial(Handler, directory=str(web)))
+            threading.Thread(target=server.serve_forever, daemon=True).start()
 
         print()
         print(f"  PC app      : {app_url}")
@@ -127,16 +151,15 @@ def main() -> int:
         if not args.no_browser:
             webbrowser.open(app_url)
 
-        while all(child.poll() is None for child in children):
+        while backend.poll() is None:
             time.sleep(1)
-        print("A service stopped; shutting down.")
+        print("The backend stopped.")
         return 1
     except KeyboardInterrupt:
         return 0
     finally:
-        for child in children:
-            if child.poll() is None:
-                child.terminate()
+        if backend.poll() is None:
+            backend.terminate()
 
 
 if __name__ == "__main__":

@@ -131,6 +131,10 @@ void main() {
     );
     await tapVisible(tester, find.byKey(const Key('schedule_submit')));
     await pumpFrames(tester, 10);
+    // The confirmation replaces the form, at the top of the screen.
+    expect(find.text('Class Scheduled!'), findsOneWidget);
+    expect(find.byKey(const Key('schedule_submit')), findsNothing);
+    expect(find.text('Schedule another class'), findsOneWidget);
     await tester.drag(find.byType(ListView).last, const Offset(0, -900));
     await pumpFrames(tester, 4);
     expect(find.text('Class Scheduled!'), findsOneWidget);

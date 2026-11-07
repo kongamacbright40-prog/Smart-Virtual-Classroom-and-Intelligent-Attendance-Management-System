@@ -53,6 +53,14 @@ class Settings(BaseSettings):
     cloudflare_turn_api_token: str = ""
     # STUN servers (free, no relay), comma separated.
     stun_urls: str = "stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302"
+    # Local testing only (PC + phones on the same Wi-Fi, no TURN provider):
+    # the backend starts its own small TURN relay on LOCAL_TURN_PORT and hands
+    # it to the app. Ignored when a TURN provider/server is configured above.
+    # Never enable on a hosted server (only the HTTP port is reachable there).
+    local_turn_relay: bool = False
+    # Address phones use to reach this PC (default: detected LAN address).
+    local_turn_ip: str = ""
+    local_turn_port: int = 3478
 
     @field_validator("database_url")
     @classmethod

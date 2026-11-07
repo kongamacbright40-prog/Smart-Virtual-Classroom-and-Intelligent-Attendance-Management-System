@@ -1,4 +1,6 @@
 import logging
+import secrets
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,15 +50,53 @@ def _warm_up() -> None:
 
 _warm_up()
 
-if not is_sqlite:
-    from app.signaling.ice import turn_configured
 
-    if not turn_configured():
-        logger.warning(
-            "No TURN server configured (TURN_URLS / METERED_* / CLOUDFLARE_TURN_*): live-class "
-            "audio and video will fail between users on different networks."
-        )
-app = FastAPI(title="Smart Virtual Classroom API")
+async def _start_local_relay():
+    """LOCAL_TURN_RELAY=true: run a TURN relay inside the backend so live
+    classes work between a PC and phones on the same network."""
+    if not settings.local_turn_relay:
+        return None
+    from app.signaling import ice
+    from app.signaling.local_relay import lan_ip, start_relay
+
+    if ice.turn_configured():
+        logger.info("A TURN server is configured; the local relay is not started.")
+        return None
+    ip = settings.local_turn_ip.strip() or lan_ip()
+    port = settings.local_turn_port
+    password = secrets.token_urlsafe(12)
+    try:
+        relay = await start_relay(ip, port, {"smartclass": password})
+    except OSError as e:
+        logger.warning("Local TURN relay not started (port %s busy?): %s", port, e)
+        return None
+    settings.turn_urls = f"turn:{ip}:{relay.port}?transport=udp,turn:{ip}:{relay.port}?transport=tcp"
+    settings.turn_username = "smartclass"
+    settings.turn_credential = password
+    logger.warning("Local TURN relay for live classes running on %s:%s", ip, relay.port)
+    return relay
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    relay = await _start_local_relay()
+    if not is_sqlite:
+        from app.signaling.ice import turn_configured
+
+        if not turn_configured():
+            logger.warning(
+                "No TURN server configured (TURN_URLS / METERED_* / CLOUDFLARE_TURN_*, or "
+                "LOCAL_TURN_RELAY=true on a local network): live-class audio and video will "
+                "fail between users who cannot connect directly."
+            )
+    try:
+        yield
+    finally:
+        if relay is not None:
+            relay.close()
+
+
+app = FastAPI(title="Smart Virtual Classroom API", lifespan=lifespan)
 
 # Compress larger JSON replies (lists, reports): less data over Wi-Fi / mobile.
 app.add_middleware(GZipMiddleware, minimum_size=1000)
