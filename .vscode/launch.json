@@ -1,0 +1,44 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Smart Class (Chrome)",
+            "cwd": "scra",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "deviceId": "chrome",
+            "args": [
+                "--dart-define=API_BASE_URL=http://localhost:8000"
+            ]
+        },
+        {
+            "name": "Smart Class (Android emulator)",
+            "cwd": "scra",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define=API_BASE_URL=http://10.0.2.2:8000"
+            ]
+        },
+        {
+            "name": "Smart Class (Android phone on Wi-Fi)",
+            "cwd": "scra",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define=API_BASE_URL=http://${input:pcIp}:8000"
+            ]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "pcIp",
+            "type": "promptString",
+            "description": "Your PC's Wi-Fi IP address (run ipconfig, 'IPv4 Address')",
+            "default": "192.168.1.10"
+        }
+    ]
+}
