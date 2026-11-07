@@ -136,6 +136,18 @@ banner when audio/video with a participant cannot connect.
 4. Camera/microphone permission denied → the app joins in watch-only mode
    and says so; allow the permissions in the phone settings.
 
+### Testing on a local network (PC + phones on the same Wi-Fi)
+
+Without a TURN provider, start everything with **`scra/tool/start_smart_class.bat`**
+(or `python scra/tool/run_local.py` with the backend's virtualenv). It starts a
+small TURN relay on this PC (`scripts/local_turn_server.py`, UDP + TCP port
+3478, random password per start), the backend on port 8000 configured to hand
+that relay to the app, and the web app on http://127.0.0.1:5500. The phone APK
+must be built for this PC's LAN address
+(`flutter build apk --dart-define=API_BASE_URL=http://<LAN IP>:8000`); the
+launcher prints it. Windows Firewall must allow Python on the network (it asks
+the first time). In production use Metered/Cloudflare instead (above).
+
 ## First setup
 
 1. Register the first admin from the app (Admin login → **Register as admin**)
