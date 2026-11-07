@@ -8,16 +8,36 @@ abstract final class AppConfig {
   static const String _apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const String _wsBaseUrl = String.fromEnvironment('WS_BASE_URL');
 
-  /// Base URL of the FastAPI backend (REST). Defaults to the development
-  /// machine: `127.0.0.1` in the browser, `10.0.2.2` on the Android emulator
-  /// (the host as seen from the emulator). Physical phones need the PC's LAN
-  /// IP via `API_BASE_URL`. (`localhost` is avoided because Windows tries IPv6
-  /// first, adding ~0.2 s to every new connection to a backend on 0.0.0.0.)
-  static String get apiBaseUrl => _apiBaseUrl.isNotEmpty
+  /// Server address chosen in the app (sign-in screen → "Server"), saved on
+  /// the device. Overrides the address the app was built with, so a new
+  /// Wi-Fi address doesn't need a new APK. See [useServer].
+  static String? _serverOverride;
+
+  /// Address the app was built with (`--dart-define=API_BASE_URL`), or the
+  /// development default.
+  static String get builtInApiBaseUrl => _apiBaseUrl.isNotEmpty
       ? _apiBaseUrl
       : kIsWeb
       ? 'http://127.0.0.1:8000'
       : 'http://10.0.2.2:8000';
+
+  /// Whether [apiBaseUrl] comes from the in-app setting.
+  static bool get hasServerOverride => _serverOverride != null;
+
+  /// Uses [url] (e.g. `http://10.194.53.114:8000`) as the backend address;
+  /// `null` goes back to [builtInApiBaseUrl].
+  static void useServer(String? url) {
+    final value = url?.trim().replaceAll(RegExp(r'/+$'), '');
+    _serverOverride = (value == null || value.isEmpty) ? null : value;
+  }
+
+  /// Base URL of the FastAPI backend (REST). Defaults to the development
+  /// machine: `127.0.0.1` in the browser, `10.0.2.2` on the Android emulator
+  /// (the host as seen from the emulator). Physical phones need the PC's LAN
+  /// IP via `API_BASE_URL` or the in-app server setting. (`localhost` is
+  /// avoided because Windows tries IPv6 first, adding ~0.2 s to every new
+  /// connection to a backend on 0.0.0.0.)
+  static String get apiBaseUrl => _serverOverride ?? builtInApiBaseUrl;
 
   /// Prefix applied to every REST endpoint. The Smart Class FastAPI backend
   /// mounts its routers at the root, so this is empty by default.
@@ -27,8 +47,10 @@ abstract final class AppConfig {
   );
 
   /// Base URL for WebSocket connections (WebRTC signaling). Derived from
-  /// [apiBaseUrl] (`http` → `ws`, `https` → `wss`) unless `WS_BASE_URL` is set.
-  static String get wsBaseUrl => _wsBaseUrl.isNotEmpty
+  /// [apiBaseUrl] (`http` → `ws`, `https` → `wss`) unless `WS_BASE_URL` is set
+  /// (an in-app server setting always wins).
+  static String get wsBaseUrl =>
+      _wsBaseUrl.isNotEmpty && _serverOverride == null
       ? _wsBaseUrl
       : apiBaseUrl.replaceFirst(RegExp('^http'), 'ws');
 
@@ -68,4 +90,7 @@ abstract final class StorageKeys {
   static const String currentUser = 'current_user';
   static const String rememberMe = 'remember_me';
   static const String appSettings = 'app_settings';
+
+  /// Backend address chosen in the app (kept when signing out).
+  static const String serverUrl = 'server_url';
 }

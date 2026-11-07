@@ -24,12 +24,15 @@ class ApiService {
     Duration? timeout,
     this.onUnauthorized,
   }) : _client = client ?? http.Client(),
-       _baseUrl = baseUrl ?? '${AppConfig.apiBaseUrl}${AppConfig.apiPrefix}',
+       _fixedBaseUrl = baseUrl,
        _timeout = timeout ?? AppConfig.requestTimeout;
 
   final http.Client _client;
   final TokenProvider? tokenProvider;
-  final String _baseUrl;
+
+  /// Explicit base URL (tests); otherwise [AppConfig] is read on every
+  /// request so a server address changed in the app applies immediately.
+  final String? _fixedBaseUrl;
   final Duration _timeout;
 
   /// Invoked on HTTP 401 so the app can clear the session.
@@ -42,7 +45,8 @@ class ApiService {
 
   Future<bool>? _refreshing;
 
-  String get baseUrl => _baseUrl;
+  String get baseUrl =>
+      _fixedBaseUrl ?? '${AppConfig.apiBaseUrl}${AppConfig.apiPrefix}';
 
   Uri buildUri(String path, [Map<String, Object?>? query]) {
     final normalized = path.startsWith('/') ? path : '/$path';
@@ -50,7 +54,7 @@ class ApiService {
       for (final e in (query ?? const <String, Object?>{}).entries)
         if (e.value != null) e.key: e.value.toString(),
     };
-    return Uri.parse('$_baseUrl$normalized')
+    return Uri.parse('$baseUrl$normalized')
         .replace(queryParameters: params.isEmpty ? null : params);
   }
 

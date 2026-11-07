@@ -86,9 +86,10 @@ class ChannelWebSocketService implements WebSocketService {
     String? baseUrl,
     this.maxReconnectAttempts = 5,
     this.tokenProvider,
-  }) : _baseUrl = baseUrl ?? AppConfig.wsBaseUrl;
+  }) : _fixedBaseUrl = baseUrl;
 
-  final String _baseUrl;
+  final String? _fixedBaseUrl;
+  String get _baseUrl => _fixedBaseUrl ?? AppConfig.wsBaseUrl;
   final int maxReconnectAttempts;
 
   /// Optional bearer token appended as `?token=` (browsers cannot set

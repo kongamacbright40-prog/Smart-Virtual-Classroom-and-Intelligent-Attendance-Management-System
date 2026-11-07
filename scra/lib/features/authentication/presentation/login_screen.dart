@@ -10,6 +10,7 @@ import '../../../models/user_model.dart';
 import '../../../widgets/common/app_logo.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/login_form.dart';
+import '../widgets/server_address_button.dart';
 
 /// Stitch screen 06 — Login (Student / Lecturer; Admin opens the dedicated
 /// institutional gateway).
@@ -139,6 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
+                  const ServerAddressButton(),
                   const SizedBox(height: AppDimensions.spaceMd),
                 ],
               ),

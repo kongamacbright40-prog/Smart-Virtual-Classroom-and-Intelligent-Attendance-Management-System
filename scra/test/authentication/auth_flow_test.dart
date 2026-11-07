@@ -282,4 +282,26 @@ void main() {
     await pumpApp(tester, deps: testDependencies(store: store));
     expect(find.byType(StudentNavigation), findsOneWidget);
   });
+
+  testWidgets('the server address can be changed from the sign-in screen', (
+    tester,
+  ) async {
+    await pumpApp(tester, deps: testDependencies(store: onboardedStore()));
+    await tapVisible(tester, find.byKey(const Key('server_address')));
+    await tester.pumpAndSettle();
+    expect(find.text('Server address'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('server_address_field')),
+      'not an address',
+    );
+    await tester.tap(find.byKey(const Key('server_address_save')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Enter an address like 10.194.53.114:8000'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }
+

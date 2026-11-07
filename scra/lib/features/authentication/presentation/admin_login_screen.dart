@@ -10,6 +10,7 @@ import '../../../models/user_model.dart';
 import '../../../widgets/common/app_logo.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/login_form.dart';
+import '../widgets/server_address_button.dart';
 
 /// Stitch screen 09 — Institutional Administration login.
 class AdminLoginScreen extends StatelessWidget {
@@ -124,6 +125,7 @@ class AdminLoginScreen extends StatelessWidget {
                               ),
                             ],
                           ),
+                          const ServerAddressButton(),
                         ],
                       ),
                     ),

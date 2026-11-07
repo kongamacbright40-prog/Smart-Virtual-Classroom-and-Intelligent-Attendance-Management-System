@@ -150,6 +150,13 @@ class StorageService {
     await _store.remove(StorageKeys.sessionExpiresAt);
   }
 
+  // Server address (in-app setting)
+  Future<String?> getServerUrl() => _store.getString(StorageKeys.serverUrl);
+
+  Future<void> setServerUrl(String? url) => url == null || url.trim().isEmpty
+      ? _store.remove(StorageKeys.serverUrl)
+      : _store.setString(StorageKeys.serverUrl, url.trim());
+
   // Preferences
   Future<AppSettingsModel> getSettings() async {
     final raw = await _store.getString(StorageKeys.appSettings);

@@ -6,6 +6,7 @@ import '../../services/notification_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/webrtc_service.dart';
 import '../../services/websocket_service.dart';
+import '../constants/app_constants.dart';
 
 /// Composition root: builds every service and repository once and hands
 /// them to the widget tree (see `app.dart`). Tests pass in-memory fakes
@@ -51,6 +52,8 @@ class AppDependencies {
   /// Builds the production dependency graph (always the FastAPI backend).
   static Future<AppDependencies> create() async {
     final storage = StorageService(await SharedPreferencesStore.create());
+    // A server address chosen in the app replaces the built-in one.
+    AppConfig.useServer(await storage.getServerUrl());
     return api(storage: storage);
   }
 

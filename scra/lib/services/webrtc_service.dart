@@ -120,9 +120,12 @@ abstract interface class WebRTCService {
 /// stream shared across one peer connection per remote participant.
 class FlutterWebRTCService implements WebRTCService {
   FlutterWebRTCService({String? serverUrl, this.tokenProvider})
-    : _serverUrl = serverUrl ?? AppConfig.wsBaseUrl;
+    : _fixedServerUrl = serverUrl;
 
-  final String _serverUrl;
+  /// Explicit signaling base URL (tests); otherwise read from [AppConfig]
+  /// when joining, so a server address changed in the app applies.
+  final String? _fixedServerUrl;
+  String get _serverUrl => _fixedServerUrl ?? AppConfig.wsBaseUrl;
 
   /// Supplies the access token the signaling socket authenticates with.
   final Future<String?> Function()? tokenProvider;
