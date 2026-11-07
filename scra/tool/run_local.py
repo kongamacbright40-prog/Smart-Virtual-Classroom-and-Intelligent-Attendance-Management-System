@@ -117,7 +117,8 @@ def main() -> int:
     ip = args.ip or lan_ip()
     env = dict(os.environ)
     env["LOCAL_TURN_RELAY"] = "true"
-    env["LOCAL_TURN_IP"] = ip
+    if args.ip:
+        env["LOCAL_TURN_IP"] = args.ip  # otherwise the relay follows Wi-Fi changes
     print("Starting the backend (with the live-class relay) on port 8000 ...")
     backend = subprocess.Popen(
         [python, "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"],
@@ -145,7 +146,7 @@ def main() -> int:
 
         print()
         print(f"  PC app      : {app_url}")
-        print(f"  Phone (APK) : must be built for http://{ip}:8000 and on the same Wi-Fi")
+        print(f"  Phone       : same Wi-Fi; in the app's sign-in screen tap 'Server' and enter {ip}:8000")
         print(f"  Check phone : open http://{ip}:8000/health in the phone's browser")
         print("  Close this window (or press Ctrl+C) to stop Smart Class.")
         print()

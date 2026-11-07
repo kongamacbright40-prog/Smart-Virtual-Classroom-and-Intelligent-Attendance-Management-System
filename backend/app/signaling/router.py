@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from jose import jwt, JWTError
 
 from app.config import settings
@@ -21,9 +21,12 @@ RELAYED_TYPES = {"offer", "answer", "ice_candidate"}
 
 
 @router.get("/signaling/ice-servers")
-def get_ice_servers(_: Profile = Depends(get_current_user)):
+def get_ice_servers(request: Request, _: Profile = Depends(get_current_user)):
     """STUN/TURN servers the app uses for live-class audio and video."""
-    return {"ice_servers": ice.ice_servers(), "turn_configured": ice.turn_configured()}
+    return {
+        "ice_servers": ice.ice_servers(request.scope.get("server")),
+        "turn_configured": ice.turn_configured(),
+    }
 
 
 def authorize_join(token: str, class_id: int):

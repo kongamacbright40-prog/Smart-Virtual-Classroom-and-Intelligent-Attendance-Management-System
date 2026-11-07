@@ -253,7 +253,7 @@ class ClientLink:
 
 
 class TurnServer:
-    def __init__(self, public_ip: str, users: dict[str, str], realm: str = "smartclass") -> None:
+    def __init__(self, public_ip: str | None, users: dict[str, str], realm: str = "smartclass") -> None:
         self.public_ip = public_ip
         self.users = users
         self.realm = realm
@@ -359,12 +359,14 @@ class TurnServer:
             lambda: Allocation(self, link, username, lifetime), local_addr=("0.0.0.0", 0)
         )
         self.allocations[link_key] = allocation
-        log.info("Allocation %s:%s for %s", self.public_ip, allocation.relay_port, link.addr)
+        # No fixed address: the PC's current LAN address (Wi-Fi may change).
+        relay_ip = self.public_ip or lan_ip()
+        log.info("Allocation %s:%s for %s", relay_ip, allocation.relay_port, link.addr)
 
         response = Message(ALLOCATE, SUCCESS, request.transaction_id)
         response.add(
             XOR_RELAYED_ADDRESS,
-            encode_xor_address((self.public_ip, allocation.relay_port), request.transaction_id),
+            encode_xor_address((relay_ip, allocation.relay_port), request.transaction_id),
         )
         response.add(XOR_MAPPED_ADDRESS, encode_xor_address(link.addr, request.transaction_id))
         response.add(LIFETIME, struct.pack("!I", lifetime))
@@ -494,7 +496,7 @@ class Relay:
         self._tcp.close()
 
 
-async def start_relay(public_ip: str, port: int, users: dict[str, str]) -> Relay:
+async def start_relay(public_ip: str | None, port: int, users: dict[str, str]) -> Relay:
     """Starts the relay on the running event loop (raises OSError if the
     port is taken). Port 0 picks a free port (see Relay.port)."""
     server = TurnServer(public_ip, users)
@@ -506,7 +508,7 @@ async def start_relay(public_ip: str, port: int, users: dict[str, str]) -> Relay
     except OSError:
         udp.close()
         raise
-    log.info("TURN relay on %s:%s (UDP + TCP)", public_ip, port)
+    log.info("TURN relay on %s:%s (UDP + TCP)", public_ip or "LAN address", port)
     return Relay(server, udp, tcp, asyncio.ensure_future(server.expire_loop()), port)
 
 

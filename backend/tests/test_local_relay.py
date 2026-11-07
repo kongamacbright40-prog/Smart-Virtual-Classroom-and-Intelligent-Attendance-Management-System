@@ -153,3 +153,33 @@ def test_backend_starts_local_relay_and_hands_it_to_the_app(world, monkeypatch):
         reply = turn.parse_message(sock.recv(4096))
         sock.close()
         assert reply.cls == turn.ERROR and reply.get(turn.NONCE)
+
+
+def test_relay_address_follows_the_address_clients_used(monkeypatch):
+    """Phones get the Wi-Fi address they reached the backend on (it changes
+    with the network); LOCAL_TURN_IP still wins when set."""
+    from app.config import settings
+    from app.signaling import ice
+    from app.signaling.local_relay import lan_ip
+
+    monkeypatch.setattr(settings, "local_turn_ip", "")
+    assert ice.relay_host(("10.194.53.114", 8000)) == "10.194.53.114"
+    assert ice.relay_host(("127.0.0.1", 8000)) == "127.0.0.1"
+    assert ice.relay_host(("0.0.0.0", 8000)) == lan_ip()
+    assert ice.relay_host(("testserver", 80)) == lan_ip()
+    assert ice.relay_host(None) == lan_ip()
+    monkeypatch.setattr(settings, "local_turn_ip", "192.168.1.20")
+    assert ice.relay_host(("10.194.53.114", 8000)) == "192.168.1.20"
+
+    ice.use_local_relay(3478, "smartclass", "pw")
+    try:
+        monkeypatch.setattr(settings, "local_turn_ip", "")
+        relay = next(s for s in ice.ice_servers(("10.194.53.114", 8000)) if s.get("username") == "smartclass")
+        assert relay["urls"] == [
+            "turn:10.194.53.114:3478?transport=udp",
+            "turn:10.194.53.114:3478?transport=tcp",
+        ]
+        assert ice.turn_configured()
+    finally:
+        ice.clear_local_relay()
+

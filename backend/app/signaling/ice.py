@@ -7,6 +7,7 @@ server (see config.py) so it can be changed without rebuilding the app, and
 provider secrets never ship inside the app.
 """
 
+import ipaddress
 import json
 import logging
 import threading
@@ -92,13 +93,47 @@ def _provider_servers() -> list[dict]:
 
 
 def turn_configured() -> bool:
-    return bool(_split(settings.turn_urls)) or bool(
+    return bool(_split(settings.turn_urls)) or _local_relay is not None or bool(
         (settings.metered_domain and settings.metered_api_key)
         or (settings.cloudflare_turn_key_id and settings.cloudflare_turn_api_token)
     )
 
 
-def ice_servers() -> list[dict]:
+# Built-in relay (LOCAL_TURN_RELAY): (port, username, password). Its address
+# is decided per request (see relay_host), so it follows Wi-Fi changes.
+_local_relay: tuple[int, str, str] | None = None
+
+
+def use_local_relay(port: int, username: str, password: str) -> None:
+    global _local_relay
+    _local_relay = (port, username, password)
+
+
+def clear_local_relay() -> None:
+    global _local_relay
+    _local_relay = None
+
+
+def relay_host(server: tuple | None) -> str:
+    """Address a client should use for the built-in relay: the address it
+    reached this backend on (e.g. 10.0.0.5 for a phone, 127.0.0.1 for the
+    PC itself), unless LOCAL_TURN_IP is set."""
+    if settings.local_turn_ip.strip():
+        return settings.local_turn_ip.strip()
+    host = server[0] if server else None
+    try:
+        ip = ipaddress.ip_address(host)
+        if not ip.is_unspecified and ip.version == 4:
+            return str(ip)
+    except (TypeError, ValueError):
+        pass
+    from app.signaling.local_relay import lan_ip
+
+    return lan_ip()
+
+
+def ice_servers(server: tuple | None = None) -> list[dict]:
+    """[server]: the (host, port) the client connected to (ASGI scope)."""
     servers: list[dict] = []
     stun = _split(settings.stun_urls)
     if stun:
@@ -109,6 +144,14 @@ def ice_servers() -> list[dict]:
             "urls": turn,
             "username": settings.turn_username,
             "credential": settings.turn_credential,
+        })
+    if _local_relay is not None:
+        port, username, password = _local_relay
+        host = relay_host(server)
+        servers.append({
+            "urls": [f"turn:{host}:{port}?transport=udp", f"turn:{host}:{port}?transport=tcp"],
+            "username": username,
+            "credential": password,
         })
     servers.extend(_provider_servers())
     return servers

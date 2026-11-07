@@ -62,7 +62,7 @@ async def _start_local_relay():
     if ice.turn_configured():
         logger.info("A TURN server is configured; the local relay is not started.")
         return None
-    ip = settings.local_turn_ip.strip() or lan_ip()
+    ip = settings.local_turn_ip.strip() or None  # None: follow the Wi-Fi address
     port = settings.local_turn_port
     password = secrets.token_urlsafe(12)
     try:
@@ -70,10 +70,8 @@ async def _start_local_relay():
     except OSError as e:
         logger.warning("Local TURN relay not started (port %s busy?): %s", port, e)
         return None
-    settings.turn_urls = f"turn:{ip}:{relay.port}?transport=udp,turn:{ip}:{relay.port}?transport=tcp"
-    settings.turn_username = "smartclass"
-    settings.turn_credential = password
-    logger.warning("Local TURN relay for live classes running on %s:%s", ip, relay.port)
+    ice.use_local_relay(relay.port, "smartclass", password)
+    logger.warning("Local TURN relay for live classes running on %s:%s", ip or lan_ip(), relay.port)
     return relay
 
 
@@ -94,6 +92,9 @@ async def lifespan(_app: FastAPI):
     finally:
         if relay is not None:
             relay.close()
+            from app.signaling import ice
+
+            ice.clear_local_relay()
 
 
 app = FastAPI(title="Smart Virtual Classroom API", lifespan=lifespan)
