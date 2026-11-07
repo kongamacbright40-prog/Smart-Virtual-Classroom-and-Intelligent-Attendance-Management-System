@@ -66,10 +66,11 @@ if (-not $line) {{ exit 0 }}
 $id = [int]$line.Matches[0].Groups[1].Value
 $p = Get-CimInstance Win32_Process -Filter "ProcessId=$id"
 if (-not $p -or $p.CommandLine -notmatch 'python|uvicorn') {{ Write-Output "OTHER $($p.Name)"; exit 0 }}
-# uvicorn --reload runs a supervisor process: stop the topmost one.
+# uvicorn --reload runs a supervisor process: stop the topmost one (only
+# through python/uvicorn processes, never the terminal that started them).
 while ($true) {{
   $parent = Get-CimInstance Win32_Process -Filter "ProcessId=$($p.ParentProcessId)"
-  if ($parent -and $parent.CommandLine -match 'uvicorn') {{ $p = $parent }} else {{ break }}
+  if ($parent -and $parent.Name -match '^(python|pythonw|uvicorn)\.exe$' -and $parent.CommandLine -match 'uvicorn') {{ $p = $parent }} else {{ break }}
 }}
 Write-Output "STOPPED $($p.CommandLine)"
 taskkill /PID $p.ProcessId /T /F | Out-Null
